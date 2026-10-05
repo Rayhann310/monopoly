@@ -139,7 +139,9 @@
 
         .color-bar { 
             height: 28%; 
-            width: 100%; 
+            width: 100%;
+            position: relative;
+            overflow: hidden;
         }
         
         .c-white { background-color: transparent; }
