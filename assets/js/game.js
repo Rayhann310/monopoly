@@ -30,21 +30,19 @@ function getCellPosOnBoard(cellIndex, playerIndex) {
     const cell  = document.getElementById(`cell-${cellIndex}`);
     if (!board || !cell) return null;
 
-    const br = board.getBoundingClientRect();
-    const cr = cell.getBoundingClientRect();
-
     // Offset kecil agar token 4 pemain tidak tumpuk persis
     const offsets = [
-        { dx: -5, dy: -5 },
-        { dx:  5, dy: -5 },
-        { dx: -5, dy:  5 },
-        { dx:  5, dy:  5 },
+        { dx: -6, dy: -6 },
+        { dx:  6, dy: -6 },
+        { dx: -6, dy:  6 },
+        { dx:  6, dy:  6 },
     ];
     const off = offsets[playerIndex % 4] || { dx: 0, dy: 0 };
 
+    // Gunakan offsetLeft & offsetTop karena posisi dihitung relatif terhadap parent (tanpa terpengaruh CSS 3D transform)
     return {
-        left: cr.left - br.left + cr.width  / 2 - 11 + off.dx,
-        top:  cr.top  - br.top  + cr.height / 2 - 11 + off.dy,
+        left: cell.offsetLeft + cell.offsetWidth / 2 - 10 + off.dx,
+        top:  cell.offsetTop  + cell.offsetHeight / 2 - 10 + off.dy,
     };
 }
 

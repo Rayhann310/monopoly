@@ -21,13 +21,14 @@
 
         body { 
             font-family: 'Outfit', sans-serif; 
-            background-color: #0f172a;
+            background-color: #f8fafc;
             background-image: 
-                radial-gradient(circle at 50% 0%, #1e293b 0%, transparent 60%),
-                linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
-            background-size: 100% 100%, 40px 40px, 40px 40px;
-            color: white; 
+                radial-gradient(circle at 15% 50%, rgba(59, 130, 246, 0.08), transparent 30%),
+                radial-gradient(circle at 85% 30%, rgba(16, 185, 129, 0.08), transparent 30%),
+                linear-gradient(rgba(0,0,0,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0,0,0,0.03) 1px, transparent 1px);
+            background-size: 100% 100%, 100% 100%, 40px 40px, 40px 40px;
+            color: #1e293b; 
             overflow: hidden; 
             margin: 0;
             padding: 0;
