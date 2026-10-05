@@ -6,7 +6,7 @@ class Admin extends Controller {
     }
 
     private function requireLogin() {
-        session_start();
+
         if (empty($_SESSION['admin_logged_in'])) {
             header('Location: ' . BASEURL . '/admin/login');
             exit;
@@ -14,7 +14,7 @@ class Admin extends Controller {
     }
 
     public function login() {
-        session_start();
+
         if (!empty($_SESSION['admin_logged_in'])) {
             header('Location: ' . BASEURL . '/admin/dashboard'); exit;
         }
@@ -39,7 +39,7 @@ class Admin extends Controller {
     }
 
     public function logout() {
-        session_start();
+
         session_destroy();
         header('Location: ' . BASEURL . '/admin/login'); exit;
     }
