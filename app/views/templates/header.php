@@ -66,6 +66,7 @@
             gap: 3px;
             padding: 10px;
             border-radius: 20px;
+            position: relative; /* Penting: agar token absolute berada di dalam board */
             
             /* === SEMI-3D EFFECT === */
             transform: perspective(1200px) rotateX(6deg) scale(0.97);
