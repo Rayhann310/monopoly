@@ -88,11 +88,48 @@
     </div>
     
     <div class="card-slider">
-        <!-- Placeholder properties -->
-        <div class="property-card border-t-4 border-t-slate-500 flex flex-col justify-center items-center opacity-50">
-            <i class="fa-solid fa-plus text-2xl mb-2"></i>
-            <span class="text-xs font-bold">Beli Properti</span>
-        </div>
+        <?php if (empty($data['properties'])): ?>
+            <div class="property-card border-t-4 border-t-slate-500 flex flex-col justify-center items-center opacity-50">
+                <i class="fa-solid fa-city text-2xl mb-2 text-slate-500"></i>
+                <span class="text-xs font-bold text-center text-slate-500">Belum ada properti</span>
+            </div>
+        <?php else: ?>
+            <?php foreach ($data['properties'] as $prop): 
+                // Cari data board berdasarkan cell_index
+                $boardCell = null;
+                foreach ($data['board'] as $cell) {
+                    if ($cell['index'] == $prop['cell_index']) {
+                        $boardCell = $cell;
+                        break;
+                    }
+                }
+                if (!$boardCell) continue;
+                $color = $boardCell['color_group'] ?? 'slate';
+            ?>
+            <div class="property-card border-t-4 border-t-<?= $color ?>-500 flex flex-col justify-between">
+                <div>
+                    <div class="text-[0.65rem] font-bold text-slate-400 uppercase tracking-wider mb-1">Kota</div>
+                    <div class="font-black text-white text-sm leading-tight mb-2"><?= $boardCell['name'] ?></div>
+                    <div class="flex gap-1">
+                        <?php 
+                        $houses = (int)$prop['houses'];
+                        if ($houses > 0): 
+                            for ($i = 0; $i < $houses; $i++): 
+                                $isHotel = ($i === 4);
+                        ?>
+                            <i class="fa-solid <?= $isHotel ? 'fa-hotel text-red-500' : 'fa-house text-emerald-500' ?> text-xs"></i>
+                            <?php if ($isHotel) break; ?>
+                        <?php 
+                            endfor; 
+                        else:
+                        ?>
+                            <span class="text-xs text-slate-500 italic">Belum ada rumah</span>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            </div>
+            <?php endforeach; ?>
+        <?php endif; ?>
     </div>
 </div>
 
@@ -101,6 +138,7 @@
         const player = <?= json_encode($data['player']); ?>;
         const board = <?= json_encode($data['board']); ?>;
         const BASEURL = '<?= BASEURL ?>';
+        let currentPropsHash = JSON.stringify(<?= json_encode($data['properties'] ?? []) ?>);
         let hasRolled = <?= $data['player']['has_rolled'] ? 'true' : 'false' ?>;
         let isTurn = <?= $data['player']['is_turn'] ? 'true' : 'false' ?>;
 
@@ -286,6 +324,33 @@
                                 });
                             }
                         });
+                    } else if (act.type === 'upgrade') {
+                        Swal.fire({
+                            title: '<i class="fa-solid fa-arrow-up mr-1"></i> Tingkatkan Properti?',
+                            html: `Tingkatkan <b>${act.name}</b> ke level ${act.current_level + 1} seharga <b class="text-emerald-400">Rp ${parseInt(act.price).toLocaleString('id-ID')}</b>?`,
+                            icon: 'question',
+                            background: '#0f172a', color: '#f1f5f9',
+                            showCancelButton: true,
+                            confirmButtonText: '<i class="fa-solid fa-arrow-up mr-1"></i> Tingkatkan!',
+                            cancelButtonText: 'Lewati',
+                            confirmButtonColor: '#3b82f6',
+                            cancelButtonColor: '#475569',
+                        }).then(result => {
+                            if (result.isConfirmed) {
+                                fetch(BASEURL + '/player/apiBuy', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                                    body: `player_id=${player.id}&cell_index=${res.position}`
+                                }).then(r => r.json()).then(buyRes => {
+                                    if (buyRes.status === 'success') {
+                                        if (moneyEl) moneyEl.textContent = 'Rp ' + parseInt(buyRes.money).toLocaleString('id-ID');
+                                        showModal('<i class="fa-solid fa-check mr-1"></i> Berhasil!', buyRes.msg, 'success', '#3b82f6');
+                                    } else {
+                                        showModal('Gagal', buyRes.msg, 'error', '#ef4444');
+                                    }
+                                });
+                            }
+                        });
                     } else if (act.type === 'rent') {
                         showModal('<i class="fa-solid fa-money-bill-wave mr-1"></i> Bayar Sewa!', act.msg, 'warning', '#f97316');
                     } else if (act.type === 'tax') {
@@ -359,6 +424,16 @@
                     // Update uang
                     const moneyEl = document.querySelector('.font-mono');
                     if (moneyEl) moneyEl.textContent = 'Rp ' + parseInt(status.money).toLocaleString('id-ID');
+
+                    // Check if properties changed (bought new property or upgraded house)
+                    if (status.properties) {
+                        const newHash = JSON.stringify(status.properties);
+                        if (newHash !== currentPropsHash) {
+                            // Properties changed! Reload page to render new properties
+                            location.reload();
+                            return;
+                        }
+                    }
 
                     if (!wasMyTurn && isTurn) {
                         // Giliran baru dimulai!

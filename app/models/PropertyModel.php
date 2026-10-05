@@ -21,6 +21,14 @@ class PropertyModel {
         return $this->db->execute();
     }
 
+    public function upgradeProperty($sessionId, $ownerId, $cellIndex) {
+        $this->db->query('UPDATE properties SET houses = houses + 1 WHERE session_id = :sid AND owner_id = :oid AND cell_index = :ci');
+        $this->db->bind('sid', $sessionId);
+        $this->db->bind('oid', $ownerId);
+        $this->db->bind('ci', $cellIndex);
+        return $this->db->execute();
+    }
+
     public function getPlayerProperties($sessionId, $playerId) {
         $this->db->query('SELECT * FROM properties WHERE session_id = :sid AND owner_id = :pid');
         $this->db->bind('sid', $sessionId);

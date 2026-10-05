@@ -22,8 +22,28 @@ class Home extends Controller {
         $data['session'] = $session;
         $data['is_host'] = $isHost;
         $data['host_token'] = $hostToken;
-        $data['board'] = $this->model('BoardModel')->getBoard();
+        $board = $this->model('BoardModel')->getBoard();
         $data['players'] = $this->model('PlayerModel')->getPlayersBySession($sessionId);
+        
+        $settingsModel = $this->model('SettingsModel');
+        $nameDanaUmum = $settingsModel->get('name_dana_umum', 'DANA UMUM');
+        $nameKesempatan = $settingsModel->get('name_kesempatan', 'KESEMPATAN');
+
+        // Apply custom names to the board cells
+        foreach ($board as &$cell) {
+            if ($cell['type'] === 'community_chest') {
+                $cell['name'] = $nameDanaUmum;
+            } else if ($cell['type'] === 'chance') {
+                $cell['name'] = $nameKesempatan;
+            }
+        }
+        $data['board'] = $board;
+
+        $data['settings'] = [
+            'name_dana_umum'  => $nameDanaUmum,
+            'name_kesempatan' => $nameKesempatan,
+            'max_property_level' => $settingsModel->get('max_property_level', '4')
+        ];
 
         $this->view('templates/header', $data);
         $this->view('home/index', $data);
@@ -33,7 +53,14 @@ class Home extends Controller {
     public function apiStatus($sessionId = null) {
         header('Content-Type: application/json');
         if (!$sessionId) { echo json_encode([]); return; }
-        echo json_encode(array_values($this->model('PlayerModel')->getPlayersBySession($sessionId)));
+        $players = array_values($this->model('PlayerModel')->getPlayersBySession($sessionId));
+        
+        $db = new Database();
+        $db->query('SELECT p.*, pl.color as owner_color FROM properties p JOIN players pl ON p.owner_id = pl.id WHERE p.session_id = :sid');
+        $db->bind('sid', $sessionId);
+        $properties = $db->resultSet();
+
+        echo json_encode(['players' => $players, 'properties' => $properties]);
     }
 
     public function apiAdjustMoney() {

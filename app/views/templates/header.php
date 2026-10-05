@@ -54,58 +54,43 @@
             height: 100%;
         }
         
-        /* The Board - Premium Semi-3D */
+        /* The Board - Flat 2D */
         .monopoly-board {
             display: grid;
             grid-template-columns: repeat(11, 1fr);
             grid-template-rows: repeat(11, 1fr);
             
-            width: 88vmin;
-            height: 88vmin;
-            max-width: 880px;
-            max-height: 880px;
+            width: 95vmin;
+            height: 95vmin;
+            max-width: 950px;
+            max-height: 950px;
             
             background: #cbd5e1; /* Darker gap for better contrast */
             gap: 2px;
             padding: 12px;
-            border-radius: 24px;
+            border-radius: 12px;
             position: relative;
-            
-            /* === SEMI-3D EFFECT === */
-            transform: perspective(1200px) rotateX(6deg) scale(0.97);
-            transform-origin: center center;
-            transform-style: preserve-3d;
             
             border: 2px solid rgba(255,255,255,0.6);
             box-shadow: 
-                0 -4px 0 rgba(255,255,255,0.2),
-                0 40px 60px -10px rgba(0,0,0,0.9),
-                0 20px 30px -5px rgba(0,0,0,0.6),
-                inset 0 4px 10px rgba(0,0,0,0.1);
-            
-            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+                0 20px 40px -10px rgba(0,0,0,0.8),
+                0 10px 20px -5px rgba(0,0,0,0.6);
         }
 
-        .monopoly-board:hover {
-            transform: perspective(1200px) rotateX(2deg) scale(0.99);
-        }
-
-        /* Cells - 3D depth style */
+        /* Cells */
         .cell { 
             position: relative; 
             background-color: #ffffff;
-            border-radius: 5px;
-            box-shadow: 
-                0 2px 4px rgba(0,0,0,0.06),
-                inset 0 0 0 1px rgba(0,0,0,0.04);
+            border-radius: 4px;
+            box-shadow: inset 0 0 0 1px rgba(0,0,0,0.04);
             transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
             overflow: hidden;
         }
 
         .cell:hover {
-            transform: translateZ(8px) scale(1.12);
+            transform: scale(1.08);
             box-shadow: 
-                0 12px 24px -4px rgba(0,0,0,0.4),
+                0 8px 20px rgba(0,0,0,0.4),
                 inset 0 0 0 2px rgba(16, 185, 129, 0.5);
             z-index: 20;
         }
@@ -121,7 +106,7 @@
             gap: 2px;
         }
         .cell-corner .name { 
-            font-size: clamp(0.35rem, 1.1vmin, 0.65rem);
+            font-size: clamp(0.45rem, 1.35vmin, 0.75rem);
             font-weight: 900;
             text-align: center;
             color: #0f172a;
@@ -182,13 +167,13 @@
             writing-mode: vertical-rl;
             transform: rotate(180deg);
             text-align: center;
-            font-size: clamp(0.3rem, 0.95vmin, 0.62rem);
+            font-size: clamp(0.38rem, 1.15vmin, 0.75rem);
         }
         .cell-left .price {
             order: 0;
             writing-mode: vertical-rl;
             transform: rotate(180deg);
-            font-size: clamp(0.28rem, 0.85vmin, 0.55rem);
+            font-size: clamp(0.35rem, 1.05vmin, 0.65rem);
             padding: 3px 0;
         }
 
@@ -212,12 +197,12 @@
             order: 1;
             writing-mode: vertical-rl;
             text-align: center;
-            font-size: clamp(0.3rem, 0.95vmin, 0.62rem);
+            font-size: clamp(0.38rem, 1.15vmin, 0.75rem);
         }
         .cell-right .price {
             order: 2;
             writing-mode: vertical-rl;
-            font-size: clamp(0.28rem, 0.85vmin, 0.55rem);
+            font-size: clamp(0.35rem, 1.05vmin, 0.65rem);
             padding: 3px 0;
         }
 
@@ -230,7 +215,7 @@
         }
 
         .name { 
-            font-size: clamp(0.35rem, 1.05vmin, 0.66rem); 
+            font-size: clamp(0.42rem, 1.25vmin, 0.78rem); 
             font-weight: 800; 
             padding: 2px 2px;
             color: #0f172a; 
@@ -243,7 +228,7 @@
         }
         
         .price { 
-            font-size: clamp(0.3rem, 0.9vmin, 0.58rem); 
+            font-size: clamp(0.38rem, 1.1vmin, 0.7rem); 
             color: #64748b;
             font-weight: 700; 
             padding: 0 2px 3px;

@@ -7,6 +7,8 @@ class Player extends Controller {
         $data['board'] = $this->model('BoardModel')->getBoard();
 
         if (!$data['player']) { die("Pemain tidak ditemukan!"); }
+        
+        $data['properties'] = $this->model('PropertyModel')->getPlayerProperties($data['player']['session_id'], $id);
 
         $this->view('templates/header_player', $data);
         $this->view('player/index', $data);
@@ -46,6 +48,8 @@ class Player extends Controller {
         $passGoBonus = (int)$settings->get('pass_go_bonus', 2000);
         $taxAmount   = (int)$settings->get('tax_amount',   2000);
         $luxuryTax   = (int)$settings->get('luxury_tax',   7500);
+        $maxPropLevel = (int)$settings->get('max_property_level', 4);
+        $housePrice   = (int)$settings->get('house_price', 150);
 
         $newMoney = (int)$player['money'];
         $action   = ['type' => 'move', 'position' => $newPos];
@@ -107,8 +111,16 @@ class Player extends Controller {
                         $action['name']  = $cell['name'];
                         $action['msg']   = "Beli {$cell['name']} seharga Rp " . number_format($cell['price'], 0, ',', '.');
                     } elseif ($owner['owner_id'] == $id) {
-                        $action['type'] = 'own';
-                        $action['msg']  = "Ini propertimu sendiri.";
+                        if ($cell['type'] === 'property' && (int)$owner['houses'] < $maxPropLevel) {
+                            $action['type']  = 'upgrade';
+                            $action['price'] = $housePrice;
+                            $action['name']  = $cell['name'];
+                            $action['current_level'] = (int)$owner['houses'];
+                            $action['msg']   = "Tingkatkan {$cell['name']} seharga Rp " . number_format($housePrice, 0, ',', '.');
+                        } else {
+                            $action['type'] = 'own';
+                            $action['msg']  = "Ini propertimu sendiri" . ($cell['type'] === 'property' && (int)$owner['houses'] == $maxPropLevel ? " (Level Maksimal)" : "") . ".";
+                        }
                     } else {
                         // Pay rent
                         $rent = $this->calcRent($cell, $owner, $sessionId, $dice);
@@ -150,7 +162,17 @@ class Player extends Controller {
 
         switch ($type) {
             case 'money':
-                $newMoney += $value;
+                if (stripos($card['text'], 'per rumah') !== false) {
+                    // Hitung total rumah
+                    $props = $this->model('PropertyModel')->getPlayerProperties($player['session_id'], $player['id']);
+                    $totalHouses = 0;
+                    foreach ($props as $p) {
+                        $totalHouses += (int)$p['houses'];
+                    }
+                    $newMoney += ($value * $totalHouses); // value is negative
+                } else {
+                    $newMoney += $value;
+                }
                 break;
             case 'move':
                 $newPos = $value >= 0 ? $value : max(0, ($currentPos + $value + 40) % 40);
@@ -219,8 +241,26 @@ class Player extends Controller {
         }
 
         $existing = $this->model('PropertyModel')->getOwner($sessionId, $cellIndex);
+        $settings = $this->model('SettingsModel');
+        $housePrice = (int)$settings->get('house_price', 150);
+        $maxPropLevel = (int)$settings->get('max_property_level', 4);
+
         if ($existing) {
-            echo json_encode(['status' => 'error', 'msg' => 'Properti sudah dimiliki']); return;
+            if ($existing['owner_id'] == $playerId && $cell['type'] === 'property') {
+                if ((int)$existing['houses'] >= $maxPropLevel) {
+                    echo json_encode(['status' => 'error', 'msg' => 'Properti sudah level maksimal']); return;
+                }
+                if ((int)$player['money'] < $housePrice) {
+                    echo json_encode(['status' => 'error', 'msg' => 'Uang tidak cukup untuk upgrade']); return;
+                }
+                $newMoney = (int)$player['money'] - $housePrice;
+                $this->model('PlayerModel')->updateMoney($playerId, $newMoney);
+                $this->model('PropertyModel')->upgradeProperty($sessionId, $playerId, $cellIndex);
+                echo json_encode(['status' => 'success', 'money' => $newMoney, 'msg' => "Berhasil tingkatkan {$cell['name']}!"]);
+                return;
+            } else {
+                echo json_encode(['status' => 'error', 'msg' => 'Properti sudah dimiliki']); return;
+            }
         }
 
         $price = (int)$cell['price'];
@@ -250,11 +290,16 @@ class Player extends Controller {
         header('Content-Type: application/json');
         if (!$id) { echo json_encode(['status' => 'error']); return; }
         $player = $this->model('PlayerModel')->getPlayerById($id);
+        
+        // Fetch properties
+        $properties = $this->model('PropertyModel')->getPlayerProperties($player['session_id'], $id);
+
         echo json_encode([
             'is_turn'    => (bool)$player['is_turn'],
             'has_rolled' => (bool)$player['has_rolled'],
             'position'   => (int)$player['position'],
-            'money'      => (int)$player['money']
+            'money'      => (int)$player['money'],
+            'properties' => $properties
         ]);
     }
 }

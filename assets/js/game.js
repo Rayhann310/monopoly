@@ -312,7 +312,8 @@ setInterval(() => {
     if (!sessionId) return;
     fetch(BASEURL + '/home/apiStatus/' + sessionId)
         .then(r => r.json())
-        .then(serverPlayers => {
+        .then(serverData => {
+            const serverPlayers = serverData.players;
             if (!Array.isArray(serverPlayers)) return;
             serverPlayers.forEach(sp => {
                 const lp = players.find(p => p.id == sp.id);
@@ -336,11 +337,45 @@ setInterval(() => {
                 lp.is_turn = parseInt(sp.is_turn) === 1;
             });
 
+            if (serverData.properties) {
+                renderProperties(serverData.properties);
+            }
+
             updateBankModal();
             updateCenterInfo();
         })
         .catch(() => {});
 }, POLLING_MS);
+
+function renderProperties(properties) {
+    // Bersihkan ownership lama
+    document.querySelectorAll('.owner-bar, .house-container').forEach(el => el.remove());
+    
+    properties.forEach(prop => {
+        const cell = document.getElementById(`cell-${prop.cell_index}`);
+        if (!cell) return;
+        
+        // Bar kepemilikan
+        const ownerBar = document.createElement('div');
+        ownerBar.className = `owner-bar bg-${prop.owner_color}-500 absolute left-0 right-0 h-2 bottom-0 z-30 opacity-80`;
+        cell.appendChild(ownerBar);
+        
+        // Tampilkan rumah (houses)
+        if (parseInt(prop.houses) > 0) {
+            const houseContainer = document.createElement('div');
+            houseContainer.className = 'house-container flex absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 gap-1 z-20';
+            for (let i = 0; i < parseInt(prop.houses); i++) {
+                const isHotel = i === 4; // Misalnya house ke-5 jadi hotel
+                const icon = isHotel ? 'fa-hotel' : 'fa-house';
+                const color = isHotel ? 'text-red-500' : 'text-emerald-500';
+                const size = isHotel ? 'text-lg' : 'text-sm';
+                houseContainer.innerHTML += `<i class="fa-solid ${icon} ${color} ${size} drop-shadow-md"></i>`;
+                if (isHotel) break; // Jika hotel, 1 icon aja
+            }
+            cell.appendChild(houseContainer);
+        }
+    });
+}
 
 // ============================================================
 // INIT

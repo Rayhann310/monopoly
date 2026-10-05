@@ -15,11 +15,16 @@
                                 class="w-5 h-5 accent-blue-500">
                             <span class="text-white font-bold"><?= $s['setting_value'] ? 'Aktif' : 'Nonaktif' ?></span>
                         </div>
+                        <?php elseif ($s['type'] === 'text'): ?>
+                        <input type="text" name="settings[<?= $key ?>]" value="<?= htmlspecialchars($s['setting_value']) ?>"
+                            class="w-full bg-slate-800 border border-white/10 rounded-xl px-4 py-3 text-white font-bold text-lg focus:outline-none focus:border-blue-500 transition">
                         <?php else: ?>
                         <div class="relative">
+                            <?php if(strpos($s['label'], '(Rp)') !== false): ?>
                             <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 font-bold">Rp</span>
+                            <?php endif; ?>
                             <input type="number" name="settings[<?= $key ?>]" value="<?= htmlspecialchars($s['setting_value']) ?>" min="0"
-                                class="w-full bg-slate-800 border border-white/10 rounded-xl pl-12 pr-4 py-3 text-white font-black text-xl focus:outline-none focus:border-blue-500 transition">
+                                class="w-full bg-slate-800 border border-white/10 rounded-xl <?= strpos($s['label'], '(Rp)') !== false ? 'pl-12' : 'px-4' ?> pr-4 py-3 text-white font-black text-xl focus:outline-none focus:border-blue-500 transition">
                         </div>
                         <?php endif; ?>
                     </div>

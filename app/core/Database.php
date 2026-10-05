@@ -52,6 +52,10 @@ class Database {
             ['luxury_tax',      '7500',  'Jumlah Pajak Mewah (Rp)', 'number'],
             ['max_players',     '4',     'Maksimal Pemain per Sesi', 'number'],
             ['allow_trade',     '1',     'Izinkan Tukar Properti antar Pemain', 'boolean'],
+            ['name_dana_umum',  'DANA UMUM', 'Nama Kartu Dana Umum', 'text'],
+            ['name_kesempatan', 'KESEMPATAN', 'Nama Kartu Kesempatan', 'text'],
+            ['max_property_level', '4',   'Maksimal Tingkat Properti (Rumah/Hotel)', 'number'],
+            ['house_price',     '150',   'Harga Beli Rumah/Tingkat Baru (Rp)', 'number']
         ];
         foreach ($defaults as $d) {
             $this->dbh->exec("INSERT IGNORE INTO game_settings (setting_key, setting_value, label, type) VALUES ('{$d[0]}','{$d[1]}','{$d[2]}','{$d[3]}')");
