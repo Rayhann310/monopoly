@@ -265,6 +265,9 @@
             <i class="fa-solid fa-rotate-left"></i> Reset
         </a>
         <?php endif; ?>
+        <button onclick="refreshPage(this)" class="px-4 py-2 bg-white/10 hover:bg-white/20 border border-white/20 rounded-lg text-white font-bold transition flex items-center gap-2" title="Refresh Halaman">
+            <i id="refresh-icon" class="fa-solid fa-arrows-rotate"></i>
+        </button>
         <button id="fullscreen-btn" onclick="toggleFullscreen()" class="px-4 py-2 bg-white/10 hover:bg-white/20 border border-white/20 rounded-lg text-white font-bold transition flex items-center gap-2" title="Fullscreen">
             <i id="fs-icon" class="fa-solid fa-expand"></i>
         </button>
@@ -278,6 +281,16 @@
 </nav>
 
 <script>
+function refreshPage(btn) {
+    const icon = document.getElementById('refresh-icon');
+    if (icon) {
+        icon.style.transition = 'transform 0.6s ease';
+        icon.style.transform = 'rotate(360deg)';
+    }
+    if (btn) btn.disabled = true;
+    setTimeout(() => { window.location.reload(); }, 500);
+}
+
 function toggleFullscreen() {
     const icon = document.getElementById('fs-icon');
     if (!document.fullscreenElement) {

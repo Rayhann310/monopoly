@@ -237,19 +237,21 @@ setInterval(() => {
                 const serverTurn = parseInt(sp.is_turn) === 1;
                 const oldPos     = lp.position;
 
-                // If position changed and not already animating → animate step-by-step
+                // Hanya animasikan jika posisi berubah DAN tidak sedang animasi
                 if (serverPos !== oldPos && !animating[lp.id]) {
-                    animateTokenStepByStep(lp, oldPos, serverPos, 260);
+                    animateTokenStepByStep(lp, oldPos, serverPos, 280);
                 }
 
+                // Update data lokal TANPA mereset posisi (posisi di-handle oleh animasi)
                 lp.money   = parseInt(sp.money);
                 lp.is_turn = serverTurn;
             });
 
+            // Jangan panggil placeTokens() di sini! Biarkan animasi yang handle.
             updateBankModal();
             updateCenterInfo();
         })
-        .catch(() => {}); // silent fail
+        .catch(() => {});
 }, POLLING_MS);
 
 // ---- Init ----
