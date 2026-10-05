@@ -97,8 +97,8 @@
             <?php foreach ($data['properties'] as $prop): 
                 // Cari data board berdasarkan cell_index
                 $boardCell = null;
-                foreach ($data['board'] as $cell) {
-                    if ($cell['index'] == $prop['cell_index']) {
+                foreach ($data['board'] as $idx => $cell) {
+                    if ($idx == $prop['cell_index']) {
                         $boardCell = $cell;
                         break;
                     }
