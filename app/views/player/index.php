@@ -140,19 +140,34 @@
             const btn = this;
             const d1el = document.getElementById('mobile-die1');
             const d2el = document.getElementById('mobile-die2');
+            const icons = ['','fa-dice-one','fa-dice-two','fa-dice-three','fa-dice-four','fa-dice-five','fa-dice-six'];
+            
             d1el.classList.add('shake');
             d2el.classList.add('shake');
 
+            // Animasi putaran dadu acak cepat
+            let rollInterval = setInterval(() => {
+                const r1 = Math.floor(Math.random() * 6) + 1;
+                const r2 = Math.floor(Math.random() * 6) + 1;
+                d1el.className = `fa-solid ${icons[r1]} text-6xl text-slate-400 opacity-80`;
+                d2el.className = `fa-solid ${icons[r2]} text-6xl text-slate-400 opacity-80`;
+            }, 60);
+
             setTimeout(() => {
+                clearInterval(rollInterval);
                 d1el.classList.remove('shake');
                 d2el.classList.remove('shake');
 
                 const v1 = Math.floor(Math.random() * 6) + 1;
                 const v2 = Math.floor(Math.random() * 6) + 1;
                 const total = v1 + v2;
-                const icons = ['','fa-dice-one','fa-dice-two','fa-dice-three','fa-dice-four','fa-dice-five','fa-dice-six'];
-                d1el.className = `fa-solid ${icons[v1]} text-6xl text-${player.color}-500 drop-shadow-[0_0_15px_rgba(255,255,255,0.2)]`;
-                d2el.className = `fa-solid ${icons[v2]} text-6xl text-${player.color}-500 drop-shadow-[0_0_15px_rgba(255,255,255,0.2)]`;
+                d1el.className = `fa-solid ${icons[v1]} text-6xl text-${player.color}-500 drop-shadow-[0_0_15px_rgba(255,255,255,0.4)] transform scale-110 transition-transform`;
+                d2el.className = `fa-solid ${icons[v2]} text-6xl text-${player.color}-500 drop-shadow-[0_0_15px_rgba(255,255,255,0.4)] transform scale-110 transition-transform`;
+                
+                setTimeout(() => {
+                    d1el.classList.remove('scale-110');
+                    d2el.classList.remove('scale-110');
+                }, 200);
 
                 player.position = (parseInt(player.position) + total) % 40;
                 const landedCell = board[player.position];
