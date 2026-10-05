@@ -490,8 +490,10 @@
                     if (!wasMyTurn && isTurn) {
                         // Giliran baru dimulai!
                         hasRolled = false;
+                        isRolling = false;
                         rollBtn.disabled = false;
                         rollBtn.classList.remove('opacity-30');
+                        rollBtn.style.pointerEvents = 'auto'; // KEMBALIKAN POINTER EVENTS
                         endTurnBtn.classList.add('hidden');
                         showModal('<i class="fa-solid fa-dice mr-1"></i> Giliran Kamu!', 'Sekarang giliranmu! Lempar dadu.', 'success', '#22c55e');
                     }
