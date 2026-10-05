@@ -179,8 +179,13 @@
                 }).then(r => r.json()).then(res => {
                     if (res.status === 'success') {
                         hasRolled = true;
-                        // Tampilkan tombol Selesai Giliran
+                        // Tampilkan tombol Selesai Giliran & scroll agar terlihat
                         endTurnBtn.classList.remove('hidden');
+                        endTurnBtn.disabled = false;
+                        endTurnBtn.innerHTML = '<i class="fa-solid fa-flag-checkered mr-2"></i>Selesai Giliran';
+                        setTimeout(() => {
+                            endTurnBtn.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }, 300);
                     } else if (res.msg) {
                         showModal('<i class="fa-solid fa-triangle-exclamation mr-1"></i> ' + res.msg, '', 'warning', '#f59e0b');
                         btn.disabled = false;
@@ -192,20 +197,39 @@
 
         // Selesai Giliran
         endTurnBtn.addEventListener('click', function() {
-            this.disabled = true;
+            const btn = endTurnBtn; // Simpan referensi — jangan pakai 'this' di dalam .then()
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i>Memproses...';
+
             fetch(BASEURL + '/player/apiEndTurn', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 body: `id=${player.id}`
-            }).then(r => r.json()).then(res => {
+            })
+            .then(r => r.json())
+            .then(res => {
                 if (res.status === 'success') {
-                    showModal('<i class="fa-solid fa-check mr-1"></i> Giliran Selesai!', 'Menunggu giliran berikutnya...', 'info', '#3b82f6');
-                    endTurnBtn.classList.add('hidden');
+                    btn.innerHTML = '<i class="fa-solid fa-check mr-2"></i>Selesai!';
+                    hasRolled = false;
                     isTurn = false;
-                    // Polling akan update status
+                    showModal('<i class="fa-solid fa-check mr-1"></i> Giliran Selesai!', 'Menunggu giliran berikutnya...', 'info', '#3b82f6');
+                    setTimeout(() => {
+                        btn.classList.add('hidden');
+                        btn.disabled = false;
+                        btn.innerHTML = '<i class="fa-solid fa-flag-checkered mr-2"></i>Selesai Giliran';
+                    }, 1200);
                 } else {
-                    this.disabled = false;
+                    // Gagal — kembalikan tombol
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fa-solid fa-flag-checkered mr-2"></i>Selesai Giliran';
+                    showModal('<i class="fa-solid fa-triangle-exclamation mr-1"></i> Gagal', res.msg || 'Coba lagi.', 'warning', '#f59e0b');
                 }
+            })
+            .catch(() => {
+                // Network error — selalu kembalikan tombol
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-flag-checkered mr-2"></i>Selesai Giliran';
+                showModal('<i class="fa-solid fa-wifi mr-1"></i> Koneksi Error', 'Periksa jaringan lalu coba lagi.', 'error', '#ef4444');
             });
         });
 
