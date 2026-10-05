@@ -218,14 +218,25 @@
 <nav id="main-nav" class="absolute top-0 left-0 w-full h-[60px] px-6 pr-16 flex justify-between items-center z-50 bg-black/40 backdrop-blur-md border-b border-white/10 shadow-lg transition-transform duration-500">
     <div class="text-white font-black text-xl tracking-widest flex items-center gap-3">
         <i class="fa-solid fa-city text-red-500"></i> MONOPOLY
+        <?php if (!empty($data['session'])): ?>
+        <span class="text-slate-500 font-normal text-base">— <?= htmlspecialchars($data['session']['name']) ?></span>
+        <?php if (!empty($data['is_host'])): ?>
+        <span class="text-xs bg-amber-500/20 text-amber-400 border border-amber-500/30 px-2 py-1 rounded-lg font-bold">👑 HOST</span>
+        <?php endif; ?>
+        <?php endif; ?>
     </div>
     <div class="flex gap-3">
         <a href="<?= BASEURL ?>/setup" class="px-4 py-2 bg-white/10 hover:bg-white/20 border border-white/20 rounded-lg text-white font-bold transition flex items-center gap-2">
             <i class="fa-solid fa-arrow-left"></i> Lobby
         </a>
+        <?php if (!empty($data['is_host'])): ?>
+        <a href="<?= BASEURL ?>/admin/stopSession/<?= $data['session']['id'] ?>" onclick="return confirm('Hentikan permainan sesi ini?')" class="px-4 py-2 bg-orange-500/20 hover:bg-orange-500/40 border border-orange-500/50 rounded-lg text-orange-400 font-bold transition flex items-center gap-2">
+            <i class="fa-solid fa-stop"></i> Stop
+        </a>
         <a href="<?= BASEURL ?>/home/apiReset/<?= $data['session']['id'] ?? '' ?>" onclick="return confirm('Reset semua posisi & uang pemain?')" class="px-4 py-2 bg-red-500/20 hover:bg-red-500/40 border border-red-500/50 rounded-lg text-red-400 font-bold transition flex items-center gap-2">
             <i class="fa-solid fa-rotate-left"></i> Reset
         </a>
+        <?php endif; ?>
         <button onclick="document.getElementById('bank-modal').classList.remove('hidden'); document.getElementById('bank-modal').classList.add('flex');" class="px-4 py-2 bg-emerald-500/20 hover:bg-emerald-500/40 border border-emerald-500/50 rounded-lg text-emerald-400 font-bold transition flex items-center gap-2">
             <i class="fa-solid fa-building-columns"></i> Bank
         </button>

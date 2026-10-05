@@ -10,12 +10,18 @@ class Home extends Controller {
 
     public function game($sessionId = null) {
         if (!$sessionId) { header('Location: ' . BASEURL . '/setup'); exit; }
-        
+
         $session = $this->model('SessionModel')->getSessionById($sessionId);
         if (!$session) { header('Location: ' . BASEURL . '/setup'); exit; }
 
+        // Deteksi apakah user adalah host
+        $hostToken = $_GET['host'] ?? '';
+        $isHost = ($hostToken !== '' && $hostToken === $session['host_token']);
+
         $data['judul'] = 'Monopoly - ' . htmlspecialchars($session['name']);
         $data['session'] = $session;
+        $data['is_host'] = $isHost;
+        $data['host_token'] = $hostToken;
         $data['board'] = $this->model('BoardModel')->getBoard();
         $data['players'] = $this->model('PlayerModel')->getPlayersBySession($sessionId);
 

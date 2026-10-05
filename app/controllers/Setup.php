@@ -19,10 +19,12 @@ class Setup extends Controller {
         $numPlayers = min(4, max(2, (int)($_POST['num_players'] ?? 4)));
         $colors = ['red', 'blue', 'green', 'yellow'];
 
-        // Buat sesi
+        // Buat sesi dengan host_token unik
+        $hostToken = bin2hex(random_bytes(16));
         $db = new Database;
-        $db->query("INSERT INTO sessions (name, status) VALUES (:name, 'waiting')");
+        $db->query("INSERT INTO sessions (name, status, host_token) VALUES (:name, 'waiting', :token)");
         $db->bind('name', $name);
+        $db->bind('token', $hostToken);
         $db->execute();
         $sessionId = $db->lastInsertId();
 
@@ -42,7 +44,7 @@ class Setup extends Controller {
         $db->bind('id', $sessionId);
         $db->execute();
 
-        header('Location: ' . BASEURL . '/home/game/' . $sessionId);
+        header('Location: ' . BASEURL . '/home/game/' . $sessionId . '?host=' . $hostToken);
         exit;
     }
 
