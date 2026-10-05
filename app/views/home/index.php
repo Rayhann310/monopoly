@@ -122,4 +122,4 @@
     const BASEURL = '<?= BASEURL ?>';
     const POLLING_INTERVAL = <?= POLLING_INTERVAL ?>;
 </script>
-<script src="<?= BASEURL ?>/assets/js/game.js"></script>
+<script src="<?= BASEURL ?>/assets/js/game.js?v=<?= time() ?>"></script>
