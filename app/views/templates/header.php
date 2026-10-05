@@ -188,18 +188,12 @@
         }
 
         .center-content-wrapper {
-            background: #ffffff;
-            padding: 4vmin 6vmin;
-            border-radius: 32px;
-            box-shadow: 
-                0 20px 40px -10px rgba(0,0,0,0.1),
-                0 0 0 1px rgba(0,0,0,0.03),
-                inset 0 0 20px rgba(255,255,255,0.8);
             display: flex;
             flex-direction: column;
             align-items: center;
             text-align: center;
             transform: translateZ(5px);
+            z-index: 20;
         }
 
         .title-text { 
