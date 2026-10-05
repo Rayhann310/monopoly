@@ -6,8 +6,6 @@
 // Tampilkan error saat booting awal (mencegah blank screen jika ada error parah)
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
-echo "<!-- BOOTING MONOPOLY -->";
-
 // 1. Load Composer autoload & phpdotenv JIKA ADA
 if (file_exists(__DIR__ . '/vendor/autoload.php')) {
     require_once __DIR__ . '/vendor/autoload.php';
