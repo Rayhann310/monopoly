@@ -141,6 +141,8 @@
         let currentPropsHash = JSON.stringify(<?= json_encode($data['properties'] ?? []) ?>);
         let hasRolled = <?= $data['player']['has_rolled'] ? 'true' : 'false' ?>;
         let isTurn = <?= $data['player']['is_turn'] ? 'true' : 'false' ?>;
+        let lastShownCardText = null;
+        let isRolling = false; // Guard against double-click/race condition
 
         const rollBtn = document.getElementById('mobile-roll-btn');
         const endTurnBtn = document.getElementById('end-turn-btn');
@@ -173,8 +175,10 @@
 
         // Roll Dadu
         rollBtn.addEventListener('click', function() {
-            if (this.disabled) return;
+            if (this.disabled || isRolling || hasRolled) return;
+            isRolling = true;
             this.disabled = true;
+            this.style.pointerEvents = 'none';
             const btn = this;
             const d1el = document.getElementById('mobile-die1');
             const d2el = document.getElementById('mobile-die2');
@@ -250,7 +254,7 @@
                     </div>
                     `;
                     
-                    Swal.fire({
+                    const swalPromise = Swal.fire({
                         html: html,
                         background: 'transparent',
                         showConfirmButton: true,
@@ -265,6 +269,8 @@
                             card.classList.add('is-flipped');
                         }
                     }, 1200);
+
+                    return swalPromise;
                 }
 
                 // Kirim ke server — server yang handle semua logika
@@ -276,10 +282,14 @@
                     if (res.status !== 'success') {
                         showModal('<i class="fa-solid fa-triangle-exclamation mr-1"></i> ' + (res.msg || 'Error'), '', 'warning', '#f59e0b');
                         btn.disabled = false;
+                        btn.style.pointerEvents = '';
+                        isRolling = false;
                         return;
                     }
 
                     hasRolled = true;
+                    isRolling = false;
+                    btn.classList.add('opacity-30');
                     const act = res.action || {};
 
                     // Update local position from server (e.g. jail redirect)
@@ -296,12 +306,20 @@
                             isKesempatan ? 'Kesempatan' : 'Dana Umum',
                             act.card_text || 'Baca kartu fisikmu.',
                             act.card_image || null
-                        );
+                        ).then(() => {
+                            fetch(BASEURL + '/player/apiClearCard', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                                body: `player_id=${player.id}`
+                            });
+                        });
                     } else if (act.type === 'buy') {
+                        const imgHtml = act.image 
+                            ? `<img src="${BASEURL}/${act.image}" style="width:100%;height:120px;object-fit:cover;border-radius:12px;margin-bottom:10px">`
+                            : `<div style="height:80px;display:flex;align-items:center;justify-content:center;background:#1e293b;border-radius:12px;margin-bottom:10px"><i class="fa-solid fa-building" style="font-size:2.5rem;color:#475569"></i></div>`;
                         Swal.fire({
-                            title: '<i class="fa-solid fa-building mr-1"></i> Beli Properti?',
-                            html: `Beli <b>${act.name}</b> seharga <b class="text-emerald-400">Rp ${parseInt(act.price).toLocaleString('id-ID')}</b>?`,
-                            icon: 'question',
+                            title: `<i class="fa-solid fa-building mr-1"></i> Beli Properti?`,
+                            html: `${imgHtml}<b>${act.name}</b><br><span style="font-size:1.3rem;font-weight:900;color:#10b981">Rp ${parseInt(act.price).toLocaleString('id-ID')}</span>`,
                             background: '#0f172a', color: '#f1f5f9',
                             showCancelButton: true,
                             confirmButtonText: '<i class="fa-solid fa-handshake mr-1"></i> Beli!',
@@ -325,10 +343,12 @@
                             }
                         });
                     } else if (act.type === 'upgrade') {
+                        const imgHtml = act.image
+                            ? `<img src="${BASEURL}/${act.image}" style="width:100%;height:100px;object-fit:cover;border-radius:12px;margin-bottom:10px">`
+                            : '';
                         Swal.fire({
-                            title: '<i class="fa-solid fa-arrow-up mr-1"></i> Tingkatkan Properti?',
-                            html: `Tingkatkan <b>${act.name}</b> ke level ${act.current_level + 1} seharga <b class="text-emerald-400">Rp ${parseInt(act.price).toLocaleString('id-ID')}</b>?`,
-                            icon: 'question',
+                            title: `<i class="fa-solid fa-arrow-up mr-1"></i> Tingkatkan Properti?`,
+                            html: `${imgHtml}<b>${act.name}</b> &rarr; <span style="color:#60a5fa;font-weight:900">${act.next_level_name || ('Level '+(act.current_level+1))}</span><br><span style="font-size:1.3rem;font-weight:900;color:#3b82f6">Rp ${parseInt(act.price).toLocaleString('id-ID')}</span>`,
                             background: '#0f172a', color: '#f1f5f9',
                             showCancelButton: true,
                             confirmButtonText: '<i class="fa-solid fa-arrow-up mr-1"></i> Tingkatkan!',
@@ -429,10 +449,24 @@
                     if (status.properties) {
                         const newHash = JSON.stringify(status.properties);
                         if (newHash !== currentPropsHash) {
-                            // Properties changed! Reload page to render new properties
                             location.reload();
                             return;
                         }
+                    }
+
+                    // Show card popup to non-rolling players (spectators)
+                    if (!isTurn && status.active_card) {
+                        const cardText = status.active_card.text;
+                        if (cardText !== lastShownCardText) {
+                            lastShownCardText = cardText;
+                            showCardAnimation(
+                                status.active_card.type === 'kesempatan' ? 'Kesempatan' : 'Dana Umum',
+                                cardText,
+                                null
+                            );
+                        }
+                    } else if (!status.active_card) {
+                        lastShownCardText = null;
                     }
 
                     if (!wasMyTurn && isTurn) {

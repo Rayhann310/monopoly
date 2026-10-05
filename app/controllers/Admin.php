@@ -203,14 +203,22 @@ class Admin extends Controller {
 
         $name = $_POST['name'] ?? '';
         $price = $_POST['price'] ?? '';
-        $housePrice = $_POST['house_price'] ?? '';
 
-        $nameVal = $name === '' ? null : $name;
+        $nameVal  = $name  === '' ? null : $name;
         $priceVal = $price === '' ? null : (int)$price;
-        $housePriceVal = $housePrice === '' ? null : (int)$housePrice;
+
+        // Per-level names, prices, rents
+        $levels = [];
+        for ($i = 1; $i <= 5; $i++) {
+            $ln = $_POST["level{$i}_name"]  ?? '';
+            $lp = $_POST["level{$i}_price"] ?? '';
+            $lr = $_POST["level{$i}_rent"]  ?? '';
+            $levels["level{$i}_name"]  = $ln === '' ? null : $ln;
+            $levels["level{$i}_price"] = $lp === '' ? null : (int)$lp;
+            $levels["level{$i}_rent"]  = $lr === '' ? null : (int)$lr;
+        }
 
         $db = new Database;
-        
         $imageUrl = null;
         if (isset($_FILES['image']) && $_FILES['image']['error'] === 0) {
             $uploadDir = 'public/img/cities/';
@@ -220,32 +228,33 @@ class Admin extends Controller {
             if (in_array($ext, $allowed)) {
                 $filename = 'city_' . $cellIndex . '_' . time() . '.' . $ext;
                 $dest = $uploadDir . $filename;
-                if (move_uploaded_file($_FILES['image']['tmp_name'], $dest)) {
-                    $imageUrl = $dest;
-                }
+                if (move_uploaded_file($_FILES['image']['tmp_name'], $dest)) { $imageUrl = $dest; }
             }
         }
 
+        // Build upsert — always update all fields
+        $setCols = 'name=:n2,price=:p2,level1_name=:l1n2,level2_name=:l2n2,level3_name=:l3n2,level4_name=:l4n2,level5_name=:l5n2,level1_price=:l1p2,level2_price=:l2p2,level3_price=:l3p2,level4_price=:l4p2,level5_price=:l5p2,level1_rent=:l1r2,level2_rent=:l2r2,level3_rent=:l3r2,level4_rent=:l4r2,level5_rent=:l5r2';
+        $insCols = 'cell_index,name,price,level1_name,level2_name,level3_name,level4_name,level5_name,level1_price,level2_price,level3_price,level4_price,level5_price,level1_rent,level2_rent,level3_rent,level4_rent,level5_rent';
+        $insVals = ':ci,:n,:p,:l1n,:l2n,:l3n,:l4n,:l5n,:l1p,:l2p,:l3p,:l4p,:l5p,:l1r,:l2r,:l3r,:l4r,:l5r';
+
         if ($imageUrl) {
-            $db->query("INSERT INTO board_properties (cell_index, name, price, house_price, image_url) 
-                        VALUES (:ci, :n, :p, :hp, :img)
-                        ON DUPLICATE KEY UPDATE name = :n2, price = :p2, house_price = :hp2, image_url = :img2");
-            $db->bind('ci', $cellIndex);
-            $db->bind('n', $nameVal); $db->bind('n2', $nameVal);
-            $db->bind('p', $priceVal); $db->bind('p2', $priceVal);
-            $db->bind('hp', $housePriceVal); $db->bind('hp2', $housePriceVal);
-            $db->bind('img', $imageUrl); $db->bind('img2', $imageUrl);
-            $db->execute();
-        } else {
-            $db->query("INSERT INTO board_properties (cell_index, name, price, house_price) 
-                        VALUES (:ci, :n, :p, :hp)
-                        ON DUPLICATE KEY UPDATE name = :n2, price = :p2, house_price = :hp2");
-            $db->bind('ci', $cellIndex);
-            $db->bind('n', $nameVal); $db->bind('n2', $nameVal);
-            $db->bind('p', $priceVal); $db->bind('p2', $priceVal);
-            $db->bind('hp', $housePriceVal); $db->bind('hp2', $housePriceVal);
-            $db->execute();
+            $setCols .= ',image_url=:img2';
+            $insCols .= ',image_url';
+            $insVals .= ',:img';
         }
+
+        $sql = "INSERT INTO board_properties ($insCols) VALUES ($insVals) ON DUPLICATE KEY UPDATE $setCols";
+        $db->query($sql);
+        $db->bind('ci', $cellIndex);
+        $db->bind('n', $nameVal);  $db->bind('n2', $nameVal);
+        $db->bind('p', $priceVal); $db->bind('p2', $priceVal);
+        for ($i = 1; $i <= 5; $i++) {
+            $db->bind("l{$i}n",  $levels["level{$i}_name"]);  $db->bind("l{$i}n2", $levels["level{$i}_name"]);
+            $db->bind("l{$i}p",  $levels["level{$i}_price"]); $db->bind("l{$i}p2", $levels["level{$i}_price"]);
+            $db->bind("l{$i}r",  $levels["level{$i}_rent"]);  $db->bind("l{$i}r2", $levels["level{$i}_rent"]);
+        }
+        if ($imageUrl) { $db->bind('img', $imageUrl); $db->bind('img2', $imageUrl); }
+        $db->execute();
 
         header('Location: ' . BASEURL . '/admin/properties?saved=Pengaturan kota berhasil disimpan!'); exit;
     }

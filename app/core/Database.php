@@ -107,10 +107,12 @@ class Database {
             name VARCHAR(100) NOT NULL,
             status ENUM('waiting','playing','finished') DEFAULT 'waiting',
             host_token VARCHAR(64) NOT NULL DEFAULT '',
+            active_card TEXT NULL DEFAULT NULL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )");
         // Self-heal: tambah host_token jika belum ada
         try { $this->dbh->exec("ALTER TABLE sessions ADD COLUMN host_token VARCHAR(64) NOT NULL DEFAULT ''"); } catch(Exception $e) {}
+        try { $this->dbh->exec("ALTER TABLE sessions ADD COLUMN active_card TEXT NULL DEFAULT NULL"); } catch(Exception $e) {}
 
         // === TABEL PEMAIN ===
         $this->dbh->exec("CREATE TABLE IF NOT EXISTS players (
@@ -155,11 +157,34 @@ class Database {
             name VARCHAR(100) NULL,
             price INT NULL,
             house_price INT NULL,
+            level1_name VARCHAR(50) NULL,
+            level2_name VARCHAR(50) NULL,
+            level3_name VARCHAR(50) NULL,
+            level4_name VARCHAR(50) NULL,
+            level5_name VARCHAR(50) NULL,
+            level1_price INT NULL,
+            level2_price INT NULL,
+            level3_price INT NULL,
+            level4_price INT NULL,
+            level5_price INT NULL,
+            level1_rent INT NULL,
+            level2_rent INT NULL,
+            level3_rent INT NULL,
+            level4_rent INT NULL,
+            level5_rent INT NULL,
             image_url VARCHAR(255) NULL,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
         )");
         // Self-heal: add missing columns if they don't exist
-        foreach (['name VARCHAR(100) NULL', 'price INT NULL', 'house_price INT NULL'] as $col) {
+        foreach ([
+            'name VARCHAR(100) NULL', 'price INT NULL', 'house_price INT NULL',
+            'level1_name VARCHAR(50) NULL', 'level2_name VARCHAR(50) NULL',
+            'level3_name VARCHAR(50) NULL', 'level4_name VARCHAR(50) NULL', 'level5_name VARCHAR(50) NULL',
+            'level1_price INT NULL', 'level2_price INT NULL', 'level3_price INT NULL',
+            'level4_price INT NULL', 'level5_price INT NULL',
+            'level1_rent INT NULL', 'level2_rent INT NULL', 'level3_rent INT NULL',
+            'level4_rent INT NULL', 'level5_rent INT NULL'
+        ] as $col) {
             try { $this->dbh->exec("ALTER TABLE board_properties ADD COLUMN $col"); } catch(Exception $e) {}
         }
 

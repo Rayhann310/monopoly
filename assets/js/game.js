@@ -308,6 +308,59 @@ function showFloatingMoney(playerId, amount) {
 // ============================================================
 const POLLING_MS = typeof POLLING_INTERVAL !== 'undefined' ? POLLING_INTERVAL : 1500;
 
+let lastActiveCardText = null;
+let cardModalOpen = false;
+
+function showBoardCardModal(cardData) {
+    if (cardModalOpen) return;
+    cardModalOpen = true;
+    const isKesempatan = cardData.type === 'kesempatan';
+    const cColor = isKesempatan ? '#f59e0b' : '#10b981';
+    const cIcon  = isKesempatan ? 'fa-question' : 'fa-gem';
+    const title  = isKesempatan ? 'KESEMPATAN' : 'DANA UMUM';
+
+    const html = `
+    <style>
+    .bc-card{perspective:1000px;width:100%;height:260px;margin:10px 0;cursor:pointer}
+    .bc-inner{position:relative;width:100%;height:100%;transition:transform .8s cubic-bezier(.34,1.56,.64,1);transform-style:preserve-3d}
+    .bc-inner.flipped{transform:rotateY(180deg)}
+    .bc-face{position:absolute;width:100%;height:100%;backface-visibility:hidden;border-radius:16px;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:20px;border:4px solid ${cColor}}
+    .bc-front{background:radial-gradient(circle,#1e293b,#0f172a)}
+    .bc-back{background:white;color:#0f172a;transform:rotateY(180deg)}
+    </style>
+    <div style="color:#94a3b8;font-size:.8rem;margin-bottom:4px"><b style="color:#f1f5f9">${cardData.player_name}</b> mendapat kartu:</div>
+    <div class="bc-card" onclick="this.querySelector('.bc-inner').classList.add('flipped')">
+      <div class="bc-inner">
+        <div class="bc-face bc-front">
+          <i class="fa-solid ${cIcon}" style="font-size:70px;color:${cColor};text-shadow:0 0 20px ${cColor}80"></i>
+          <div style="color:white;margin-top:16px;font-weight:900;font-size:1.1rem;letter-spacing:2px">${title}</div>
+          <div style="color:#94a3b8;font-size:.75rem;margin-top:8px">Ketuk untuk membalik</div>
+        </div>
+        <div class="bc-face bc-back">
+          <div style="background:${cColor};color:white;width:calc(100%+40px);margin-top:-20px;padding:8px 15px;font-weight:900;font-size:.9rem;border-radius:10px 10px 0 0;width:100%">${title}</div>
+          <div style="flex-grow:1;display:flex;align-items:center;justify-content:center;padding:15px;text-align:center">
+            <h3 style="font-weight:bold;font-size:1rem;color:#1e293b;line-height:1.5">${cardData.text}</h3>
+          </div>
+        </div>
+      </div>
+    </div>`;
+
+    if (typeof Swal !== 'undefined') {
+        Swal.fire({
+            html,
+            background: 'transparent',
+            showConfirmButton: true,
+            confirmButtonText: 'Tutup',
+            confirmButtonColor: cColor,
+            backdrop: 'rgba(0,0,0,0.85)'
+        }).then(() => { cardModalOpen = false; lastActiveCardText = null; });
+        setTimeout(() => {
+            const inner = document.querySelector('.bc-inner');
+            if (inner && !inner.classList.contains('flipped')) inner.classList.add('flipped');
+        }, 1400);
+    }
+}
+
 setInterval(() => {
     if (!sessionId) return;
     fetch(BASEURL + '/home/apiStatus/' + sessionId)
@@ -322,12 +375,10 @@ setInterval(() => {
                 const serverPos = parseInt(sp.position);
                 const serverMoney = parseInt(sp.money);
 
-                // Animasi step-by-step HANYA jika posisi berubah & belum animasi
                 if (serverPos !== lp.position && !animating[lp.id]) {
                     animateTokenStepByStep(lp, lp.position, serverPos);
                 }
 
-                // Animasi floating money jika uang berubah
                 if (serverMoney !== lp.money) {
                     const diff = serverMoney - lp.money;
                     showFloatingMoney(lp.id, diff);
@@ -339,6 +390,15 @@ setInterval(() => {
 
             if (serverData.properties) {
                 renderProperties(serverData.properties);
+            }
+
+            // Show active card popup on board (for all spectators/non-rolling players)
+            if (serverData.active_card) {
+                const cardText = serverData.active_card.text;
+                if (cardText !== lastActiveCardText && !cardModalOpen) {
+                    lastActiveCardText = cardText;
+                    showBoardCardModal(serverData.active_card);
+                }
             }
 
             updateBankModal();

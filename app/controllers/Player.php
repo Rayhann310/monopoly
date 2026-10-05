@@ -91,6 +91,11 @@ class Player extends Controller {
                         $action = $this->applyCardEffect($card, $player, $newMoney, $newPos);
                         $newMoney = $action['new_money'];
                         $newPos   = $action['new_position'];
+                        $this->model('SessionModel')->setActiveCard($sessionId, json_encode([
+                            'type' => 'kesempatan',
+                            'player_name' => $player['name'],
+                            'text' => $card['text']
+                        ]));
                     }
                     break;
 
@@ -100,6 +105,11 @@ class Player extends Controller {
                         $action = $this->applyCardEffect($card, $player, $newMoney, $newPos);
                         $newMoney = $action['new_money'];
                         $newPos   = $action['new_position'];
+                        $this->model('SessionModel')->setActiveCard($sessionId, json_encode([
+                            'type' => 'dana_umum',
+                            'player_name' => $player['name'],
+                            'text' => $card['text']
+                        ]));
                     }
                     break;
 
@@ -107,25 +117,34 @@ class Player extends Controller {
                 case 'station':
                 case 'utility':
                     $owner = $this->model('PropertyModel')->getOwner($sessionId, $newPos);
+                    $cellImage = $cell['image_url'] ?? null;
                     if (!$owner) {
-                        // Can be bought
                         $action['type']  = 'buy';
                         $action['price'] = (int)($cell['price'] ?? 0);
                         $action['name']  = $cell['name'];
+                        $action['image'] = $cellImage;
                         $action['msg']   = "Beli {$cell['name']} seharga Rp " . number_format($cell['price'], 0, ',', '.');
                     } elseif ($owner['owner_id'] == $id) {
-                        if ($cell['type'] === 'property' && (int)$owner['houses'] < $maxPropLevel) {
-                            $action['type']  = 'upgrade';
-                            $action['price'] = $housePrice;
-                            $action['name']  = $cell['name'];
-                            $action['current_level'] = (int)$owner['houses'];
-                            $action['msg']   = "Tingkatkan {$cell['name']} seharga Rp " . number_format($housePrice, 0, ',', '.');
+                        $currentLevel = (int)$owner['houses'];
+                        if ($cell['type'] === 'property' && $currentLevel < $maxPropLevel) {
+                            $nextLevel = $currentLevel + 1;
+                            $nextLevelKey = "level{$nextLevel}_price";
+                            $upgradePrice = isset($cell[$nextLevelKey]) && $cell[$nextLevelKey] > 0
+                                ? (int)$cell[$nextLevelKey]
+                                : $housePrice;
+                            $nextLevelName = $cell["level{$nextLevel}_name"] ?? "Level {$nextLevel}";
+                            $action['type']          = 'upgrade';
+                            $action['price']         = $upgradePrice;
+                            $action['name']          = $cell['name'];
+                            $action['image']         = $cellImage;
+                            $action['current_level'] = $currentLevel;
+                            $action['next_level_name'] = $nextLevelName;
+                            $action['msg']           = "Tingkatkan {$cell['name']} ke {$nextLevelName} seharga Rp " . number_format($upgradePrice, 0, ',', '.');
                         } else {
                             $action['type'] = 'own';
-                            $action['msg']  = "Ini propertimu sendiri" . ($cell['type'] === 'property' && (int)$owner['houses'] == $maxPropLevel ? " (Level Maksimal)" : "") . ".";
+                            $action['msg']  = "Ini propertimu sendiri" . ($cell['type'] === 'property' && $currentLevel == $maxPropLevel ? " (Level Maksimal)" : "") . ".";
                         }
                     } else {
-                        // Pay rent
                         $rent = $this->calcRent($cell, $owner, $sessionId, $dice);
                         $newMoney -= $rent;
                         $this->model('PlayerModel')->updateMoney($owner['owner_id'], (int)$owner['money'] + $rent);
@@ -208,15 +227,18 @@ class Player extends Controller {
             return $dice * 40;
         }
         if ($cell['type'] === 'station') {
-            // Count how many stations owner has
             $stationCells = [5, 15, 25, 35];
             $count = $this->model('PropertyModel')->countGroupOwned($sessionId, $owner['owner_id'], $stationCells);
             $rents = [200, 400, 800, 1600];
             return $rents[min($count - 1, 3)];
         }
-        // Standard property rent = 10% of price
-        $rent = (int)round($basePrice * 0.1);
-        $houses = (int)($owner['houses'] ?? 0);
+        // Standard property — check tier-based rent
+        $houses = min((int)($owner['houses'] ?? 0), 5);
+        $levelKey = "level{$houses}_rent";
+        if (isset($cell[$levelKey]) && $cell[$levelKey] > 0) {
+            return (int)$cell[$levelKey];
+        }
+        // Fallback multiplier formula
         $multiplier = [1, 5, 15, 45, 80, 125];
         return (int)round($basePrice * 0.1 * ($multiplier[min($houses, 5)] ?? 1));
     }
@@ -245,21 +267,30 @@ class Player extends Controller {
 
         $existing = $this->model('PropertyModel')->getOwner($sessionId, $cellIndex);
         $settings = $this->model('SettingsModel');
-        $housePrice = isset($cell['house_price']) ? (int)$cell['house_price'] : (int)$settings->get('house_price', 150);
         $maxPropLevel = (int)$settings->get('max_property_level', 4);
+        $defaultHousePrice = (int)$settings->get('house_price', 150);
 
         if ($existing) {
             if ($existing['owner_id'] == $playerId && $cell['type'] === 'property') {
-                if ((int)$existing['houses'] >= $maxPropLevel) {
+                $currentLevel = (int)$existing['houses'];
+                if ($currentLevel >= $maxPropLevel) {
                     echo json_encode(['status' => 'error', 'msg' => 'Properti sudah level maksimal']); return;
                 }
-                if ((int)$player['money'] < $housePrice) {
-                    echo json_encode(['status' => 'error', 'msg' => 'Uang tidak cukup untuk upgrade']); return;
+                // Price for NEXT level
+                $nextLevel = $currentLevel + 1;
+                $nextLevelKey = "level{$nextLevel}_price";
+                $upgradePrice = isset($cell[$nextLevelKey]) && $cell[$nextLevelKey] > 0
+                    ? (int)$cell[$nextLevelKey]
+                    : $defaultHousePrice;
+                $nextLevelName = $cell["level{$nextLevel}_name"] ?? "Level {$nextLevel}";
+
+                if ((int)$player['money'] < $upgradePrice) {
+                    echo json_encode(['status' => 'error', 'msg' => "Uang tidak cukup untuk upgrade ke {$nextLevelName}"]); return;
                 }
-                $newMoney = (int)$player['money'] - $housePrice;
+                $newMoney = (int)$player['money'] - $upgradePrice;
                 $this->model('PlayerModel')->updateMoney($playerId, $newMoney);
                 $this->model('PropertyModel')->upgradeProperty($sessionId, $playerId, $cellIndex);
-                echo json_encode(['status' => 'success', 'money' => $newMoney, 'msg' => "Berhasil tingkatkan {$cell['name']}!"]);
+                echo json_encode(['status' => 'success', 'money' => $newMoney, 'msg' => "Berhasil tingkatkan {$cell['name']} ke {$nextLevelName}!"]);
                 return;
             } else {
                 echo json_encode(['status' => 'error', 'msg' => 'Properti sudah dimiliki']); return;
@@ -297,12 +328,27 @@ class Player extends Controller {
         // Fetch properties
         $properties = $this->model('PropertyModel')->getPlayerProperties($player['session_id'], $id);
 
+        // Fetch active card
+        $session = $this->model('SessionModel')->getSessionById($player['session_id']);
+        $activeCard = $session ? json_decode($session['active_card'], true) : null;
+
         echo json_encode([
-            'is_turn'    => (bool)$player['is_turn'],
-            'has_rolled' => (bool)$player['has_rolled'],
-            'position'   => (int)$player['position'],
-            'money'      => (int)$player['money'],
-            'properties' => $properties
+            'is_turn'     => (bool)$player['is_turn'],
+            'has_rolled'  => (bool)$player['has_rolled'],
+            'position'    => (int)$player['position'],
+            'money'       => (int)$player['money'],
+            'properties'  => $properties,
+            'active_card' => $activeCard
         ]);
+    }
+
+    public function apiClearCard() {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') return;
+        $playerId = (int)($_POST['player_id'] ?? 0);
+        $player = $this->model('PlayerModel')->getPlayerById($playerId);
+        if ($player) {
+            $this->model('SessionModel')->clearActiveCard($player['session_id']);
+            echo json_encode(['status' => 'success']);
+        }
     }
 }

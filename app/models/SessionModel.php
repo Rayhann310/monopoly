@@ -33,6 +33,19 @@ class SessionModel {
         $this->db->execute();
     }
 
+    public function setActiveCard($id, $cardJson) {
+        $this->db->query("UPDATE sessions SET active_card = :card WHERE id = :id");
+        $this->db->bind('card', $cardJson);
+        $this->db->bind('id', $id);
+        $this->db->execute();
+    }
+
+    public function clearActiveCard($id) {
+        $this->db->query("UPDATE sessions SET active_card = NULL WHERE id = :id");
+        $this->db->bind('id', $id);
+        $this->db->execute();
+    }
+
     public function deleteSession($id) {
         $this->db->query("DELETE FROM properties WHERE session_id = :id"); $this->db->bind('id',$id); $this->db->execute();
         $this->db->query("DELETE FROM players WHERE session_id = :id"); $this->db->bind('id',$id); $this->db->execute();

@@ -56,17 +56,15 @@ class BoardModel {
         foreach ($board as $idx => &$cell) {
             $cell['index'] = $idx;
             if (isset($customMap[$idx])) {
-                if (!empty($customMap[$idx]['name'])) {
-                    $cell['name'] = $customMap[$idx]['name'];
-                }
-                if (!empty($customMap[$idx]['price'])) {
-                    $cell['price'] = (int)$customMap[$idx]['price'];
-                }
-                if (!empty($customMap[$idx]['house_price'])) {
-                    $cell['house_price'] = (int)$customMap[$idx]['house_price'];
-                }
-                if (!empty($customMap[$idx]['image_url'])) {
-                    $cell['image_url'] = $customMap[$idx]['image_url'];
+                $c = $customMap[$idx];
+                if (!empty($c['name']))      $cell['name']      = $c['name'];
+                if (!empty($c['price']))     $cell['price']     = (int)$c['price'];
+                if (!empty($c['image_url'])) $cell['image_url'] = $c['image_url'];
+                // Tier levels
+                for ($lvl = 1; $lvl <= 5; $lvl++) {
+                    if (!empty($c["level{$lvl}_name"]))  $cell["level{$lvl}_name"]  = $c["level{$lvl}_name"];
+                    if (!empty($c["level{$lvl}_price"])) $cell["level{$lvl}_price"] = (int)$c["level{$lvl}_price"];
+                    if (!empty($c["level{$lvl}_rent"]))  $cell["level{$lvl}_rent"]  = (int)$c["level{$lvl}_rent"];
                 }
             }
         }

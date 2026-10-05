@@ -60,7 +60,10 @@ class Home extends Controller {
         $db->bind('sid', $sessionId);
         $properties = $db->resultSet();
 
-        echo json_encode(['players' => $players, 'properties' => $properties]);
+        $session = $this->model('SessionModel')->getSessionById($sessionId);
+        $activeCard = $session ? json_decode($session['active_card'], true) : null;
+
+        echo json_encode(['players' => $players, 'properties' => $properties, 'active_card' => $activeCard]);
     }
 
     public function apiAdjustMoney() {
