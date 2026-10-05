@@ -8,16 +8,47 @@ class Database {
     private $stmt;
 
     public function __construct() {
-        try {
-            $pdo = new PDO("mysql:host=" . $this->host, $this->user, $this->pass, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
-            $stmt = $pdo->query("SELECT COUNT(*) FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = '" . $this->dbname . "'");
-            if (!$stmt->fetchColumn()) {
-                $pdo->exec("CREATE DATABASE `" . $this->dbname . "` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
+        $hosts = [$this->host];
+        // Jika host adalah 'localhost', coba juga '127.0.0.1' sebagai fallback
+        if ($this->host === 'localhost') {
+            $hosts[] = '127.0.0.1';
+        }
+
+        $connected = false;
+        $lastError = null;
+
+        foreach ($hosts as $h) {
+            try {
+                $dsn = "mysql:host={$h};port=" . DB_PORT . ";charset=utf8mb4";
+                $pdo = new PDO($dsn, $this->user, $this->pass, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
+                // Pastikan database ada
+                $stmt = $pdo->query("SELECT COUNT(*) FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = '" . $this->dbname . "'");
+                if (!$stmt->fetchColumn()) {
+                    $pdo->exec("CREATE DATABASE `" . $this->dbname . "` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
+                }
+                $this->dbh = new PDO(
+                    "mysql:host={$h};port=" . DB_PORT . ";dbname=" . $this->dbname . ";charset=utf8mb4",
+                    $this->user, $this->pass,
+                    [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC]
+                );
+                $this->selfHeal();
+                $connected = true;
+                break;
+            } catch(PDOException $e) {
+                $lastError = $e;
             }
-            $this->dbh = new PDO("mysql:host=" . $this->host . ";dbname=" . $this->dbname . ";charset=utf8mb4", $this->user, $this->pass, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC]);
-            $this->selfHeal();
-        } catch(PDOException $e) {
-            die("<div style='font-family:monospace;background:#1e1e1e;color:#ff6b6b;padding:30px;border-radius:10px;margin:20px;'><h2>⚠️ Database Error</h2><p>" . $e->getMessage() . "</p><p>Pastikan MySQL berjalan di XAMPP.</p></div>");
+        }
+
+        if (!$connected) {
+            $msg  = htmlspecialchars($lastError->getMessage());
+            $hint = '';
+            if (str_contains($msg, '2002') || str_contains($msg, 'Operation not permitted') || str_contains($msg, 'Connection refused')) {
+                $hint = '<p style="color:#fbbf24">💡 <b>Hint:</b> Buat file <code>.env</code> di root project dengan isi:<br>'
+                      . '<code>DB_HOST=localhost<br>DB_USER=nama_user_db<br>DB_PASS=password_db<br>DB_NAME=nama_database</code></p>'
+                      . '<p style="color:#94a3b8">Di hosting Hostinger/cPanel, host biasanya <code>localhost</code> atau <code>127.0.0.1</code>.</p>';
+            }
+            die("<div style='font-family:monospace;background:#1e1e1e;color:#ff6b6b;padding:30px;border-radius:10px;margin:20px;'>"
+              . "<h2>⚠️ Database Connection Error</h2><p>{$msg}</p>{$hint}</div>");
         }
     }
 

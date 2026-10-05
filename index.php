@@ -36,6 +36,33 @@ try {
         }
     }
 
+    // === SETUP WIZARD: Jika .env tidak ada, tampilkan form setup ===
+    if (!file_exists(__DIR__ . '/.env')) {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['setup_action'])) {
+            $envContent = "APP_NAME=\"Monopoly Indonesia\"\n"
+                . "APP_ENV=production\n"
+                . "APP_DEBUG=false\n"
+                . "APP_URL=" . trim($_POST['app_url'] ?? 'http://localhost/monopoly') . "\n\n"
+                . "DB_HOST=" . trim($_POST['db_host'] ?? 'localhost') . "\n"
+                . "DB_PORT=" . trim($_POST['db_port'] ?? '3306') . "\n"
+                . "DB_NAME=" . trim($_POST['db_name'] ?? 'monopoly_db') . "\n"
+                . "DB_USER=" . trim($_POST['db_user'] ?? 'root') . "\n"
+                . "DB_PASS=" . trim($_POST['db_pass'] ?? '') . "\n\n"
+                . "ADMIN_DEFAULT_PASSWORD=" . trim($_POST['admin_pass'] ?? 'admin123') . "\n"
+                . "POLLING_INTERVAL=2000\n";
+            file_put_contents(__DIR__ . '/.env', $envContent);
+            header('Location: ' . trim($_POST['app_url'] ?? '/'));
+            exit;
+        }
+        $proto = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+        $guessUrl = $proto . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost');
+        if (strpos($_SERVER['REQUEST_URI'] ?? '', '/monopoly') !== false) {
+            $guessUrl .= '/monopoly';
+        }
+        include __DIR__ . '/app/views/setup_wizard.php';
+        exit;
+    }
+
     // Mulai session
     if (session_status() === PHP_SESSION_NONE) {
         session_start();
