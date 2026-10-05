@@ -1,5 +1,9 @@
 <?php
 class Admin extends Controller {
+    public function index() {
+        header('Location: ' . BASEURL . '/admin/dashboard');
+        exit;
+    }
 
     private function requireLogin() {
         session_start();
