@@ -30,26 +30,37 @@ class Database {
     }
 
     private function checkAndCreateTables() {
-        // Table Players
-        $this->dbh->exec("CREATE TABLE IF NOT EXISTS players (
+        // Tabel sesi permainan (untuk multi-kelompok)
+        $this->dbh->exec("CREATE TABLE IF NOT EXISTS sessions (
             id INT AUTO_INCREMENT PRIMARY KEY,
-            name VARCHAR(50) NOT NULL,
-            color VARCHAR(20) NOT NULL,
-            position INT DEFAULT 0,
-            money INT DEFAULT 1500,
+            name VARCHAR(100) NOT NULL,
+            status ENUM('waiting','playing','finished') DEFAULT 'waiting',
+            current_turn INT DEFAULT 1,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )");
 
-        // Insert initial data
-        $stmt = $this->dbh->query("SELECT COUNT(*) FROM players");
-        if ($stmt->fetchColumn() == 0) {
-            $this->dbh->exec("INSERT INTO players (name, color, position, money) VALUES 
-                ('Pemain 1', 'red', 0, 1500),
-                ('Pemain 2', 'blue', 0, 1500),
-                ('Pemain 3', 'green', 0, 1500),
-                ('Pemain 4', 'yellow', 0, 1500)
-            ");
-        }
+        // Tabel Players dengan session_id
+        $this->dbh->exec("CREATE TABLE IF NOT EXISTS players (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            session_id INT NOT NULL DEFAULT 1,
+            name VARCHAR(50) NOT NULL,
+            color VARCHAR(20) NOT NULL,
+            position INT DEFAULT 0,
+            money INT DEFAULT 15000,
+            is_turn TINYINT(1) DEFAULT 0,
+            has_rolled TINYINT(1) DEFAULT 0,
+            is_bankrupt TINYINT(1) DEFAULT 0,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )");
+
+        // Tabel properti yang dimiliki pemain
+        $this->dbh->exec("CREATE TABLE IF NOT EXISTS properties (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            session_id INT NOT NULL DEFAULT 1,
+            cell_index INT NOT NULL,
+            owner_id INT NOT NULL,
+            houses INT DEFAULT 0
+        )");
     }
 
     public function query($query) {
@@ -87,5 +98,9 @@ class Database {
     public function single() {
         $this->execute();
         return $this->stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    public function lastInsertId() {
+        return $this->dbh->lastInsertId();
     }
 }

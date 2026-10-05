@@ -220,11 +220,14 @@
         <i class="fa-solid fa-city text-red-500"></i> MONOPOLY
     </div>
     <div class="flex gap-3">
-        <a href="<?= BASEURL ?>/home/apiReset" class="px-4 py-2 bg-red-500/20 hover:bg-red-500/40 border border-red-500/50 rounded-lg text-red-400 font-bold transition flex items-center gap-2">
-            <i class="fa-solid fa-rotate-left"></i> Reset Game
+        <a href="<?= BASEURL ?>/setup" class="px-4 py-2 bg-white/10 hover:bg-white/20 border border-white/20 rounded-lg text-white font-bold transition flex items-center gap-2">
+            <i class="fa-solid fa-arrow-left"></i> Lobby
+        </a>
+        <a href="<?= BASEURL ?>/home/apiReset/<?= $data['session']['id'] ?? '' ?>" onclick="return confirm('Reset semua posisi & uang pemain?')" class="px-4 py-2 bg-red-500/20 hover:bg-red-500/40 border border-red-500/50 rounded-lg text-red-400 font-bold transition flex items-center gap-2">
+            <i class="fa-solid fa-rotate-left"></i> Reset
         </a>
         <button onclick="document.getElementById('bank-modal').classList.remove('hidden'); document.getElementById('bank-modal').classList.add('flex');" class="px-4 py-2 bg-emerald-500/20 hover:bg-emerald-500/40 border border-emerald-500/50 rounded-lg text-emerald-400 font-bold transition flex items-center gap-2">
-            <i class="fa-solid fa-building-columns"></i> Bank Negara
+            <i class="fa-solid fa-building-columns"></i> Bank
         </button>
         <button onclick="document.getElementById('qr-modal').classList.remove('hidden'); document.getElementById('qr-modal').classList.add('flex');" class="px-4 py-2 bg-blue-500 hover:bg-blue-600 rounded-lg text-white font-bold transition flex items-center gap-2 shadow-[0_0_15px_rgba(59,130,246,0.5)]">
             <i class="fa-solid fa-qrcode"></i> Gabung

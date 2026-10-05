@@ -1,14 +1,12 @@
 <?php
 class Player extends Controller {
+
     public function index($id = 1) {
         $data['judul'] = 'Layar Pemain';
         $data['player'] = $this->model('PlayerModel')->getPlayerById($id);
         $data['board'] = $this->model('BoardModel')->getBoard();
-        
-        // Cek jika pemain tidak ada
-        if(!$data['player']) {
-            die("Pemain tidak ditemukan!");
-        }
+
+        if (!$data['player']) { die("Pemain tidak ditemukan!"); }
 
         $this->view('templates/header_player', $data);
         $this->view('player/index', $data);
@@ -17,11 +15,51 @@ class Player extends Controller {
 
     public function apiRoll() {
         header('Content-Type: application/json');
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $id = $_POST['id'];
-            $newPos = $_POST['new_position'];
-            $this->model('PlayerModel')->updatePosition($id, $newPos);
-            echo json_encode(['status' => 'success']);
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            echo json_encode(['status' => 'error', 'msg' => 'Method not allowed']); return;
         }
+
+        $id = (int)($_POST['id'] ?? 0);
+        $newPos = (int)($_POST['new_position'] ?? 0);
+
+        if ($id <= 0 || $newPos < 0 || $newPos > 39) {
+            echo json_encode(['status' => 'error', 'msg' => 'Data tidak valid']); return;
+        }
+
+        $player = $this->model('PlayerModel')->getPlayerById($id);
+        if (!$player) {
+            echo json_encode(['status' => 'error', 'msg' => 'Pemain tidak ditemukan']); return;
+        }
+
+        if (!$player['is_turn']) {
+            echo json_encode(['status' => 'error', 'msg' => 'Bukan giliran kamu!']); return;
+        }
+
+        if ($player['has_rolled']) {
+            echo json_encode(['status' => 'error', 'msg' => 'Sudah melempar dadu!']); return;
+        }
+
+        $this->model('PlayerModel')->updatePosition($id, $newPos);
+        $this->model('PlayerModel')->markRolled($id);
+
+        echo json_encode(['status' => 'success', 'position' => $newPos]);
+    }
+
+    public function apiEndTurn() {
+        header('Content-Type: application/json');
+        $id = (int)($_POST['id'] ?? 0);
+        $player = $this->model('PlayerModel')->getPlayerById($id);
+        if (!$player || !$player['is_turn']) {
+            echo json_encode(['status' => 'error', 'msg' => 'Bukan giliran kamu']); return;
+        }
+        $this->model('PlayerModel')->nextTurn($player['session_id']);
+        echo json_encode(['status' => 'success']);
+    }
+
+    public function apiStatus($id = null) {
+        header('Content-Type: application/json');
+        if (!$id) { echo json_encode(['status' => 'error']); return; }
+        $player = $this->model('PlayerModel')->getPlayerById($id);
+        echo json_encode(['is_turn' => (bool)$player['is_turn'], 'has_rolled' => (bool)$player['has_rolled'], 'position' => (int)$player['position'], 'money' => (int)$player['money']]);
     }
 }

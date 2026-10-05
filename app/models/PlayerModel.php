@@ -1,13 +1,16 @@
 <?php
 class PlayerModel {
     private $db;
-
-    public function __construct() {
-        $this->db = new Database;
-    }
+    public function __construct() { $this->db = new Database; }
 
     public function getAllPlayers() {
         $this->db->query('SELECT * FROM players ORDER BY id ASC');
+        return $this->db->resultSet();
+    }
+
+    public function getPlayersBySession($sessionId) {
+        $this->db->query('SELECT * FROM players WHERE session_id = :sid ORDER BY id ASC');
+        $this->db->bind('sid', $sessionId);
         return $this->db->resultSet();
     }
 
@@ -28,6 +31,45 @@ class PlayerModel {
         $this->db->query('UPDATE players SET money = :money WHERE id = :id');
         $this->db->bind('money', $newMoney);
         $this->db->bind('id', $id);
+        $this->db->execute();
+    }
+
+    public function getCurrentTurn($sessionId) {
+        $this->db->query('SELECT * FROM players WHERE session_id = :sid AND is_turn = 1 LIMIT 1');
+        $this->db->bind('sid', $sessionId);
+        return $this->db->single();
+    }
+
+    public function markRolled($id) {
+        $this->db->query('UPDATE players SET has_rolled = 1 WHERE id = :id');
+        $this->db->bind('id', $id);
+        $this->db->execute();
+    }
+
+    public function nextTurn($sessionId) {
+        // Dapatkan semua pemain dalam sesi
+        $this->db->query('SELECT id FROM players WHERE session_id = :sid AND is_bankrupt = 0 ORDER BY id ASC');
+        $this->db->bind('sid', $sessionId);
+        $players = $this->db->resultSet();
+        if (empty($players)) return;
+
+        // Cari yang sedang giliran
+        $this->db->query('SELECT id FROM players WHERE session_id = :sid AND is_turn = 1 LIMIT 1');
+        $this->db->bind('sid', $sessionId);
+        $current = $this->db->single();
+
+        $ids = array_column($players, 'id');
+        $currentIdx = array_search($current['id'] ?? 0, $ids);
+        $nextIdx = ($currentIdx + 1) % count($ids);
+        $nextId = $ids[$nextIdx];
+
+        // Reset semua, set next
+        $this->db->query('UPDATE players SET is_turn = 0, has_rolled = 0 WHERE session_id = :sid');
+        $this->db->bind('sid', $sessionId);
+        $this->db->execute();
+
+        $this->db->query('UPDATE players SET is_turn = 1 WHERE id = :id');
+        $this->db->bind('id', $nextId);
         $this->db->execute();
     }
 }
