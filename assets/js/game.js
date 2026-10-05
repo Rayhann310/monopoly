@@ -57,57 +57,65 @@ function placeTokens() {
     updateCenterInfo();
 }
 
-// ---- Step-by-step Token Animation ----
-// Moves a token from `fromPos` to `toPos` one step at a time.
-// stepDelay: ms between each step
-function animateTokenStepByStep(player, fromPos, toPos, stepDelay = 250) {
-    if (animating[player.id]) return; // Already animating, skip
+// ---- Step-by-step Token Animation (Floating CSS Transition) ----
+function animateTokenStepByStep(player, fromPos, toPos, stepDelay = 300) {
+    if (animating[player.id]) return;
     animating[player.id] = true;
 
     const BOARD_SIZE = 40;
-    let currentPos = fromPos;
-
-    // Calculate steps, wrapping around the board
     const stepsNeeded = (toPos - fromPos + BOARD_SIZE) % BOARD_SIZE;
-    if (stepsNeeded === 0) {
-        animating[player.id] = false;
-        return;
+    if (stepsNeeded === 0) { animating[player.id] = false; return; }
+
+    let currentPos = fromPos;
+    let stepCount  = 0;
+
+    // Sembunyikan token statis di posisi asal
+    const staticToken = document.querySelector(`.player-token.p${player.id}`);
+    if (staticToken) staticToken.style.opacity = '0';
+
+    // Buat floating token (position: fixed, bergerak via CSS transition)
+    const floatId = `float-p${player.id}`;
+    let ft = document.getElementById(floatId);
+    if (ft) ft.remove();
+    ft = document.createElement('div');
+    ft.id = floatId;
+    ft.className = `player-token p${player.id}`;
+    ft.style.cssText = `
+        position: fixed; z-index: 9000; pointer-events: none;
+        width: 22px; height: 22px;
+        transition: left ${stepDelay * 0.75}ms cubic-bezier(0.34,1.56,0.64,1),
+                    top  ${stepDelay * 0.75}ms cubic-bezier(0.34,1.56,0.64,1),
+                    transform ${stepDelay * 0.3}ms ease;
+        box-shadow: 0 6px 16px rgba(0,0,0,0.6);
+    `;
+    document.body.appendChild(ft);
+
+    // Posisikan di sel awal
+    function getCellCenter(pos) {
+        const cell = document.getElementById(`cell-${pos}`);
+        if (!cell) return null;
+        const r = cell.getBoundingClientRect();
+        return { x: r.left + r.width / 2 - 11, y: r.top + r.height / 2 - 11 };
     }
 
-    let stepCount = 0;
-    const passedStart = toPos < fromPos; // Wrapped around
+    const startPos = getCellCenter(fromPos);
+    if (startPos) { ft.style.left = startPos.x + 'px'; ft.style.top = startPos.y + 'px'; }
 
     function moveOneStep() {
         currentPos = (currentPos + 1) % BOARD_SIZE;
         stepCount++;
 
-        // Move token DOM element to next cell
-        const nextCell = document.getElementById(`cell-${currentPos}`);
-        if (nextCell) {
-            // Remove token from old cell
-            const oldToken = document.querySelector(`.player-token.p${player.id}`);
-            if (oldToken) oldToken.remove();
-
-            // Create token in new cell with bounce animation
-            const container = nextCell.querySelector('.tokens');
-            if (container) {
-                const token = document.createElement('div');
-                token.className = `player-token p${player.id}`;
-                token.title = player.name;
-                token.style.transition = 'transform 0.15s ease, box-shadow 0.15s ease';
-                token.style.transform = 'scale(1.5) translateY(-6px)';
-                token.style.boxShadow = '0 8px 20px rgba(0,0,0,0.7)';
-                container.appendChild(token);
-
-                // Bounce back to normal
-                setTimeout(() => {
-                    token.style.transform = '';
-                    token.style.boxShadow = '';
-                }, 130);
-            }
+        const center = getCellCenter(currentPos);
+        if (center) {
+            // Lompat sedikit ke atas saat bergerak (efek melompat)
+            ft.style.transform = 'scale(1.3) translateY(-4px)';
+            ft.style.left = center.x + 'px';
+            ft.style.top  = center.y + 'px';
+            // Kembali normal setelah transisi
+            setTimeout(() => { ft.style.transform = ''; }, stepDelay * 0.4);
         }
 
-        // Notify if passed Start (position 0)
+        // Notifikasi jika melewati Start
         if (currentPos === 0 && stepCount < stepsNeeded) {
             showToast(`<i class="fa-solid fa-star" style="color:#eab308"></i> ${player.name} melewati Start! +Rp 2.000`);
         }
@@ -115,22 +123,36 @@ function animateTokenStepByStep(player, fromPos, toPos, stepDelay = 250) {
         if (stepCount < stepsNeeded) {
             setTimeout(moveOneStep, stepDelay);
         } else {
-            // Done animating — update local position & highlight
-            player.position = toPos;
-            animating[player.id] = false;
-            updateCenterInfo();
+            // Animasi selesai — tempatkan token statis di tujuan
+            setTimeout(() => {
+                ft.remove();
 
-            // Final "landed" flash
-            const finalToken = document.querySelector(`.player-token.p${player.id}`);
-            if (finalToken) {
-                finalToken.style.transition = 'transform 0.2s ease, outline 0.2s ease';
-                finalToken.style.transform = 'scale(1.8)';
-                setTimeout(() => { finalToken.style.transform = ''; }, 300);
-            }
+                // Hapus token lama (yang disembunyikan)
+                document.querySelectorAll(`.player-token.p${player.id}`).forEach(t => t.remove());
+
+                // Buat token baru di sel tujuan
+                const destCell = document.getElementById(`cell-${toPos}`);
+                if (destCell) {
+                    const container = destCell.querySelector('.tokens');
+                    if (container) {
+                        const newToken = document.createElement('div');
+                        newToken.className = `player-token p${player.id}`;
+                        newToken.title = player.name;
+                        newToken.style.transform = 'scale(1.8)';
+                        container.appendChild(newToken);
+                        setTimeout(() => { newToken.style.transform = ''; }, 300);
+                    }
+                }
+
+                player.position = toPos;
+                animating[player.id] = false;
+                updateCenterInfo();
+            }, stepDelay * 0.8);
         }
     }
 
-    moveOneStep();
+    // Mulai animasi setelah satu frame render
+    requestAnimationFrame(() => setTimeout(moveOneStep, 80));
 }
 
 // ---- Toast Notification ----
