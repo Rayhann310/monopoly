@@ -1,0 +1,21 @@
+{
+  "name": "monopoly-indonesia",
+  "version": "1.0.0",
+  "description": "Monopoly Edisi Indonesia — Multiplayer board game berbasis web dengan PHP MVC, realtime AJAX polling, admin dashboard, dan mobile player view.",
+  "keywords": ["monopoly", "php", "game", "multiplayer", "indonesia", "mvc"],
+  "author": "Rayhann310",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Rayhann310/monopoly.git"
+  },
+  "engines": {
+    "php": ">=8.0"
+  },
+  "scripts": {
+    "start": "echo 'Jalankan via XAMPP: http://localhost/monopoly'",
+    "info": "echo 'Proyek PHP MVC — tidak memerlukan npm install. Lihat README.md untuk setup.'"
+  },
+  "private": true,
+  "devDependencies": {}
+}
