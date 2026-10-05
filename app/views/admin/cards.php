@@ -50,6 +50,11 @@
                     <?php endif; ?>
                 </div>
                 <p class="text-white font-bold mb-3 leading-relaxed"><?= htmlspecialchars($card['text']) ?></p>
+                <?php if (!empty($card['image_url'])): ?>
+                <div class="mb-3">
+                    <img src="<?= BASEURL ?>/<?= htmlspecialchars($card['image_url']) ?>" alt="Gambar Kartu" class="w-16 h-16 object-cover rounded-xl border border-white/10 shadow-lg">
+                </div>
+                <?php endif; ?>
                 <div class="flex items-center justify-between">
                     <div class="text-xs text-slate-500">
                         Efek: <span class="text-slate-300 font-bold"><?= $card['effect_type'] ?></span>
