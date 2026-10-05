@@ -21,10 +21,12 @@
 
         body { 
             font-family: 'Outfit', sans-serif; 
-            background: #020617;
+            background-color: #0f172a;
             background-image: 
-                radial-gradient(circle at 15% 50%, rgba(59, 130, 246, 0.15), transparent 25%),
-                radial-gradient(circle at 85% 30%, rgba(236, 72, 153, 0.15), transparent 25%);
+                radial-gradient(circle at 50% 0%, #1e293b 0%, transparent 60%),
+                linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+            background-size: 100% 100%, 40px 40px, 40px 40px;
             color: white; 
             overflow: hidden; 
             margin: 0;
@@ -51,7 +53,7 @@
             height: 100%;
         }
         
-        /* The Board - Semi-3D White Background */
+        /* The Board - Premium Semi-3D */
         .monopoly-board {
             display: grid;
             grid-template-columns: repeat(11, 1fr);
@@ -62,61 +64,54 @@
             max-width: 880px;
             max-height: 880px;
             
-            background: #f1f5f9;
-            gap: 3px;
-            padding: 10px;
-            border-radius: 20px;
-            position: relative; /* Penting: agar token absolute berada di dalam board */
+            background: #cbd5e1; /* Darker gap for better contrast */
+            gap: 2px;
+            padding: 12px;
+            border-radius: 24px;
+            position: relative;
             
             /* === SEMI-3D EFFECT === */
             transform: perspective(1200px) rotateX(6deg) scale(0.97);
             transform-origin: center center;
             transform-style: preserve-3d;
             
+            border: 2px solid rgba(255,255,255,0.6);
             box-shadow: 
-                /* Top edge highlight */
-                0 -4px 0 rgba(255,255,255,0.15),
-                /* Bottom depth shadow (gives 3D floor effect) */
+                0 -4px 0 rgba(255,255,255,0.2),
                 0 40px 60px -10px rgba(0,0,0,0.9),
                 0 20px 30px -5px rgba(0,0,0,0.6),
-                /* Rim border */
-                0 0 0 2px rgba(255,255,255,0.1),
-                /* Inner bevel */
-                inset 0 2px 4px rgba(255,255,255,0.5),
-                inset 0 -2px 4px rgba(0,0,0,0.15);
+                inset 0 4px 10px rgba(0,0,0,0.1);
             
-            transition: transform 0.4s ease;
+            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
 
         .monopoly-board:hover {
-            transform: perspective(1200px) rotateX(3deg) scale(0.99);
+            transform: perspective(1200px) rotateX(2deg) scale(0.99);
         }
 
         /* Cells - 3D depth style */
         .cell { 
             position: relative; 
             background-color: #ffffff;
-            border-radius: 4px;
+            border-radius: 6px;
             box-shadow: 
-                inset 0 0 0 1px #d1d5db,
-                0 2px 4px rgba(0,0,0,0.12),
-                0 1px 0 rgba(255,255,255,0.8);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
+                0 2px 4px rgba(0,0,0,0.06),
+                inset 0 0 0 1px rgba(0,0,0,0.04);
+            transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
         }
 
         .cell:hover {
-            transform: translateZ(6px) scale(1.12);
+            transform: translateZ(10px) scale(1.15);
             box-shadow: 
-                inset 0 0 0 1px #94a3b8,
-                0 8px 20px rgba(0,0,0,0.3),
-                0 2px 0 rgba(255,255,255,0.9);
+                0 15px 30px -5px rgba(0,0,0,0.4),
+                inset 0 0 0 2px rgba(16, 185, 129, 0.5);
             z-index: 20;
         }
 
         .cell-content { 
             width: 100%; 
             height: 100%; 
-            border-radius: 4px;
+            border-radius: 5px;
             overflow: hidden;
             display: flex;
             flex-direction: column;
@@ -126,17 +121,17 @@
         }
 
         .name { 
-            font-size: clamp(0.35rem, 1.2vmin, 0.7rem); 
-            font-weight: 900; 
+            font-size: clamp(0.35rem, 1.1vmin, 0.7rem); 
+            font-weight: 800; 
             padding: 3px 2px; 
-            color: #1e293b; 
-            line-height: 1.2;
+            color: #0f172a; 
+            line-height: 1.1;
             text-align: center;
         }
         
         .price { 
-            font-size: clamp(0.35rem, 1.1vmin, 0.6rem); 
-            color: #475569;
+            font-size: clamp(0.35rem, 1vmin, 0.6rem); 
+            color: #64748b;
             font-weight: 700; 
             padding-bottom: 4px;
         }
@@ -177,45 +172,57 @@
         .p3 { background-color: #22c55e; left: 25%; bottom: 25%; z-index: 2; }
         .p4 { background-color: #eab308; right: 10%; z-index: 1; }
         
-        /* Center Area - Semi-3D */
+        /* Center Area - Premium Semi-3D */
         .center-space {
             grid-column: 2 / 11;
             grid-row: 2 / 11;
-            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            background: radial-gradient(circle at center, #f8fafc 0%, #e2e8f0 100%);
             display: flex;
             align-items: center;
             justify-content: center;
             flex-direction: column;
-            border-radius: 10px;
-            border: 2px solid #cbd5e1;
-            box-shadow:
-                inset 0 2px 8px rgba(0,0,0,0.08),
-                inset 0 -2px 4px rgba(255,255,255,0.8);
+            border-radius: 16px;
+            box-shadow: inset 0 0 30px rgba(0,0,0,0.04);
+            position: relative;
         }
 
         .center-content-wrapper {
+            background: #ffffff;
+            padding: 4vmin 6vmin;
+            border-radius: 32px;
+            box-shadow: 
+                0 20px 40px -10px rgba(0,0,0,0.1),
+                0 0 0 1px rgba(0,0,0,0.03),
+                inset 0 0 20px rgba(255,255,255,0.8);
             display: flex;
             flex-direction: column;
             align-items: center;
             text-align: center;
-            padding: 30px 50px;
+            transform: translateZ(5px);
         }
 
         .title-text { 
-            font-size: clamp(2rem, 7vmin, 5rem); 
-            color: #0f172a;
+            font-size: clamp(2rem, 5.5vmin, 5rem); 
             font-weight: 900;
+            background: linear-gradient(135deg, #0f172a 0%, #334155 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -1.5px;
+            margin-bottom: 0.5rem;
+            line-height: 1;
+            filter: drop-shadow(0px 4px 6px rgba(0,0,0,0.15));
         }
         
         .subtitle-text { 
-            font-size: clamp(0.8rem, 2.5vmin, 1.5rem); 
-            letter-spacing: 0.4em; 
-            color: #ef4444;
-            background: #fff0f0;
-            padding: 8px 24px;
-            border-radius: 30px;
-            margin-top: 16px;
-            border: 2px solid #fecaca;
+            font-size: clamp(0.6rem, 1.5vmin, 1.2rem); 
+            color: #ef4444; 
+            font-weight: 800;
+            letter-spacing: 0.4em;
+            border-top: 3px solid #ef4444;
+            border-bottom: 3px solid #ef4444;
+            padding: 0.5em 0;
+            margin-bottom: 1rem;
+            text-transform: uppercase;
         }
 
         .info-badge {
