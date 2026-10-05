@@ -22,19 +22,40 @@
                     $cellIndex = $grid[$row][$col];
                     if ($cellIndex !== null) {
                         $cell = $data['board'][$cellIndex];
-                        echo '<div class="cell" id="cell-'.$cellIndex.'">';
+
+                        // Determine orientation class
+                        $isTopLeft     = ($row == 0 && $col == 0);
+                        $isTopRight    = ($row == 0 && $col == 10);
+                        $isBottomLeft  = ($row == 10 && $col == 0);
+                        $isBottomRight = ($row == 10 && $col == 10);
+                        $isCorner      = $isTopLeft || $isTopRight || $isBottomLeft || $isBottomRight;
+                        $isTop         = ($row == 0 && !$isCorner);
+                        $isBottom      = ($row == 10 && !$isCorner);
+                        $isLeft        = ($col == 0 && !$isCorner);
+                        $isRight       = ($col == 10 && !$isCorner);
+
+                        $orientClass = '';
+                        if ($isTop)    $orientClass = 'cell-top';
+                        if ($isBottom) $orientClass = 'cell-bottom';
+                        if ($isLeft)   $orientClass = 'cell-left';
+                        if ($isRight)  $orientClass = 'cell-right';
+                        if ($isCorner) $orientClass = 'cell-corner';
+
+                        echo '<div class="cell ' . $orientClass . '" id="cell-'.$cellIndex.'">';
                         echo '<div class="cell-content">';
+
+                        // Color bar / image
                         if ($cell['color'] != 'white') {
                             echo '<div class="color-bar c-'.$cell['color'].'">';
-                            // Show city image inside color bar if exists
                             if (isset($cityImages[$cellIndex])) {
                                 echo '<img src="'.BASEURL.'/'.$cityImages[$cellIndex].'" alt="'.$cell['name'].'" style="width:100%;height:100%;object-fit:cover;opacity:0.95;border-radius:3px;">';
                             }
                             echo '</div>';
                         } else {
-                            echo '<div class="h-[25%] w-full"></div>';
+                            echo '<div class="spacer-bar"></div>';
                         }
-                        echo '<div class="name flex-grow flex items-center justify-center">' . $cell['name'] . '</div>';
+
+                        echo '<div class="name">' . $cell['name'] . '</div>';
                         if (isset($cell['price'])) {
                             echo '<div class="price">Rp ' . number_format($cell['price'], 0, ',', '.') . '</div>';
                         } else {
