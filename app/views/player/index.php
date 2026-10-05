@@ -176,15 +176,72 @@
                 let text = `<b>Mendarat di:</b><br><span style="font-size:1.4rem;font-weight:900;color:#38bdf8">${landedCell.name}</span>`;
                 let icon = 'success', color = '#38bdf8';
 
-                if (landedCell.name === 'Kesempatan') { icon='question'; title='<i class="fa-solid fa-cards-blank mr-1"></i> Kartu Kesempatan!'; text='Ambil kartu <b>Kesempatan</b> dan ikuti instruksinya.'; color='#f59e0b'; }
-                else if (landedCell.name === 'Dana Umum') { icon='question'; title='<i class="fa-solid fa-coins mr-1"></i> Dana Umum!'; text='Ambil kartu <b>Dana Umum</b> dan ikuti instruksinya.'; color='#10b981'; }
-                else if (landedCell.name === 'Penjara') { icon='info'; title='<i class="fa-solid fa-eye mr-1"></i> Hanya Berkunjung'; text='Kamu di area Penjara sebagai <b>pengunjung bebas</b>.'; color='#6366f1'; }
-                else if (landedCell.name === 'Masuk Penjara') { icon='error'; title='<i class="fa-solid fa-handcuffs mr-1"></i> DITANGKAP!'; text='Kamu masuk penjara!'; color='#ef4444'; }
-                else if (landedCell.name === 'Pajak Mewah' || landedCell.name === 'Pajak') { icon='warning'; title='<i class="fa-solid fa-landmark mr-1"></i> Bayar Pajak!'; text=`Kamu kena pajak di <b>${landedCell.name}</b>.`; color='#f97316'; }
-                else if (landedCell.name === 'Parkir Bebas') { icon='success'; title='<i class="fa-solid fa-square-parking mr-1"></i> Parkir Bebas!'; text='Tidak ada denda!'; color='#22c55e'; }
-                else if (landedCell.name === 'Start') { title='<i class="fa-solid fa-star mr-1"></i> Melewati Start!'; text='Terima <b>Rp 2.000</b> dari Bank!'; color='#eab308'; }
+                function showCardAnimation(cardType) {
+                    const isKesempatan = cardType === 'Kesempatan';
+                    const cColor = isKesempatan ? '#f59e0b' : '#10b981'; // Orange or Green
+                    const cIcon = isKesempatan ? 'fa-question' : 'fa-gem';
+                    
+                    const html = `
+                    <style>
+                    .mc-card-container { perspective: 1000px; width: 100%; height: 280px; margin-top: 10px; cursor: pointer; }
+                    .mc-card { position: relative; width: 100%; height: 100%; text-align: center; transition: transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1); transform-style: preserve-3d; }
+                    .mc-card.is-flipped { transform: rotateY(180deg); }
+                    .mc-face { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 16px; display: flex; flex-direction: column; justify-content: center; align-items: center; box-shadow: 0 15px 35px rgba(0,0,0,0.5); padding: 20px; border: 4px solid ${cColor}; }
+                    .mc-front { background: radial-gradient(circle, #1e293b, #0f172a); }
+                    .mc-back { background: white; color: #0f172a; transform: rotateY(180deg); }
+                    .mc-front-icon { font-size: 80px; color: ${cColor}; text-shadow: 0 0 20px ${cColor}80; }
+                    </style>
+                    <div class="mc-card-container" onclick="this.querySelector('.mc-card').classList.add('is-flipped')">
+                        <div class="mc-card">
+                            <div class="mc-face mc-front">
+                                <i class="fa-solid ${cIcon} mc-front-icon animate-pulse"></i>
+                                <div style="color:white; margin-top:20px; font-weight:bold; font-size:1.2rem; letter-spacing:2px; text-transform:uppercase">${cardType}</div>
+                                <div style="color:#94a3b8; font-size:0.8rem; margin-top:10px">Ketuk untuk membalik</div>
+                            </div>
+                            <div class="mc-face mc-back">
+                                <div style="background:${cColor}; color:white; width:calc(100% + 40px); margin-top:-20px; padding:10px; font-weight:black; text-transform:uppercase; font-size:1.2rem; border-top-left-radius: 10px; border-top-right-radius: 10px;">
+                                    ${cardType}
+                                </div>
+                                <div style="flex-grow:1; display:flex; flex-direction:column; justify-content:center; align-items:center; padding:10px;">
+                                    <div style="width: 80px; height: 80px; border: 2px dashed #cbd5e1; border-radius: 10px; display:flex; justify-content:center; align-items:center; color:#94a3b8; margin-bottom:15px; font-size:0.8rem">
+                                        (Area Gambar Admin)
+                                    </div>
+                                    <h3 style="font-weight:bold; font-size:1.1rem; color:#1e293b; line-height:1.3">Ambil Kartu Fisik dan ikuti instruksinya.</h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    `;
+                    
+                    Swal.fire({
+                        html: html,
+                        background: 'transparent',
+                        showConfirmButton: true,
+                        confirmButtonText: 'Oke, Sudah Diambil',
+                        confirmButtonColor: cColor,
+                        backdrop: 'rgba(0,0,0,0.9)'
+                    });
+                    
+                    // Auto-flip setelah 1 detik jika pemain tidak mengetuk
+                    setTimeout(() => {
+                        const card = document.querySelector('.mc-card');
+                        if(card && !card.classList.contains('is-flipped')) {
+                            card.classList.add('is-flipped');
+                        }
+                    }, 1200);
+                }
 
-                showModal(title, text, icon, color);
+                if (landedCell.name === 'Kesempatan' || landedCell.name === 'Dana Umum') {
+                    showCardAnimation(landedCell.name);
+                }
+                else if (landedCell.name === 'Penjara') { icon='info'; title='<i class="fa-solid fa-eye mr-1"></i> Hanya Berkunjung'; text='Kamu di area Penjara sebagai <b>pengunjung bebas</b>.'; color='#6366f1'; showModal(title, text, icon, color); }
+                else if (landedCell.name === 'Masuk Penjara') { icon='error'; title='<i class="fa-solid fa-handcuffs mr-1"></i> DITANGKAP!'; text='Kamu masuk penjara!'; color='#ef4444'; showModal(title, text, icon, color); }
+                else if (landedCell.name === 'Pajak Mewah' || landedCell.name === 'Pajak') { icon='warning'; title='<i class="fa-solid fa-landmark mr-1"></i> Bayar Pajak!'; text=`Kamu kena pajak di <b>${landedCell.name}</b>.`; color='#f97316'; showModal(title, text, icon, color); }
+                else if (landedCell.name === 'Parkir Bebas') { icon='success'; title='<i class="fa-solid fa-square-parking mr-1"></i> Parkir Bebas!'; text='Tidak ada denda!'; color='#22c55e'; showModal(title, text, icon, color); }
+                else if (landedCell.name === 'Start') { title='<i class="fa-solid fa-star mr-1"></i> Melewati Start!'; text='Terima <b>Rp 2.000</b> dari Bank!'; color='#eab308'; showModal(title, text, icon, color); }
+                else {
+                    showModal(title, text, icon, color);
+                }
 
                 // Kirim ke server
                 fetch(BASEURL + '/player/apiRoll', {
