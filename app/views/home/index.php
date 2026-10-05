@@ -53,7 +53,7 @@
                         echo '</div>';
 
                         echo '<div class="center-content-wrapper relative z-20">';
-                        echo '<h1 class="title-text font-black"><i class="fa-solid fa-building text-red-500 mr-3"></i>MONOPOLY</h1>';
+                        echo '<h1 class="title-text font-black">MONOPOLY</h1>';
                         echo '<h2 class="subtitle-text font-bold">EDISI INDONESIA</h2>';
                         echo '<p id="center-turn-info" class="info-badge mt-4 text-lg font-bold shadow-lg"></p>';
                         echo '</div>';
