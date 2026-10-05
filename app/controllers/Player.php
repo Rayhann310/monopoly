@@ -37,8 +37,21 @@ class Player extends Controller {
             echo json_encode(['status' => 'error', 'msg' => 'Bukan giliran kamu!']); return;
         }
         if ($player['has_rolled']) {
-            echo json_encode(['status' => 'error', 'msg' => 'Sudah melempar dadu!']); return;
+            echo json_encode(['status' => 'error', 'msg' => 'Sudah melempar dadu!', 'already_rolled' => true]); return;
         }
+
+        // === ATOMIC LOCK: SET has_rolled=1 WHERE has_rolled=0 (prevent race/double-roll) ===
+        $db = new Database();
+        $db->query("UPDATE players SET has_rolled = 1 WHERE id = :id AND has_rolled = 0 AND is_turn = 1");
+        $db->bind('id', $id);
+        $db->execute();
+        // Check rowCount — if 0, another request already locked it
+        $rowCount = $db->rowCount();
+        if ($rowCount === 0) {
+            echo json_encode(['status' => 'error', 'msg' => 'Sudah melempar dadu!', 'already_rolled' => true]); return;
+        }
+        // Re-fetch after lock
+        $player = $this->model('PlayerModel')->getPlayerById($id);
 
         $oldPos    = (int)$player['position'];
         $sessionId = (int)$player['session_id'];

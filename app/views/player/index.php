@@ -147,12 +147,20 @@
         const rollBtn = document.getElementById('mobile-roll-btn');
         const endTurnBtn = document.getElementById('end-turn-btn');
 
-        // Jika sudah roll tapi belum selesai giliran, tampilkan End Turn
-        if (hasRolled && isTurn) {
+        // Inisialisasi state tombol saat halaman dimuat
+        if (!isTurn) {
+            // Bukan giliran — kunci dadu
             rollBtn.disabled = true;
             rollBtn.classList.add('opacity-30');
+            rollBtn.style.pointerEvents = 'none';
+        } else if (hasRolled) {
+            // Giliran kita tapi sudah roll — kunci dadu, tampilkan selesai
+            rollBtn.disabled = true;
+            rollBtn.classList.add('opacity-30');
+            rollBtn.style.pointerEvents = 'none';
             endTurnBtn.classList.remove('hidden');
         }
+        // else: giliran kita dan belum roll — tombol aktif (default)
 
         // Helper SweetAlert
         function showModal(title, text, icon, color) {
@@ -280,10 +288,20 @@
                     body: `id=${player.id}&new_position=${player.position}&dice=${total}`
                 }).then(r => r.json()).then(res => {
                     if (res.status !== 'success') {
-                        showModal('<i class="fa-solid fa-triangle-exclamation mr-1"></i> ' + (res.msg || 'Error'), '', 'warning', '#f59e0b');
-                        btn.disabled = false;
-                        btn.style.pointerEvents = '';
-                        isRolling = false;
+                        if (res.already_rolled) {
+                            // Sudah roll di request lain — tetap kunci, tampilkan end turn
+                            hasRolled = true;
+                            isRolling = false;
+                            btn.classList.add('opacity-30');
+                            endTurnBtn.classList.remove('hidden');
+                            endTurnBtn.disabled = false;
+                        } else {
+                            // Error biasa — kembalikan tombol
+                            showModal('<i class="fa-solid fa-triangle-exclamation mr-1"></i> ' + (res.msg || 'Error'), '', 'warning', '#f59e0b');
+                            btn.disabled = false;
+                            btn.style.pointerEvents = '';
+                            isRolling = false;
+                        }
                         return;
                     }
 
