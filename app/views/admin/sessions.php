@@ -1,5 +1,5 @@
-<?php include '../app/views/templates/admin_header.php'; ?>
-<?php include '../app/views/templates/admin_sidebar.php'; ?>
+<?php include 'app/views/templates/admin_header.php'; ?>
+<?php include 'app/views/templates/admin_sidebar.php'; ?>
 
 <!-- === TAB: SESSIONS === -->
         <div class="flex justify-between items-center mb-6">
@@ -55,4 +55,4 @@
                 </table>
             </div>
 
-<?php include '../app/views/templates/admin_footer.php'; ?>
+<?php include 'app/views/templates/admin_footer.php'; ?>

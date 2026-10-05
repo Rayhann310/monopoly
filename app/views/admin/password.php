@@ -1,5 +1,5 @@
-<?php include '../app/views/templates/admin_header.php'; ?>
-<?php include '../app/views/templates/admin_sidebar.php'; ?>
+<?php include 'app/views/templates/admin_header.php'; ?>
+<?php include 'app/views/templates/admin_sidebar.php'; ?>
 
 <!-- === TAB: PASSWORD === -->
         <h2 class="text-2xl font-black text-white mb-6"><i class="fa-solid fa-key text-yellow-400 mr-2"></i>Ganti Password Admin</h2>
@@ -16,4 +16,4 @@
                 </form>
             </div>
 
-<?php include '../app/views/templates/admin_footer.php'; ?>
+<?php include 'app/views/templates/admin_footer.php'; ?>

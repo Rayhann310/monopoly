@@ -1,5 +1,5 @@
-<?php include '../app/views/templates/admin_header.php'; ?>
-<?php include '../app/views/templates/admin_sidebar.php'; ?>
+<?php include 'app/views/templates/admin_header.php'; ?>
+<?php include 'app/views/templates/admin_sidebar.php'; ?>
 
 <!-- === TAB: SETTINGS === -->
         <h2 class="text-2xl font-black text-white mb-6"><i class="fa-solid fa-gear text-blue-400 mr-2"></i>Pengaturan Permainan</h2>
@@ -30,4 +30,4 @@
                 </button>
             </form>
 
-<?php include '../app/views/templates/admin_footer.php'; ?>
+<?php include 'app/views/templates/admin_footer.php'; ?>

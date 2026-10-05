@@ -1,5 +1,5 @@
-<?php include '../app/views/templates/admin_header.php'; ?>
-<?php include '../app/views/templates/admin_sidebar.php'; ?>
+<?php include 'app/views/templates/admin_header.php'; ?>
+<?php include 'app/views/templates/admin_sidebar.php'; ?>
 
 <!-- === TAB: OVERVIEW === -->
         <!-- Stats Cards -->
@@ -33,4 +33,4 @@
                 </div>
             </div>
 
-<?php include '../app/views/templates/admin_footer.php'; ?>
+<?php include 'app/views/templates/admin_footer.php'; ?>

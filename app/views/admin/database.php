@@ -1,5 +1,5 @@
-<?php include '../app/views/templates/admin_header.php'; ?>
-<?php include '../app/views/templates/admin_sidebar.php'; ?>
+<?php include 'app/views/templates/admin_header.php'; ?>
+<?php include 'app/views/templates/admin_sidebar.php'; ?>
 
 <!-- === TAB: DATABASE === -->
         <h2 class="text-2xl font-black text-white mb-6"><i class="fa-solid fa-database text-purple-400 mr-2"></i>Manajemen Database</h2>
@@ -36,4 +36,4 @@
                 </div>
             </div>
 
-<?php include '../app/views/templates/admin_footer.php'; ?>
+<?php include 'app/views/templates/admin_footer.php'; ?>
