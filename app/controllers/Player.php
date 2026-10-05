@@ -64,6 +64,9 @@ class Player extends Controller {
         }
 
         $cell = $board[$newPos] ?? null;
+        if ($cell && isset($cell['house_price'])) {
+            $housePrice = (int)$cell['house_price'];
+        }
 
         if ($cell) {
             switch ($cell['type']) {
@@ -242,7 +245,7 @@ class Player extends Controller {
 
         $existing = $this->model('PropertyModel')->getOwner($sessionId, $cellIndex);
         $settings = $this->model('SettingsModel');
-        $housePrice = (int)$settings->get('house_price', 150);
+        $housePrice = isset($cell['house_price']) ? (int)$cell['house_price'] : (int)$settings->get('house_price', 150);
         $maxPropLevel = (int)$settings->get('max_property_level', 4);
 
         if ($existing) {

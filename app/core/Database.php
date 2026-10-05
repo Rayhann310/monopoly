@@ -152,9 +152,16 @@ class Database {
         $this->dbh->exec("CREATE TABLE IF NOT EXISTS board_properties (
             id INT AUTO_INCREMENT PRIMARY KEY,
             cell_index INT NOT NULL UNIQUE,
+            name VARCHAR(100) NULL,
+            price INT NULL,
+            house_price INT NULL,
             image_url VARCHAR(255) NULL,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
         )");
+        // Self-heal: add missing columns if they don't exist
+        foreach (['name VARCHAR(100) NULL', 'price INT NULL', 'house_price INT NULL'] as $col) {
+            try { $this->dbh->exec("ALTER TABLE board_properties ADD COLUMN $col"); } catch(Exception $e) {}
+        }
 
         return true;
     }

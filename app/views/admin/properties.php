@@ -59,8 +59,25 @@
                 <form action="<?= BASEURL ?>/admin/saveCityImage" method="POST" enctype="multipart/form-data" class="flex flex-col gap-3">
                     <input type="hidden" name="cell_index" value="<?= $idx ?>">
                     <label class="block">
-                        <span class="text-slate-400 text-xs font-bold uppercase tracking-wider block mb-1">Upload Gambar</span>
-                        <input type="file" name="image" accept="image/*" required
+                        <span class="text-slate-400 text-xs font-bold uppercase tracking-wider block mb-1">Nama Kota/Properti</span>
+                        <input type="text" name="name" value="<?= htmlspecialchars($data['custom_props'][$idx]['name'] ?? $cell['name']) ?>"
+                               class="w-full bg-slate-800 border border-white/10 rounded-lg px-3 py-1.5 text-sm text-white focus:border-blue-500 focus:outline-none mb-2">
+                    </label>
+                    <div class="flex gap-2">
+                        <label class="block flex-1">
+                            <span class="text-slate-400 text-xs font-bold uppercase tracking-wider block mb-1">Harga Tanah</span>
+                            <input type="number" name="price" value="<?= htmlspecialchars($data['custom_props'][$idx]['price'] ?? $cell['price']) ?>"
+                                   class="w-full bg-slate-800 border border-white/10 rounded-lg px-3 py-1.5 text-sm text-white focus:border-blue-500 focus:outline-none mb-2">
+                        </label>
+                        <label class="block flex-1">
+                            <span class="text-slate-400 text-xs font-bold uppercase tracking-wider block mb-1">Harga / Rumah</span>
+                            <input type="number" name="house_price" value="<?= htmlspecialchars($data['custom_props'][$idx]['house_price'] ?? '') ?>" placeholder="Def: 150"
+                                   class="w-full bg-slate-800 border border-white/10 rounded-lg px-3 py-1.5 text-sm text-white focus:border-blue-500 focus:outline-none mb-2">
+                        </label>
+                    </div>
+                    <label class="block mb-2">
+                        <span class="text-slate-400 text-xs font-bold uppercase tracking-wider block mb-1">Ganti Gambar</span>
+                        <input type="file" name="image" accept="image/*"
                                class="w-full text-xs text-slate-400 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-blue-500/20 file:text-blue-400 file:font-bold file:cursor-pointer hover:file:bg-blue-500/40 transition">
                     </label>
                     <div class="flex gap-2">

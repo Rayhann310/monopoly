@@ -44,6 +44,32 @@ class BoardModel {
     ];
 
     public function getBoard() {
-        return $this->board;
+        $db = new Database();
+        $db->query("SELECT * FROM board_properties");
+        $customs = $db->resultSet();
+        $customMap = [];
+        foreach ($customs as $c) {
+            $customMap[(int)$c['cell_index']] = $c;
+        }
+
+        $board = $this->board;
+        foreach ($board as $idx => &$cell) {
+            $cell['index'] = $idx;
+            if (isset($customMap[$idx])) {
+                if (!empty($customMap[$idx]['name'])) {
+                    $cell['name'] = $customMap[$idx]['name'];
+                }
+                if (!empty($customMap[$idx]['price'])) {
+                    $cell['price'] = (int)$customMap[$idx]['price'];
+                }
+                if (!empty($customMap[$idx]['house_price'])) {
+                    $cell['house_price'] = (int)$customMap[$idx]['house_price'];
+                }
+                if (!empty($customMap[$idx]['image_url'])) {
+                    $cell['image_url'] = $customMap[$idx]['image_url'];
+                }
+            }
+        }
+        return $board;
     }
 }

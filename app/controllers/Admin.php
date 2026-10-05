@@ -175,13 +175,19 @@ class Admin extends Controller {
         $data['admin'] = $_SESSION['admin_username'];
         $data['board'] = $this->model('BoardModel')->getBoard();
 
-        // Load existing images keyed by cell_index
+        // Load existing custom properties keyed by cell_index
         $db = new Database;
-        $db->query("SELECT cell_index, image_url FROM board_properties");
+        $db->query("SELECT * FROM board_properties");
         $rows = $db->resultSet();
         $data['images'] = [];
+        $data['custom_props'] = [];
         foreach ($rows as $r) {
             $data['images'][(int)$r['cell_index']] = $r['image_url'];
+            $data['custom_props'][(int)$r['cell_index']] = [
+                'name' => $r['name'],
+                'price' => $r['price'],
+                'house_price' => $r['house_price']
+            ];
         }
 
         $data['success'] = $_GET['saved'] ?? null;
@@ -195,34 +201,53 @@ class Admin extends Controller {
             header('Location: ' . BASEURL . '/admin/properties'); exit;
         }
 
-        if (!isset($_FILES['image']) || $_FILES['image']['error'] !== 0) {
-            header('Location: ' . BASEURL . '/admin/properties'); exit;
+        $name = $_POST['name'] ?? '';
+        $price = $_POST['price'] ?? '';
+        $housePrice = $_POST['house_price'] ?? '';
+
+        $nameVal = $name === '' ? null : $name;
+        $priceVal = $price === '' ? null : (int)$price;
+        $housePriceVal = $housePrice === '' ? null : (int)$housePrice;
+
+        $db = new Database;
+        
+        $imageUrl = null;
+        if (isset($_FILES['image']) && $_FILES['image']['error'] === 0) {
+            $uploadDir = 'public/img/cities/';
+            if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
+            $ext = strtolower(pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION));
+            $allowed = ['jpg','jpeg','png','gif','webp'];
+            if (in_array($ext, $allowed)) {
+                $filename = 'city_' . $cellIndex . '_' . time() . '.' . $ext;
+                $dest = $uploadDir . $filename;
+                if (move_uploaded_file($_FILES['image']['tmp_name'], $dest)) {
+                    $imageUrl = $dest;
+                }
+            }
         }
 
-        $uploadDir = 'public/img/cities/';
-        if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
-
-        $ext = strtolower(pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION));
-        $allowed = ['jpg','jpeg','png','gif','webp'];
-        if (!in_array($ext, $allowed)) {
-            header('Location: ' . BASEURL . '/admin/properties'); exit;
-        }
-
-        $filename = 'city_' . $cellIndex . '.' . $ext;
-        $dest = $uploadDir . $filename;
-
-        if (move_uploaded_file($_FILES['image']['tmp_name'], $dest)) {
-            $imageUrl = $dest;
-            $db = new Database;
-            $db->query("INSERT INTO board_properties (cell_index, image_url) VALUES (:ci, :img)
-                        ON DUPLICATE KEY UPDATE image_url = :img2");
+        if ($imageUrl) {
+            $db->query("INSERT INTO board_properties (cell_index, name, price, house_price, image_url) 
+                        VALUES (:ci, :n, :p, :hp, :img)
+                        ON DUPLICATE KEY UPDATE name = :n2, price = :p2, house_price = :hp2, image_url = :img2");
             $db->bind('ci', $cellIndex);
-            $db->bind('img', $imageUrl);
-            $db->bind('img2', $imageUrl);
+            $db->bind('n', $nameVal); $db->bind('n2', $nameVal);
+            $db->bind('p', $priceVal); $db->bind('p2', $priceVal);
+            $db->bind('hp', $housePriceVal); $db->bind('hp2', $housePriceVal);
+            $db->bind('img', $imageUrl); $db->bind('img2', $imageUrl);
+            $db->execute();
+        } else {
+            $db->query("INSERT INTO board_properties (cell_index, name, price, house_price) 
+                        VALUES (:ci, :n, :p, :hp)
+                        ON DUPLICATE KEY UPDATE name = :n2, price = :p2, house_price = :hp2");
+            $db->bind('ci', $cellIndex);
+            $db->bind('n', $nameVal); $db->bind('n2', $nameVal);
+            $db->bind('p', $priceVal); $db->bind('p2', $priceVal);
+            $db->bind('hp', $housePriceVal); $db->bind('hp2', $housePriceVal);
             $db->execute();
         }
 
-        header('Location: ' . BASEURL . '/admin/properties?saved=Gambar berhasil disimpan!'); exit;
+        header('Location: ' . BASEURL . '/admin/properties?saved=Pengaturan kota berhasil disimpan!'); exit;
     }
 
     public function deleteCityImage($cellIndex) {
