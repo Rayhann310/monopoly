@@ -39,10 +39,36 @@ class Player extends Controller {
             echo json_encode(['status' => 'error', 'msg' => 'Sudah melempar dadu!']); return;
         }
 
+        $oldPos = $player['position'];
+        
+        // Pass Go logic
+        $settings = $this->model('SettingsModel');
+        $passGoBonus = (int)$settings->get('pass_go_bonus', 2000);
+        $taxAmount = (int)$settings->get('tax_amount', 2000);
+        $luxuryTax = (int)$settings->get('luxury_tax', 7500);
+
+        $newMoney = (int)$player['money'];
+        if ($newPos < $oldPos) {
+            // Passed Go (completed a lap)
+            $newMoney += $passGoBonus;
+        }
+
+        // Determine landing logic based on hardcoded board cells (for now)
+        // Cell 4 is Tax, Cell 38 is Luxury Tax
+        if ($newPos == 4) {
+            $newMoney -= $taxAmount;
+        } else if ($newPos == 38) {
+            $newMoney -= $luxuryTax;
+        } else if ($newPos == 30) {
+            // Go to Jail
+            $newPos = 10;
+        }
+
         $this->model('PlayerModel')->updatePosition($id, $newPos);
+        $this->model('PlayerModel')->updateMoney($id, $newMoney);
         $this->model('PlayerModel')->markRolled($id);
 
-        echo json_encode(['status' => 'success', 'position' => $newPos]);
+        echo json_encode(['status' => 'success', 'position' => $newPos, 'money' => $newMoney]);
     }
 
     public function apiEndTurn() {

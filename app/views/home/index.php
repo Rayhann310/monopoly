@@ -29,11 +29,33 @@
                         echo '</div></div>';
                     } else if ($row == 1 && $col == 1) {
                         // Center space
-                        echo '<div class="center-space">';
-                        echo '<div class="center-content-wrapper">';
+                        echo '<div class="center-space relative overflow-hidden">';
+                        echo '<div class="absolute inset-0 bg-white/5 opacity-50 bg-[radial-gradient(#cbd5e1_1px,transparent_1px)] [background-size:20px_20px]"></div>';
+                        
+                        // Tumpukan Dana Umum
+                        echo '<div class="absolute left-[10%] top-1/2 -translate-y-1/2 flex flex-col items-center opacity-80 hover:opacity-100 transition cursor-pointer z-10">';
+                        echo '    <div class="w-[clamp(50px,12vmin,140px)] h-[clamp(80px,18vmin,200px)] bg-emerald-500 rounded-xl border-4 border-emerald-300 shadow-[2px_2px_0_#064e3b,-2px_-2px_0_white,0_10px_20px_rgba(0,0,0,0.4)] flex flex-col items-center justify-center transform -rotate-12 hover:-translate-y-2 transition-transform">';
+                        echo '        <i class="fa-solid fa-gem text-white/60 text-3xl md:text-6xl mb-3"></i>';
+                        echo '        <div class="text-white font-black text-[0.6rem] md:text-sm text-center uppercase tracking-widest">Dana<br>Umum</div>';
+                        echo '    </div>';
+                        echo '    <div class="w-[clamp(50px,12vmin,140px)] h-[clamp(80px,18vmin,200px)] bg-emerald-600 rounded-xl absolute top-1 left-1 -z-10 shadow-[5px_5px_15px_rgba(0,0,0,0.5)] transform -rotate-6"></div>';
+                        echo '    <div class="w-[clamp(50px,12vmin,140px)] h-[clamp(80px,18vmin,200px)] bg-emerald-700 rounded-xl absolute top-2 left-2 -z-20 transform -rotate-3"></div>';
+                        echo '</div>';
+                        
+                        // Tumpukan Kesempatan
+                        echo '<div class="absolute right-[10%] top-1/2 -translate-y-1/2 flex flex-col items-center opacity-80 hover:opacity-100 transition cursor-pointer z-10">';
+                        echo '    <div class="w-[clamp(50px,12vmin,140px)] h-[clamp(80px,18vmin,200px)] bg-amber-500 rounded-xl border-4 border-amber-300 shadow-[-2px_2px_0_#78350f,2px_-2px_0_white,0_10px_20px_rgba(0,0,0,0.4)] flex flex-col items-center justify-center transform rotate-12 hover:-translate-y-2 transition-transform">';
+                        echo '        <i class="fa-solid fa-question text-white/60 text-4xl md:text-7xl mb-3"></i>';
+                        echo '        <div class="text-white font-black text-[0.6rem] md:text-sm text-center uppercase tracking-widest">Kesem-<br>patan</div>';
+                        echo '    </div>';
+                        echo '    <div class="w-[clamp(50px,12vmin,140px)] h-[clamp(80px,18vmin,200px)] bg-amber-600 rounded-xl absolute top-1 right-1 -z-10 shadow-[-5px_5px_15px_rgba(0,0,0,0.5)] transform rotate-6"></div>';
+                        echo '    <div class="w-[clamp(50px,12vmin,140px)] h-[clamp(80px,18vmin,200px)] bg-amber-700 rounded-xl absolute top-2 right-2 -z-20 transform rotate-3"></div>';
+                        echo '</div>';
+
+                        echo '<div class="center-content-wrapper relative z-20">';
                         echo '<h1 class="title-text font-black"><i class="fa-solid fa-building text-red-500 mr-3"></i>MONOPOLY</h1>';
                         echo '<h2 class="subtitle-text font-bold">EDISI INDONESIA</h2>';
-                        echo '<p id="center-turn-info" class="info-badge mt-4 text-lg font-bold"></p>';
+                        echo '<p id="center-turn-info" class="info-badge mt-4 text-lg font-bold shadow-lg"></p>';
                         echo '</div>';
                         echo '</div>';
                     }

@@ -262,6 +262,48 @@ function updateBankModal() {
 }
 
 // ============================================================
+// FLOATING MONEY ANIMATION
+// ============================================================
+function showFloatingMoney(playerId, amount) {
+    const token = document.getElementById(`token-p${playerId}`);
+    if (!token) return;
+
+    const floater = document.createElement('div');
+    const isPositive = amount > 0;
+    
+    floater.innerHTML = (isPositive ? '+' : '-') + ' Rp ' + Math.abs(amount).toLocaleString('id-ID');
+    floater.style.cssText = `
+        position: absolute;
+        top: -20px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-family: 'Outfit', sans-serif;
+        font-weight: 900;
+        font-size: 1.2rem;
+        white-space: nowrap;
+        color: ${isPositive ? '#34d399' : '#f87171'};
+        text-shadow: 0px 2px 4px rgba(0,0,0,0.8), 0 0 10px ${isPositive ? '#059669' : '#dc2626'};
+        pointer-events: none;
+        z-index: 300;
+        opacity: 1;
+        transition: all 1.5s cubic-bezier(0.25, 1, 0.5, 1);
+    `;
+    
+    token.appendChild(floater);
+
+    // Trigger animation next frame
+    requestAnimationFrame(() => {
+        floater.style.top = '-60px';
+        floater.style.opacity = '0';
+        floater.style.transform = `translateX(-50%) scale(1.2)`;
+    });
+
+    setTimeout(() => {
+        if (floater.parentNode) floater.parentNode.removeChild(floater);
+    }, 1500);
+}
+
+// ============================================================
 // POLLING REALTIME
 // ============================================================
 const POLLING_MS = typeof POLLING_INTERVAL !== 'undefined' ? POLLING_INTERVAL : 1500;
@@ -277,13 +319,20 @@ setInterval(() => {
                 if (!lp) return;
 
                 const serverPos = parseInt(sp.position);
+                const serverMoney = parseInt(sp.money);
 
                 // Animasi step-by-step HANYA jika posisi berubah & belum animasi
                 if (serverPos !== lp.position && !animating[lp.id]) {
                     animateTokenStepByStep(lp, lp.position, serverPos);
                 }
 
-                lp.money   = parseInt(sp.money);
+                // Animasi floating money jika uang berubah
+                if (serverMoney !== lp.money) {
+                    const diff = serverMoney - lp.money;
+                    showFloatingMoney(lp.id, diff);
+                    lp.money = serverMoney;
+                }
+
                 lp.is_turn = parseInt(sp.is_turn) === 1;
             });
 
