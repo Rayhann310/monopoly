@@ -16,7 +16,10 @@ class Admin extends Controller {
     public function login() {
 
         if (!empty($_SESSION['admin_logged_in'])) {
-            header('Location: ' . BASEURL . '/admin/dashboard'); exit;
+            $data['settings'] = $this->model('SettingsModel')->getAll();
+        $data['judul'] = 'Pengaturan Game';
+        $data['admin'] = $_SESSION['admin_username'];
+        $this->view('admin/settings', $data);
         }
         $error = '';
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -29,7 +32,10 @@ class Admin extends Controller {
             if ($admin && password_verify($password, $admin['password_hash'])) {
                 $_SESSION['admin_logged_in'] = true;
                 $_SESSION['admin_username'] = $admin['username'];
-                header('Location: ' . BASEURL . '/admin/dashboard'); exit;
+                $data['settings'] = $this->model('SettingsModel')->getAll();
+        $data['judul'] = 'Pengaturan Game';
+        $data['admin'] = $_SESSION['admin_username'];
+        $this->view('admin/settings', $data);
             }
             $error = 'Username atau password salah!';
         }
@@ -68,6 +74,30 @@ class Admin extends Controller {
         $this->view('admin/dashboard', $data);
     }
 
+    public function sessions() {
+        $this->requireLogin();
+        $db = new Database;
+        $db->query("SELECT s.*, COUNT(p.id) as player_count FROM sessions s LEFT JOIN players p ON p.session_id = s.id GROUP BY s.id ORDER BY s.created_at DESC");
+        $data['sessions'] = $db->resultSet();
+        $data['judul'] = 'Sesi Aktif';
+        $data['admin'] = $_SESSION['admin_username'];
+        $this->view('admin/sessions', $data);
+    }
+
+    public function database() {
+        $this->requireLogin();
+        $data['judul'] = 'Database';
+        $data['admin'] = $_SESSION['admin_username'];
+        $this->view('admin/database', $data);
+    }
+
+    public function password() {
+        $this->requireLogin();
+        $data['judul'] = 'Ganti Password';
+        $data['admin'] = $_SESSION['admin_username'];
+        $this->view('admin/password', $data);
+    }
+
     public function settings() {
         $this->requireLogin();
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -80,7 +110,10 @@ class Admin extends Controller {
             }
             header('Location: ' . BASEURL . '/admin/dashboard?saved=1'); exit;
         }
-        header('Location: ' . BASEURL . '/admin/dashboard'); exit;
+        $data['settings'] = $this->model('SettingsModel')->getAll();
+        $data['judul'] = 'Pengaturan Game';
+        $data['admin'] = $_SESSION['admin_username'];
+        $this->view('admin/settings', $data);
     }
 
     public function cards() {
@@ -104,11 +137,26 @@ class Admin extends Controller {
             $effectValue = (int)($_POST['effect_value'] ?? 0);
             $isActive = isset($_POST['is_active']) ? 1 : 0;
 
+            $image_url = '';
+            if (isset($_FILES['image']) && $_FILES['image']['error'] == 0) {
+                $ext = pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION);
+                $filename = time() . '_' . rand(1000,9999) . '.' . $ext;
+                move_uploaded_file($_FILES['image']['tmp_name'], 'public/img/cards/' . $filename);
+                $image_url = $filename;
+            }
+
             if ($id > 0) {
-                $db->query("UPDATE cards SET text=:text, type=:type, effect_type=:et, effect_value=:ev, is_active=:ia WHERE id=:id");
+                if ($image_url) {
+                    $db->query("UPDATE cards SET text=:text, type=:type, effect_type=:et, effect_value=:ev, is_active=:ia, image_url=:img WHERE id=:id");
+                    $db->bind('img', $image_url);
+                } else {
+                    $db->query("UPDATE cards SET text=:text, type=:type, effect_type=:et, effect_value=:ev, is_active=:ia WHERE id=:id");
+                }
+
                 $db->bind('id', $id);
             } else {
-                $db->query("INSERT INTO cards (text, type, effect_type, effect_value, is_active) VALUES (:text,:type,:et,:ev,:ia)");
+                $db->query("INSERT INTO cards (text, type, effect_type, effect_value, is_active, image_url) VALUES (:text,:type,:et,:ev,:ia,:img)");
+                $db->bind('img', $image_url);
             }
             $db->bind('text', $text); $db->bind('type', $type);
             $db->bind('et', $effectType); $db->bind('ev', $effectValue); $db->bind('ia', $isActive);
@@ -139,13 +187,19 @@ class Admin extends Controller {
         $db->query("UPDATE sessions SET status = 'finished' WHERE id = :id");
         $db->bind('id', (int)$id);
         $db->execute();
-        header('Location: ' . BASEURL . '/admin/dashboard'); exit;
+        $data['settings'] = $this->model('SettingsModel')->getAll();
+        $data['judul'] = 'Pengaturan Game';
+        $data['admin'] = $_SESSION['admin_username'];
+        $this->view('admin/settings', $data);
     }
 
     public function deleteSession($id) {
         $this->requireLogin();
         $this->model('SessionModel')->deleteSession((int)$id);
-        header('Location: ' . BASEURL . '/admin/dashboard'); exit;
+        $data['settings'] = $this->model('SettingsModel')->getAll();
+        $data['judul'] = 'Pengaturan Game';
+        $data['admin'] = $_SESSION['admin_username'];
+        $this->view('admin/settings', $data);
     }
 
     public function cleanFinished() {

@@ -64,8 +64,15 @@ class Database {
             text TEXT NOT NULL,
             effect_type ENUM('money','move','jail','free','none') DEFAULT 'none',
             effect_value INT DEFAULT 0,
-            is_active TINYINT(1) DEFAULT 1
+            is_active TINYINT(1) DEFAULT 1,
+            image_url VARCHAR(255) NULL
         )");
+        
+        try {
+            $this->dbh->query("SELECT image_url FROM cards LIMIT 1");
+        } catch (PDOException $e) {
+            $this->dbh->exec("ALTER TABLE cards ADD COLUMN image_url VARCHAR(255) NULL");
+        }
         $cardCount = $this->dbh->query("SELECT COUNT(*) FROM cards")->fetchColumn();
         if ($cardCount == 0) {
             $this->dbh->exec("INSERT INTO cards (type, text, effect_type, effect_value) VALUES

@@ -1,3 +1,6 @@
+<?php include '../app/views/templates/admin_header.php'; ?>
+<?php include '../app/views/templates/admin_sidebar.php'; ?>
+
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -25,8 +28,8 @@
         <!-- Tabs -->
         <div class="flex gap-3 mb-6">
             <button onclick="filterCards('all')" id="f-all" class="filter-btn px-4 py-2 bg-white/20 text-white font-bold rounded-lg">Semua</button>
-            <button onclick="filterCards('kesempatan')" id="f-kesempatan" class="filter-btn px-4 py-2 bg-white/10 text-slate-400 font-bold rounded-lg">🃏 Kesempatan</button>
-            <button onclick="filterCards('dana_umum')" id="f-dana_umum" class="filter-btn px-4 py-2 bg-white/10 text-slate-400 font-bold rounded-lg">💰 Dana Umum</button>
+            <button onclick="filterCards('kesempatan')" id="f-kesempatan" class="filter-btn px-4 py-2 bg-white/10 text-slate-400 font-bold rounded-lg"><i class="fa-solid fa-question text-amber-400 mr-2"></i>Kesempatan</button>
+            <button onclick="filterCards('dana_umum')" id="f-dana_umum" class="filter-btn px-4 py-2 bg-white/10 text-slate-400 font-bold rounded-lg"><i class="fa-solid fa-gem text-emerald-400 mr-2"></i>Dana Umum</button>
         </div>
 
         <!-- Cards List -->
@@ -36,7 +39,11 @@
                  data-type="<?= $card['type'] ?>">
                 <div class="flex items-start justify-between mb-3">
                     <span class="text-xs font-black px-3 py-1 rounded-full <?= $card['type']==='kesempatan' ? 'bg-amber-500/20 text-amber-400' : 'bg-emerald-500/20 text-emerald-400' ?>">
-                        <?= $card['type'] === 'kesempatan' ? '🃏 KESEMPATAN' : '💰 DANA UMUM' ?>
+                        <?php if($card['type'] === 'kesempatan'): ?>
+                            <i class="fa-solid fa-question mr-1"></i> KESEMPATAN
+                        <?php else: ?>
+                            <i class="fa-solid fa-gem mr-1"></i> DANA UMUM
+                        <?php endif; ?>
                     </span>
                     <?php if (!$card['is_active']): ?>
                     <span class="text-xs text-red-400 font-bold">NONAKTIF</span>
@@ -72,14 +79,19 @@
     <div id="add-modal" class="hidden fixed inset-0 bg-black/90 z-50 items-center justify-center p-4">
         <div class="bg-slate-900 border border-white/10 rounded-2xl p-8 w-full max-w-lg">
             <h2 class="text-2xl font-black mb-6" id="modal-title"><i class="fa-solid fa-plus-circle text-blue-400 mr-2"></i>Tambah Kartu</h2>
-            <form method="POST" action="<?= BASEURL ?>/admin/saveCard">
+            <form method="POST" action="<?= BASEURL ?>/admin/saveCard" enctype="multipart/form-data">
                 <input type="hidden" name="id" id="card-id" value="0">
                 <div class="mb-4">
                     <label class="text-slate-400 text-sm font-bold uppercase mb-2 block">Tipe Kartu</label>
                     <select name="type" id="card-type" class="w-full bg-slate-800 border border-white/10 rounded-xl px-4 py-3 text-white font-bold focus:outline-none focus:border-blue-500">
-                        <option value="kesempatan">🃏 Kesempatan</option>
-                        <option value="dana_umum">💰 Dana Umum</option>
+                        <option value="kesempatan">Kesempatan</option>
+                        <option value="dana_umum">Dana Umum</option>
                     </select>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-slate-400 font-bold mb-2 text-sm uppercase tracking-wider">Gambar Kartu (Opsional)</label>
+                    <input type="file" name="image" id="card_image" accept="image/*" class="w-full bg-slate-800 border border-white/10 rounded-xl px-4 py-3 text-slate-400 focus:outline-none focus:border-blue-500">
+                    <p class="text-xs text-slate-500 mt-1">Format: JPG/PNG. Kosongkan jika tidak ingin mengubah.</p>
                 </div>
                 <div class="mb-4">
                     <label class="text-slate-400 text-sm font-bold uppercase mb-2 block">Teks Kartu</label>
@@ -144,3 +156,5 @@ function closeModal() {
 </script>
 </body>
 </html>
+
+<?php include '../app/views/templates/admin_footer.php'; ?>
