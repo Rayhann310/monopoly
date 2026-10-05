@@ -43,23 +43,21 @@
 </div>
 
 <!-- Status Giliran -->
+<div id="turn-badge" class="mx-6 mt-4 rounded-2xl px-4 py-3 flex items-center gap-3 <?= $data['player']['is_turn'] ? 'bg-emerald-500/20 border border-emerald-500/40' : 'bg-slate-800/60 border border-white/10' ?>">
 <?php if ($data['player']['is_turn']): ?>
-<div class="mx-6 mt-4 bg-emerald-500/20 border border-emerald-500/40 rounded-2xl px-4 py-3 flex items-center gap-3">
     <span class="text-2xl animate-pulse">👑</span>
     <div>
         <div class="text-emerald-400 font-black text-base">GILIRAN KAMU!</div>
         <div class="text-emerald-400/60 text-xs">Lempar dadu sekarang</div>
     </div>
-</div>
 <?php else: ?>
-<div class="mx-6 mt-4 bg-slate-800/60 border border-white/10 rounded-2xl px-4 py-3 flex items-center gap-3">
     <span class="text-2xl opacity-50">⏳</span>
     <div>
         <div class="text-slate-400 font-black text-base">MENUNGGU...</div>
         <div class="text-slate-600 text-xs">Bukan giliranmu saat ini</div>
     </div>
-</div>
 <?php endif; ?>
+</div>
 
 <!-- Dice Action Area -->
 <div class="flex-1 flex flex-col items-center justify-center p-6 gap-5 mt-2">
@@ -218,26 +216,34 @@
                 .then(status => {
                     const wasMyTurn = isTurn;
                     isTurn = status.is_turn;
-                    
+                    const serverHasRolled = status.has_rolled;
+
                     // Update uang
                     const moneyEl = document.querySelector('.font-mono');
                     if (moneyEl) moneyEl.textContent = 'Rp ' + parseInt(status.money).toLocaleString('id-ID');
 
                     if (!wasMyTurn && isTurn) {
                         // Giliran baru dimulai!
+                        hasRolled = false;
                         rollBtn.disabled = false;
                         rollBtn.classList.remove('opacity-30');
                         endTurnBtn.classList.add('hidden');
-                        hasRolled = false;
                         showModal('🎲 Giliran Kamu!', 'Sekarang giliranmu! Lempar dadu.', 'success', '#22c55e');
                     }
 
                     // Update badge status
                     const badge = document.getElementById('turn-badge');
                     if (badge) {
-                        badge.innerHTML = isTurn
-                            ? '<span class="text-2xl animate-pulse">👑</span><div><div class="text-emerald-400 font-black text-base">GILIRAN KAMU!</div><div class="text-emerald-400/60 text-xs">Lempar dadu sekarang</div></div>'
-                            : '<span class="text-2xl opacity-50">⏳</span><div><div class="text-slate-400 font-black text-base">MENUNGGU...</div><div class="text-slate-600 text-xs">Bukan giliranmu saat ini</div></div>';
+                        if (isTurn) {
+                            badge.className = 'mx-6 mt-4 rounded-2xl px-4 py-3 flex items-center gap-3 bg-emerald-500/20 border border-emerald-500/40';
+                            badge.innerHTML = '<span class="text-2xl animate-pulse">👑</span><div><div class="text-emerald-400 font-black text-base">GILIRAN KAMU!</div><div class="text-emerald-400/60 text-xs">Lempar dadu sekarang</div></div>';
+                        } else {
+                            badge.className = 'mx-6 mt-4 rounded-2xl px-4 py-3 flex items-center gap-3 bg-slate-800/60 border border-white/10';
+                            badge.innerHTML = '<span class="text-2xl opacity-50">⏳</span><div><div class="text-slate-400 font-black text-base">MENUNGGU...</div><div class="text-slate-600 text-xs">Bukan giliranmu saat ini</div></div>';
+                            // Nonaktifkan tombol jika bukan giliran
+                            rollBtn.disabled = true;
+                            rollBtn.classList.add('opacity-30');
+                        }
                     }
                 }).catch(() => {});
         }, 2000);
