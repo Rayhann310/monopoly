@@ -265,6 +265,9 @@
             <i class="fa-solid fa-rotate-left"></i> Reset
         </a>
         <?php endif; ?>
+        <button id="fullscreen-btn" onclick="toggleFullscreen()" class="px-4 py-2 bg-white/10 hover:bg-white/20 border border-white/20 rounded-lg text-white font-bold transition flex items-center gap-2" title="Fullscreen">
+            <i id="fs-icon" class="fa-solid fa-expand"></i>
+        </button>
         <button onclick="document.getElementById('bank-modal').classList.remove('hidden'); document.getElementById('bank-modal').classList.add('flex');" class="px-4 py-2 bg-emerald-500/20 hover:bg-emerald-500/40 border border-emerald-500/50 rounded-lg text-emerald-400 font-bold transition flex items-center gap-2">
             <i class="fa-solid fa-building-columns"></i> Bank
         </button>
@@ -273,5 +276,30 @@
         </button>
     </div>
 </nav>
+
+<script>
+function toggleFullscreen() {
+    const icon = document.getElementById('fs-icon');
+    if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().then(() => {
+            icon.classList.replace('fa-expand', 'fa-compress');
+        }).catch(() => {});
+    } else {
+        document.exitFullscreen().then(() => {
+            icon.classList.replace('fa-compress', 'fa-expand');
+        }).catch(() => {});
+    }
+}
+document.addEventListener('fullscreenchange', () => {
+    const icon = document.getElementById('fs-icon');
+    if (icon) {
+        if (document.fullscreenElement) {
+            icon.classList.replace('fa-expand', 'fa-compress');
+        } else {
+            icon.classList.replace('fa-compress', 'fa-expand');
+        }
+    }
+});
+</script>
 
 <div class="game-wrapper">
