@@ -68,8 +68,7 @@
                     <?php endif; ?>
                     
                     <?php 
-                        $ip = $_SERVER['SERVER_ADDR'] === '::1' || $_SERVER['SERVER_ADDR'] === '127.0.0.1' ? gethostbyname(gethostname()) : $_SERVER['SERVER_ADDR'];
-                        $playerUrl = "http://" . $ip . "/monopoly/player/index/" . $p['id']; 
+                        $playerUrl = BASEURL . "/player/index/" . $p['id']; 
                     ?>
                     <img src="https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=<?= urlencode($playerUrl) ?>" 
                          class="w-32 h-32 lg:w-44 lg:h-44 rounded-xl mb-4 bg-white p-2 shadow-[0_10px_20px_rgba(0,0,0,0.5)] transform group-hover:scale-105 transition duration-300">
