@@ -61,7 +61,7 @@ class Home extends Controller {
         $properties = $db->resultSet();
 
         $session = $this->model('SessionModel')->getSessionById($sessionId);
-        $activeCard = $session ? json_decode($session['active_card'], true) : null;
+        $activeCard = ($session && !empty($session['active_card'])) ? json_decode($session['active_card'], true) : null;
 
         echo json_encode(['players' => $players, 'properties' => $properties, 'active_card' => $activeCard]);
     }

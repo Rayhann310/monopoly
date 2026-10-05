@@ -343,7 +343,7 @@ class Player extends Controller {
 
         // Fetch active card
         $session = $this->model('SessionModel')->getSessionById($player['session_id']);
-        $activeCard = $session ? json_decode($session['active_card'], true) : null;
+        $activeCard = ($session && !empty($session['active_card'])) ? json_decode($session['active_card'], true) : null;
 
         echo json_encode([
             'is_turn'     => (bool)$player['is_turn'],
