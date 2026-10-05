@@ -45,13 +45,13 @@
 <!-- Status Giliran -->
 <div id="turn-badge" class="mx-6 mt-4 rounded-2xl px-4 py-3 flex items-center gap-3 <?= $data['player']['is_turn'] ? 'bg-emerald-500/20 border border-emerald-500/40' : 'bg-slate-800/60 border border-white/10' ?>">
 <?php if ($data['player']['is_turn']): ?>
-    <span class="text-2xl animate-pulse">👑</span>
+    <i class="fa-solid fa-crown text-2xl text-amber-400 animate-pulse"></i>
     <div>
         <div class="text-emerald-400 font-black text-base">GILIRAN KAMU!</div>
         <div class="text-emerald-400/60 text-xs">Lempar dadu sekarang</div>
     </div>
 <?php else: ?>
-    <span class="text-2xl opacity-50">⏳</span>
+    <i class="fa-regular fa-clock text-2xl text-slate-500"></i>
     <div>
         <div class="text-slate-400 font-black text-base">MENUNGGU...</div>
         <div class="text-slate-600 text-xs">Bukan giliranmu saat ini</div>
@@ -157,17 +157,17 @@
                 player.position = (parseInt(player.position) + total) % 40;
                 const landedCell = board[player.position];
 
-                let title = `🎲 Dadu: ${total}`;
+                let title = `<i class='fa-solid fa-dice text-blue-400 mr-1'></i> Dadu: ${total}`;
                 let text = `<b>Mendarat di:</b><br><span style="font-size:1.4rem;font-weight:900;color:#38bdf8">${landedCell.name}</span>`;
                 let icon = 'success', color = '#38bdf8';
 
-                if (landedCell.name === 'Kesempatan') { icon='question'; title='🃏 Kartu Kesempatan!'; text='Ambil kartu <b>Kesempatan</b> dan ikuti instruksinya.'; color='#f59e0b'; }
-                else if (landedCell.name === 'Dana Umum') { icon='question'; title='💰 Dana Umum!'; text='Ambil kartu <b>Dana Umum</b> dan ikuti instruksinya.'; color='#10b981'; }
-                else if (landedCell.name === 'Penjara') { icon='info'; title='👀 Hanya Berkunjung'; text='Kamu di area Penjara sebagai <b>pengunjung bebas</b>.'; color='#6366f1'; }
-                else if (landedCell.name === 'Masuk Penjara') { icon='error'; title='🚔 DITANGKAP!'; text='Kamu masuk penjara!'; color='#ef4444'; }
-                else if (landedCell.name === 'Pajak Mewah' || landedCell.name === 'Pajak') { icon='warning'; title='🏛️ Bayar Pajak!'; text=`Kamu kena pajak di <b>${landedCell.name}</b>.`; color='#f97316'; }
-                else if (landedCell.name === 'Parkir Bebas') { icon='success'; title='🅿️ Parkir Bebas!'; text='Tidak ada denda!'; color='#22c55e'; }
-                else if (landedCell.name === 'Start') { title='⭐ Melewati Start!'; text='Terima <b>Rp 2.000</b> dari Bank!'; color='#eab308'; }
+                if (landedCell.name === 'Kesempatan') { icon='question'; title='<i class="fa-solid fa-cards-blank mr-1"></i> Kartu Kesempatan!'; text='Ambil kartu <b>Kesempatan</b> dan ikuti instruksinya.'; color='#f59e0b'; }
+                else if (landedCell.name === 'Dana Umum') { icon='question'; title='<i class="fa-solid fa-coins mr-1"></i> Dana Umum!'; text='Ambil kartu <b>Dana Umum</b> dan ikuti instruksinya.'; color='#10b981'; }
+                else if (landedCell.name === 'Penjara') { icon='info'; title='<i class="fa-solid fa-eye mr-1"></i> Hanya Berkunjung'; text='Kamu di area Penjara sebagai <b>pengunjung bebas</b>.'; color='#6366f1'; }
+                else if (landedCell.name === 'Masuk Penjara') { icon='error'; title='<i class="fa-solid fa-handcuffs mr-1"></i> DITANGKAP!'; text='Kamu masuk penjara!'; color='#ef4444'; }
+                else if (landedCell.name === 'Pajak Mewah' || landedCell.name === 'Pajak') { icon='warning'; title='<i class="fa-solid fa-landmark mr-1"></i> Bayar Pajak!'; text=`Kamu kena pajak di <b>${landedCell.name}</b>.`; color='#f97316'; }
+                else if (landedCell.name === 'Parkir Bebas') { icon='success'; title='<i class="fa-solid fa-square-parking mr-1"></i> Parkir Bebas!'; text='Tidak ada denda!'; color='#22c55e'; }
+                else if (landedCell.name === 'Start') { title='<i class="fa-solid fa-star mr-1"></i> Melewati Start!'; text='Terima <b>Rp 2.000</b> dari Bank!'; color='#eab308'; }
 
                 showModal(title, text, icon, color);
 
@@ -182,7 +182,7 @@
                         // Tampilkan tombol Selesai Giliran
                         endTurnBtn.classList.remove('hidden');
                     } else if (res.msg) {
-                        showModal('⚠️ ' + res.msg, '', 'warning', '#f59e0b');
+                        showModal('<i class="fa-solid fa-triangle-exclamation mr-1"></i> ' + res.msg, '', 'warning', '#f59e0b');
                         btn.disabled = false;
                     }
                 }).catch(() => { btn.disabled = false; });
@@ -199,7 +199,7 @@
                 body: `id=${player.id}`
             }).then(r => r.json()).then(res => {
                 if (res.status === 'success') {
-                    showModal('✅ Giliran Selesai!', 'Menunggu giliran berikutnya...', 'info', '#3b82f6');
+                    showModal('<i class="fa-solid fa-check mr-1"></i> Giliran Selesai!', 'Menunggu giliran berikutnya...', 'info', '#3b82f6');
                     endTurnBtn.classList.add('hidden');
                     isTurn = false;
                     // Polling akan update status
@@ -228,7 +228,7 @@
                         rollBtn.disabled = false;
                         rollBtn.classList.remove('opacity-30');
                         endTurnBtn.classList.add('hidden');
-                        showModal('🎲 Giliran Kamu!', 'Sekarang giliranmu! Lempar dadu.', 'success', '#22c55e');
+                        showModal('<i class="fa-solid fa-dice mr-1"></i> Giliran Kamu!', 'Sekarang giliranmu! Lempar dadu.', 'success', '#22c55e');
                     }
 
                     // Update badge status
@@ -236,10 +236,10 @@
                     if (badge) {
                         if (isTurn) {
                             badge.className = 'mx-6 mt-4 rounded-2xl px-4 py-3 flex items-center gap-3 bg-emerald-500/20 border border-emerald-500/40';
-                            badge.innerHTML = '<span class="text-2xl animate-pulse">👑</span><div><div class="text-emerald-400 font-black text-base">GILIRAN KAMU!</div><div class="text-emerald-400/60 text-xs">Lempar dadu sekarang</div></div>';
+                            badge.innerHTML = '<i class="fa-solid fa-crown text-2xl text-amber-400 animate-pulse"></i><div><div class="text-emerald-400 font-black text-base">GILIRAN KAMU!</div><div class="text-emerald-400/60 text-xs">Lempar dadu sekarang</div></div>';
                         } else {
                             badge.className = 'mx-6 mt-4 rounded-2xl px-4 py-3 flex items-center gap-3 bg-slate-800/60 border border-white/10';
-                            badge.innerHTML = '<span class="text-2xl opacity-50">⏳</span><div><div class="text-slate-400 font-black text-base">MENUNGGU...</div><div class="text-slate-600 text-xs">Bukan giliranmu saat ini</div></div>';
+                            badge.innerHTML = '<i class="fa-regular fa-clock text-2xl text-slate-500"></i><div><div class="text-slate-400 font-black text-base">MENUNGGU...</div><div class="text-slate-600 text-xs">Bukan giliranmu saat ini</div></div>';
                             // Nonaktifkan tombol jika bukan giliran
                             rollBtn.disabled = true;
                             rollBtn.classList.add('opacity-30');

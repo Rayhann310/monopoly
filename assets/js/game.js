@@ -109,7 +109,7 @@ function animateTokenStepByStep(player, fromPos, toPos, stepDelay = 250) {
 
         // Notify if passed Start (position 0)
         if (currentPos === 0 && stepCount < stepsNeeded) {
-            showToast(`⭐ ${player.name} melewati Start! +Rp 2.000`);
+            showToast(`<i class="fa-solid fa-star" style="color:#eab308"></i> ${player.name} melewati Start! +Rp 2.000`);
         }
 
         if (stepCount < stepsNeeded) {
@@ -163,7 +163,7 @@ function updateCenterInfo() {
     const el = document.getElementById('center-turn-info');
     if (el) {
         el.innerHTML = currentTurnPlayer
-            ? `<span style="color: var(--color-${currentTurnPlayer.color})">👑 Giliran ${currentTurnPlayer.name}</span>`
+            ? `<span style="color: var(--color-${currentTurnPlayer.color})"><i class="fa-solid fa-crown" style="color:#f59e0b"></i> Giliran ${currentTurnPlayer.name}</span>`
             : '';
     }
 
@@ -181,7 +181,7 @@ function updateCenterInfo() {
 // ---- Bank Modal: Tombol +/- ----
 function bankAdjust(playerId, playerName, direction) {
     Swal.fire({
-        title: `${direction > 0 ? '💰 Tambah' : '💸 Kurangi'} Uang`,
+        title: `${direction > 0 ? '<i class="fa-solid fa-coins"></i> Tambah' : '<i class="fa-solid fa-money-bill-wave"></i> Kurangi'} Uang`,
         html: `<b>${playerName}</b><br><small style="color:#94a3b8">Masukkan jumlah dalam Rupiah</small>`,
         input: 'number',
         inputAttributes: { min: 0, step: 1000, placeholder: '10000' },

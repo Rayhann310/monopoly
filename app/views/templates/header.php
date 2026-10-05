@@ -221,7 +221,7 @@
         <?php if (!empty($data['session'])): ?>
         <span class="text-slate-500 font-normal text-base">— <?= htmlspecialchars($data['session']['name']) ?></span>
         <?php if (!empty($data['is_host'])): ?>
-        <span class="text-xs bg-amber-500/20 text-amber-400 border border-amber-500/30 px-2 py-1 rounded-lg font-bold">👑 HOST</span>
+        <span class="text-xs bg-amber-500/20 text-amber-400 border border-amber-500/30 px-2 py-1 rounded-lg font-bold"><i class="fa-solid fa-crown mr-1"></i> HOST</span>
         <?php endif; ?>
         <?php endif; ?>
     </div>

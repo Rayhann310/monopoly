@@ -130,7 +130,12 @@
             <div class="mb-8 space-y-3">
                 <label class="text-slate-400 font-bold text-sm uppercase tracking-widest mb-2 block">Nama Pemain</label>
                 <?php
-                $colors = ['red' => '🔴', 'blue' => '🔵', 'green' => '🟢', 'yellow' => '🟡'];
+                $colors = [
+                    'red'    => '<span style="display:inline-block;width:16px;height:16px;border-radius:50%;background:#ef4444;vertical-align:middle"></span>',
+                    'blue'   => '<span style="display:inline-block;width:16px;height:16px;border-radius:50%;background:#3b82f6;vertical-align:middle"></span>',
+                    'green'  => '<span style="display:inline-block;width:16px;height:16px;border-radius:50%;background:#22c55e;vertical-align:middle"></span>',
+                    'yellow' => '<span style="display:inline-block;width:16px;height:16px;border-radius:50%;background:#eab308;vertical-align:middle"></span>',
+                ];
                 $i = 1;
                 foreach ($colors as $color => $emoji): ?>
                 <div class="flex items-center gap-3 player-input" id="pi-<?= $i ?>">
