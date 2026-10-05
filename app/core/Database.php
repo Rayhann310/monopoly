@@ -144,6 +144,14 @@ class Database {
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )");
 
+        // === TABEL BOARD PROPERTI (gambar kota) ===
+        $this->dbh->exec("CREATE TABLE IF NOT EXISTS board_properties (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            cell_index INT NOT NULL UNIQUE,
+            image_url VARCHAR(255) NULL,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        )");
+
         return true;
     }
 

@@ -174,6 +174,78 @@ class Admin extends Controller {
         header('Location: ' . BASEURL . '/admin/cards'); exit;
     }
 
+    public function properties() {
+        $this->requireLogin();
+        $data['judul'] = 'Gambar Kota';
+        $data['admin'] = $_SESSION['admin_username'];
+        $data['board'] = $this->model('BoardModel')->getBoard();
+
+        // Load existing images keyed by cell_index
+        $db = new Database;
+        $db->query("SELECT cell_index, image_url FROM board_properties");
+        $rows = $db->resultSet();
+        $data['images'] = [];
+        foreach ($rows as $r) {
+            $data['images'][(int)$r['cell_index']] = $r['image_url'];
+        }
+
+        $data['success'] = $_GET['saved'] ?? null;
+        $this->view('admin/properties', $data);
+    }
+
+    public function saveCityImage() {
+        $this->requireLogin();
+        $cellIndex = (int)($_POST['cell_index'] ?? -1);
+        if ($cellIndex < 0 || $cellIndex > 39) {
+            header('Location: ' . BASEURL . '/admin/properties'); exit;
+        }
+
+        if (!isset($_FILES['image']) || $_FILES['image']['error'] !== 0) {
+            header('Location: ' . BASEURL . '/admin/properties'); exit;
+        }
+
+        $uploadDir = 'public/img/cities/';
+        if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
+
+        $ext = strtolower(pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION));
+        $allowed = ['jpg','jpeg','png','gif','webp'];
+        if (!in_array($ext, $allowed)) {
+            header('Location: ' . BASEURL . '/admin/properties'); exit;
+        }
+
+        $filename = 'city_' . $cellIndex . '.' . $ext;
+        $dest = $uploadDir . $filename;
+
+        if (move_uploaded_file($_FILES['image']['tmp_name'], $dest)) {
+            $imageUrl = $dest;
+            $db = new Database;
+            $db->query("INSERT INTO board_properties (cell_index, image_url) VALUES (:ci, :img)
+                        ON DUPLICATE KEY UPDATE image_url = :img2");
+            $db->bind('ci', $cellIndex);
+            $db->bind('img', $imageUrl);
+            $db->bind('img2', $imageUrl);
+            $db->execute();
+        }
+
+        header('Location: ' . BASEURL . '/admin/properties?saved=Gambar berhasil disimpan!'); exit;
+    }
+
+    public function deleteCityImage($cellIndex) {
+        $this->requireLogin();
+        $cellIndex = (int)$cellIndex;
+        $db = new Database;
+        $db->query("SELECT image_url FROM board_properties WHERE cell_index = :ci");
+        $db->bind('ci', $cellIndex);
+        $row = $db->single();
+        if ($row && file_exists($row['image_url'])) {
+            unlink($row['image_url']);
+        }
+        $db->query("DELETE FROM board_properties WHERE cell_index = :ci");
+        $db->bind('ci', $cellIndex);
+        $db->execute();
+        header('Location: ' . BASEURL . '/admin/properties'); exit;
+    }
+
     public function repairDb() {
         $this->requireLogin();
         $db = new Database;

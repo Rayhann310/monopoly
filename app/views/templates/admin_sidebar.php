@@ -21,6 +21,7 @@
                     'Sesi Aktif'      => ['icon'=>'fa-gamepad', 'url'=>'/admin/sessions'],
                     'Database'        => ['icon'=>'fa-database', 'url'=>'/admin/database'],
                     'Kelola Kartu'    => ['icon'=>'fa-layer-group', 'url'=>'/admin/cards'],
+                    'Gambar Kota'     => ['icon'=>'fa-city', 'url'=>'/admin/properties'],
                     'Ganti Password'  => ['icon'=>'fa-key', 'url'=>'/admin/password']
                 ];
                 foreach ($menu as $title => $m):

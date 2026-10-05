@@ -1,6 +1,16 @@
     <div class="board-area">
         <div class="monopoly-board">
             <?php 
+            // Load city images from DB
+            $cityImages = [];
+            try {
+                $imgDb = new Database;
+                $imgDb->query("SELECT cell_index, image_url FROM board_properties");
+                foreach ($imgDb->resultSet() as $r) {
+                    $cityImages[(int)$r['cell_index']] = $r['image_url'];
+                }
+            } catch (Exception $e) { }
+
             $grid = array_fill(0, 11, array_fill(0, 11, null));
             for ($i = 0; $i <= 10; $i++) { $grid[10][10 - $i] = $i; }
             for ($i = 11; $i <= 19; $i++) { $grid[10 - ($i - 10)][0] = $i; }
@@ -15,7 +25,12 @@
                         echo '<div class="cell" id="cell-'.$cellIndex.'">';
                         echo '<div class="cell-content">';
                         if ($cell['color'] != 'white') {
-                            echo '<div class="color-bar c-'.$cell['color'].'"></div>';
+                            echo '<div class="color-bar c-'.$cell['color'].'">';
+                            // Show city image inside color bar if exists
+                            if (isset($cityImages[$cellIndex])) {
+                                echo '<img src="'.BASEURL.'/'.$cityImages[$cellIndex].'" alt="'.$cell['name'].'" style="width:100%;height:100%;object-fit:cover;opacity:0.95;border-radius:3px;">';
+                            }
+                            echo '</div>';
                         } else {
                             echo '<div class="h-[25%] w-full"></div>';
                         }
