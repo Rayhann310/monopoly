@@ -19,23 +19,43 @@ class Database {
 
         foreach ($hosts as $h) {
             try {
-                $dsn = "mysql:host={$h};port=" . DB_PORT . ";charset=utf8mb4";
-                $pdo = new PDO($dsn, $this->user, $this->pass, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
-                // Pastikan database ada
-                $stmt = $pdo->query("SELECT COUNT(*) FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = '" . $this->dbname . "'");
-                if (!$stmt->fetchColumn()) {
-                    $pdo->exec("CREATE DATABASE `" . $this->dbname . "` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
-                }
+                // 1. Langsung coba koneksi ke database target (Sangat Cepat)
                 $this->dbh = new PDO(
                     "mysql:host={$h};port=" . DB_PORT . ";dbname=" . $this->dbname . ";charset=utf8mb4",
                     $this->user, $this->pass,
                     [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC]
                 );
-                $this->selfHeal();
+                
+                // 2. Cek apakah tabel utama (admins) sudah ada. Jika belum, jalankan selfHeal
+                $check = $this->dbh->query("SHOW TABLES LIKE 'admins'");
+                if ($check && $check->rowCount() == 0) {
+                    $this->selfHeal();
+                }
+                
                 $connected = true;
                 break;
             } catch(PDOException $e) {
-                $lastError = $e;
+                // Jika error karena database belum ada (SQLSTATE 42000 / 1049)
+                if ($e->getCode() == 1049) {
+                    try {
+                        $pdo = new PDO("mysql:host={$h};port=" . DB_PORT . ";charset=utf8mb4", $this->user, $this->pass, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
+                        $pdo->exec("CREATE DATABASE `" . $this->dbname . "` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
+                        
+                        // Sambung ulang ke database yang baru dibuat
+                        $this->dbh = new PDO(
+                            "mysql:host={$h};port=" . DB_PORT . ";dbname=" . $this->dbname . ";charset=utf8mb4",
+                            $this->user, $this->pass,
+                            [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC]
+                        );
+                        $this->selfHeal();
+                        $connected = true;
+                        break;
+                    } catch(PDOException $ex) {
+                        $lastError = $ex;
+                    }
+                } else {
+                    $lastError = $e;
+                }
             }
         }
 
