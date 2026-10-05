@@ -14,13 +14,11 @@ class Admin extends Controller {
     }
 
     public function login() {
-
+        // Jika sudah login, redirect ke dashboard
         if (!empty($_SESSION['admin_logged_in'])) {
-            $data['settings'] = $this->model('SettingsModel')->getAll();
-        $data['judul'] = 'Pengaturan Game';
-        $data['admin'] = $_SESSION['admin_username'];
-        $this->view('admin/settings', $data);
+            header('Location: ' . BASEURL . '/admin/dashboard'); exit;
         }
+
         $error = '';
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $username = trim($_POST['username'] ?? '');
@@ -32,10 +30,7 @@ class Admin extends Controller {
             if ($admin && password_verify($password, $admin['password_hash'])) {
                 $_SESSION['admin_logged_in'] = true;
                 $_SESSION['admin_username'] = $admin['username'];
-                $data['settings'] = $this->model('SettingsModel')->getAll();
-        $data['judul'] = 'Pengaturan Game';
-        $data['admin'] = $_SESSION['admin_username'];
-        $this->view('admin/settings', $data);
+                header('Location: ' . BASEURL . '/admin/dashboard'); exit;
             }
             $error = 'Username atau password salah!';
         }

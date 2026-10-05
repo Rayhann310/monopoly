@@ -26,7 +26,17 @@
                     <div class="bg-slate-800 rounded-xl p-4 border border-white/5">
                         <div class="text-slate-500 text-xs font-bold uppercase mb-1"><?= htmlspecialchars($s['label']) ?></div>
                         <div class="text-white font-black text-xl">
-                            <?= $s['type'] === 'number' ? 'Rp ' . number_format($s['setting_value'],0,',','.') : ($s['setting_value'] == 1 ? '✅ Aktif' : '❌ Nonaktif') ?>
+                            <?php if ($s['type'] === 'number'): ?>
+                                Rp <?= number_format($s['setting_value'],0,',','.') ?>
+                            <?php elseif ($s['type'] === 'boolean'): ?>
+                                <?php if ($s['setting_value'] == 1): ?>
+                                    <span class="text-emerald-400 text-base"><i class="fa-solid fa-circle-check mr-1"></i> Aktif</span>
+                                <?php else: ?>
+                                    <span class="text-slate-500 text-base"><i class="fa-solid fa-circle-xmark mr-1"></i> Nonaktif</span>
+                                <?php endif; ?>
+                            <?php else: ?>
+                                <?= htmlspecialchars($s['setting_value']) ?>
+                            <?php endif; ?>
                         </div>
                     </div>
                     <?php endforeach; ?>

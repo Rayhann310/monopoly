@@ -50,8 +50,10 @@ class Player extends Controller {
         $newMoney = (int)$player['money'];
         $action   = ['type' => 'move', 'position' => $newPos];
 
-        // Pass Go
-        if ($newPos < $oldPos && $newPos !== 10) {
+        // Pass Go: detect crossing position 0 correctly
+        // A player passes Go if oldPos + dice > 39 (they wrapped around)
+        $passedGo = ($oldPos + $dice) > 39 && $newPos !== 0;
+        if ($passedGo) {
             $newMoney += $passGoBonus;
             $action['pass_go'] = true;
             $action['pass_go_bonus'] = $passGoBonus;
