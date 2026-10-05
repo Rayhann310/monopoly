@@ -176,9 +176,10 @@
                 let text = `<b>Mendarat di:</b><br><span style="font-size:1.4rem;font-weight:900;color:#38bdf8">${landedCell.name}</span>`;
                 let icon = 'success', color = '#38bdf8';
 
-                function showCardAnimation(cardType) {
+                function showCardAnimation(cardType, cardText, cardImg) {
+                    cardText = cardText || 'Ambil kartu fisik dan ikuti instruksinya.';
                     const isKesempatan = cardType === 'Kesempatan';
-                    const cColor = isKesempatan ? '#f59e0b' : '#10b981'; // Orange or Green
+                    const cColor = isKesempatan ? '#f59e0b' : '#10b981';
                     const cIcon = isKesempatan ? 'fa-question' : 'fa-gem';
                     
                     const html = `
@@ -199,14 +200,12 @@
                                 <div style="color:#94a3b8; font-size:0.8rem; margin-top:10px">Ketuk untuk membalik</div>
                             </div>
                             <div class="mc-face mc-back">
-                                <div style="background:${cColor}; color:white; width:calc(100% + 40px); margin-top:-20px; padding:10px; font-weight:black; text-transform:uppercase; font-size:1.2rem; border-top-left-radius: 10px; border-top-right-radius: 10px;">
+                                <div style="background:${cColor}; color:white; width:calc(100% + 40px); margin-top:-20px; padding:10px 15px; font-weight:900; text-transform:uppercase; font-size:1rem; border-top-left-radius: 10px; border-top-right-radius: 10px;">
                                     ${cardType}
                                 </div>
-                                <div style="flex-grow:1; display:flex; flex-direction:column; justify-content:center; align-items:center; padding:10px;">
-                                    <div style="width: 80px; height: 80px; border: 2px dashed #cbd5e1; border-radius: 10px; display:flex; justify-content:center; align-items:center; color:#94a3b8; margin-bottom:15px; font-size:0.8rem">
-                                        (Area Gambar Admin)
-                                    </div>
-                                    <h3 style="font-weight:bold; font-size:1.1rem; color:#1e293b; line-height:1.3">Ambil Kartu Fisik dan ikuti instruksinya.</h3>
+                                <div style="flex-grow:1; display:flex; flex-direction:column; justify-content:center; align-items:center; padding:15px;">
+                                    ${cardImg ? `<img src="${cardImg}" style="width:80px;height:80px;object-fit:cover;border-radius:10px;margin-bottom:12px;box-shadow:0 4px 12px rgba(0,0,0,0.2)">` : `<div style="width:70px;height:70px;border-radius:10px;background:${cColor}20;display:flex;align-items:center;justify-content:center;margin-bottom:12px;"><i class="fa-solid ${cIcon}" style="font-size:2rem;color:${cColor}"></i></div>`}
+                                    <h3 style="font-weight:bold; font-size:1.05rem; color:#1e293b; line-height:1.4; text-align:center">${cardText}</h3>
                                 </div>
                             </div>
                         </div>
@@ -217,12 +216,11 @@
                         html: html,
                         background: 'transparent',
                         showConfirmButton: true,
-                        confirmButtonText: 'Oke, Sudah Diambil',
+                        confirmButtonText: 'Oke, Sudah Dipahami',
                         confirmButtonColor: cColor,
                         backdrop: 'rgba(0,0,0,0.9)'
                     });
                     
-                    // Auto-flip setelah 1 detik jika pemain tidak mengetuk
                     setTimeout(() => {
                         const card = document.querySelector('.mc-card');
                         if(card && !card.classList.contains('is-flipped')) {
@@ -231,37 +229,81 @@
                     }, 1200);
                 }
 
-                if (landedCell.name === 'Kesempatan' || landedCell.name === 'Dana Umum') {
-                    showCardAnimation(landedCell.name);
-                }
-                else if (landedCell.name === 'Penjara') { icon='info'; title='<i class="fa-solid fa-eye mr-1"></i> Hanya Berkunjung'; text='Kamu di area Penjara sebagai <b>pengunjung bebas</b>.'; color='#6366f1'; showModal(title, text, icon, color); }
-                else if (landedCell.name === 'Masuk Penjara') { icon='error'; title='<i class="fa-solid fa-handcuffs mr-1"></i> DITANGKAP!'; text='Kamu masuk penjara!'; color='#ef4444'; showModal(title, text, icon, color); }
-                else if (landedCell.name === 'Pajak Mewah' || landedCell.name === 'Pajak') { icon='warning'; title='<i class="fa-solid fa-landmark mr-1"></i> Bayar Pajak!'; text=`Kamu kena pajak di <b>${landedCell.name}</b>.`; color='#f97316'; showModal(title, text, icon, color); }
-                else if (landedCell.name === 'Parkir Bebas') { icon='success'; title='<i class="fa-solid fa-square-parking mr-1"></i> Parkir Bebas!'; text='Tidak ada denda!'; color='#22c55e'; showModal(title, text, icon, color); }
-                else if (landedCell.name === 'Start') { title='<i class="fa-solid fa-star mr-1"></i> Melewati Start!'; text='Terima <b>Rp 2.000</b> dari Bank!'; color='#eab308'; showModal(title, text, icon, color); }
-                else {
-                    showModal(title, text, icon, color);
-                }
-
-                // Kirim ke server
+                // Kirim ke server — server yang handle semua logika
                 fetch(BASEURL + '/player/apiRoll', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                    body: `id=${player.id}&new_position=${player.position}`
+                    body: `id=${player.id}&new_position=${player.position}&dice=${total}`
                 }).then(r => r.json()).then(res => {
-                    if (res.status === 'success') {
-                        hasRolled = true;
-                        // Tampilkan tombol Selesai Giliran & scroll agar terlihat
-                        endTurnBtn.classList.remove('hidden');
-                        endTurnBtn.disabled = false;
-                        endTurnBtn.innerHTML = '<i class="fa-solid fa-flag-checkered mr-2"></i>Selesai Giliran';
-                        setTimeout(() => {
-                            endTurnBtn.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                        }, 300);
-                    } else if (res.msg) {
-                        showModal('<i class="fa-solid fa-triangle-exclamation mr-1"></i> ' + res.msg, '', 'warning', '#f59e0b');
+                    if (res.status !== 'success') {
+                        showModal('<i class="fa-solid fa-triangle-exclamation mr-1"></i> ' + (res.msg || 'Error'), '', 'warning', '#f59e0b');
                         btn.disabled = false;
+                        return;
                     }
+
+                    hasRolled = true;
+                    const act = res.action || {};
+
+                    // Update local position from server (e.g. jail redirect)
+                    player.position = res.position;
+
+                    // Update uang di UI
+                    const moneyEl = document.querySelector('.font-mono');
+                    if (moneyEl) moneyEl.textContent = 'Rp ' + parseInt(res.money).toLocaleString('id-ID');
+
+                    // Show action modal
+                    if (act.type === 'card') {
+                        const isKesempatan = act.card_type === 'kesempatan';
+                        showCardAnimation(
+                            isKesempatan ? 'Kesempatan' : 'Dana Umum',
+                            act.card_text || 'Baca kartu fisikmu.',
+                            act.card_image || null
+                        );
+                    } else if (act.type === 'buy') {
+                        Swal.fire({
+                            title: '<i class="fa-solid fa-building mr-1"></i> Beli Properti?',
+                            html: `Beli <b>${act.name}</b> seharga <b class="text-emerald-400">Rp ${parseInt(act.price).toLocaleString('id-ID')}</b>?`,
+                            icon: 'question',
+                            background: '#0f172a', color: '#f1f5f9',
+                            showCancelButton: true,
+                            confirmButtonText: '<i class="fa-solid fa-handshake mr-1"></i> Beli!',
+                            cancelButtonText: 'Lewati',
+                            confirmButtonColor: '#10b981',
+                            cancelButtonColor: '#475569',
+                        }).then(result => {
+                            if (result.isConfirmed) {
+                                fetch(BASEURL + '/player/apiBuy', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                                    body: `player_id=${player.id}&cell_index=${res.position}`
+                                }).then(r => r.json()).then(buyRes => {
+                                    if (buyRes.status === 'success') {
+                                        if (moneyEl) moneyEl.textContent = 'Rp ' + parseInt(buyRes.money).toLocaleString('id-ID');
+                                        showModal('<i class="fa-solid fa-check mr-1"></i> Berhasil!', buyRes.msg, 'success', '#10b981');
+                                    } else {
+                                        showModal('Gagal', buyRes.msg, 'error', '#ef4444');
+                                    }
+                                });
+                            }
+                        });
+                    } else if (act.type === 'rent') {
+                        showModal('<i class="fa-solid fa-money-bill-wave mr-1"></i> Bayar Sewa!', act.msg, 'warning', '#f97316');
+                    } else if (act.type === 'tax') {
+                        showModal('<i class="fa-solid fa-landmark mr-1"></i> Bayar Pajak!', act.msg, 'warning', '#f97316');
+                    } else if (act.type === 'jail') {
+                        showModal('<i class="fa-solid fa-handcuffs mr-1"></i> DITANGKAP!', act.msg || 'Masuk penjara!', 'error', '#ef4444');
+                    } else if (act.pass_go) {
+                        showModal('<i class="fa-solid fa-star mr-1"></i> Melewati Start!', `Terima bonus <b class="text-yellow-400">Rp ${parseInt(act.pass_go_bonus).toLocaleString('id-ID')}</b>!`, 'success', '#eab308');
+                    } else {
+                        showModal(title, text, 'info', color);
+                    }
+
+                    // Tampilkan tombol Selesai Giliran
+                    endTurnBtn.classList.remove('hidden');
+                    endTurnBtn.disabled = false;
+                    endTurnBtn.innerHTML = '<i class="fa-solid fa-flag-checkered mr-2"></i>Selesai Giliran';
+                    setTimeout(() => { endTurnBtn.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 300);
+
                 }).catch(() => { btn.disabled = false; });
 
             }, 800);
