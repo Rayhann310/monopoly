@@ -33,7 +33,20 @@ class Home extends Controller {
     public function apiStatus($sessionId = null) {
         header('Content-Type: application/json');
         if (!$sessionId) { echo json_encode([]); return; }
-        echo json_encode($this->model('PlayerModel')->getPlayersBySession($sessionId));
+        echo json_encode(array_values($this->model('PlayerModel')->getPlayersBySession($sessionId)));
+    }
+
+    public function apiAdjustMoney() {
+        header('Content-Type: application/json');
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') { echo json_encode(['status'=>'error']); return; }
+        $playerId = (int)($_POST['player_id'] ?? 0);
+        $amount = (int)($_POST['amount'] ?? 0);
+        if (!$playerId) { echo json_encode(['status'=>'error','msg'=>'ID tidak valid']); return; }
+        $player = $this->model('PlayerModel')->getPlayerById($playerId);
+        if (!$player) { echo json_encode(['status'=>'error','msg'=>'Pemain tidak ditemukan']); return; }
+        $newMoney = max(0, (int)$player['money'] + $amount);
+        $this->model('PlayerModel')->updateMoney($playerId, $newMoney);
+        echo json_encode(['status'=>'success','new_money'=>$newMoney]);
     }
 
     public function apiReset($sessionId = null) {

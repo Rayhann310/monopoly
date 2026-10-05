@@ -42,13 +42,27 @@
     </div>
 </div>
 
-<!-- Dice Action Area -->
-<div class="flex-1 flex flex-col items-center justify-center p-6 gap-6 mt-4">
-    <div class="text-center">
-        <h2 class="text-slate-400 font-bold mb-2">Giliran Kamu?</h2>
-        <p class="text-slate-500 text-sm max-w-xs">Tekan tombol di bawah untuk melempar dadu. Hasil akan otomatis terkirim ke papan utama.</p>
+<!-- Status Giliran -->
+<?php if ($data['player']['is_turn']): ?>
+<div class="mx-6 mt-4 bg-emerald-500/20 border border-emerald-500/40 rounded-2xl px-4 py-3 flex items-center gap-3">
+    <span class="text-2xl animate-pulse">👑</span>
+    <div>
+        <div class="text-emerald-400 font-black text-base">GILIRAN KAMU!</div>
+        <div class="text-emerald-400/60 text-xs">Lempar dadu sekarang</div>
     </div>
+</div>
+<?php else: ?>
+<div class="mx-6 mt-4 bg-slate-800/60 border border-white/10 rounded-2xl px-4 py-3 flex items-center gap-3">
+    <span class="text-2xl opacity-50">⏳</span>
+    <div>
+        <div class="text-slate-400 font-black text-base">MENUNGGU...</div>
+        <div class="text-slate-600 text-xs">Bukan giliranmu saat ini</div>
+    </div>
+</div>
+<?php endif; ?>
 
+<!-- Dice Action Area -->
+<div class="flex-1 flex flex-col items-center justify-center p-6 gap-5 mt-2">
     <!-- Dice Display -->
     <div class="flex gap-6 justify-center items-center h-32 w-full bg-slate-900/50 rounded-2xl border border-white/5 shadow-inner">
         <i id="mobile-die1" class="fa-solid fa-dice-one text-6xl text-<?= $data['player']['color'] ?>-500 drop-shadow-[0_0_15px_rgba(255,255,255,0.2)]"></i>
@@ -56,8 +70,15 @@
     </div>
 
     <!-- Roll Button -->
-    <button id="mobile-roll-btn" class="w-full max-w-sm py-4 bg-gradient-to-r <?= $bgGrad ?> text-white rounded-2xl font-black text-xl shadow-[0_10px_30px_rgba(0,0,0,0.5)] active:scale-95 transition-transform border border-white/30">
+    <button id="mobile-roll-btn"
+        <?= !$data['player']['is_turn'] ? 'disabled' : '' ?>
+        class="w-full max-w-sm py-4 bg-gradient-to-r <?= $bgGrad ?> text-white rounded-2xl font-black text-xl shadow-[0_10px_30px_rgba(0,0,0,0.5)] active:scale-95 transition-transform border border-white/30 disabled:opacity-30 disabled:cursor-not-allowed disabled:active:scale-100">
         <i class="fa-solid fa-hand-sparkles mr-2"></i> LEMPAR DADU
+    </button>
+
+    <!-- End Turn Button (muncul setelah roll) -->
+    <button id="end-turn-btn" class="hidden w-full max-w-sm py-4 bg-emerald-500 hover:bg-emerald-600 text-white rounded-2xl font-black text-xl shadow-[0_10px_30px_rgba(0,0,0,0.5)] active:scale-95 transition-transform border border-emerald-400/30">
+        <i class="fa-solid fa-check mr-2"></i> SELESAI GILIRAN
     </button>
 </div>
 
@@ -81,24 +102,31 @@
     document.addEventListener('DOMContentLoaded', function() {
         const player = <?= json_encode($data['player']); ?>;
         const board = <?= json_encode($data['board']); ?>;
-        
-        // Helper SweetAlert yang aman - tidak pernah pakai alert() biasa
+        const BASEURL = '<?= BASEURL ?>';
+        let hasRolled = <?= $data['player']['has_rolled'] ? 'true' : 'false' ?>;
+        let isTurn = <?= $data['player']['is_turn'] ? 'true' : 'false' ?>;
+
+        const rollBtn = document.getElementById('mobile-roll-btn');
+        const endTurnBtn = document.getElementById('end-turn-btn');
+
+        // Jika sudah roll tapi belum selesai giliran, tampilkan End Turn
+        if (hasRolled && isTurn) {
+            rollBtn.disabled = true;
+            rollBtn.classList.add('opacity-30');
+            endTurnBtn.classList.remove('hidden');
+        }
+
+        // Helper SweetAlert
         function showModal(title, text, icon, color) {
             if (typeof Swal !== 'undefined') {
                 Swal.fire({
-                    title: title,
-                    html: text,
-                    icon: icon,
-                    background: '#0f172a',
-                    color: '#f1f5f9',
+                    title, html: text, icon,
+                    background: '#0f172a', color: '#f1f5f9',
                     confirmButtonColor: color || '#3b82f6',
                     confirmButtonText: '<i class="fa fa-check"></i> Oke',
-                    showClass: { popup: 'animate__animated animate__fadeInDown animate__faster' },
-                    hideClass: { popup: 'animate__animated animate__fadeOutUp animate__faster' },
                     customClass: { popup: 'rounded-2xl border border-white/10 shadow-2xl' }
                 });
             } else {
-                // Fallback: modal custom sendiri jika Swal belum load
                 const modal = document.getElementById('fallback-modal');
                 document.getElementById('fm-title').innerText = title;
                 document.getElementById('fm-text').innerHTML = text;
@@ -106,103 +134,123 @@
                 modal.classList.add('flex');
             }
         }
-        
-        document.getElementById('mobile-roll-btn').addEventListener('click', function() {
-            if(this.disabled) return;
+
+        // Roll Dadu
+        rollBtn.addEventListener('click', function() {
+            if (this.disabled) return;
             this.disabled = true;
             const btn = this;
-            
-            // Animasi dadu kocok
-            const d1 = document.getElementById('mobile-die1');
-            const d2 = document.getElementById('mobile-die2');
-            d1.classList.add('shake');
-            d2.classList.add('shake');
-            
+            const d1el = document.getElementById('mobile-die1');
+            const d2el = document.getElementById('mobile-die2');
+            d1el.classList.add('shake');
+            d2el.classList.add('shake');
+
             setTimeout(() => {
-                d1.classList.remove('shake');
-                d2.classList.remove('shake');
-                
+                d1el.classList.remove('shake');
+                d2el.classList.remove('shake');
+
                 const v1 = Math.floor(Math.random() * 6) + 1;
                 const v2 = Math.floor(Math.random() * 6) + 1;
                 const total = v1 + v2;
-                
-                const diceIcons = ['', 'fa-dice-one', 'fa-dice-two', 'fa-dice-three', 'fa-dice-four', 'fa-dice-five', 'fa-dice-six'];
-                d1.className = `fa-solid ${diceIcons[v1]} text-6xl text-${player.color}-500 drop-shadow-[0_0_15px_rgba(255,255,255,0.2)]`;
-                d2.className = `fa-solid ${diceIcons[v2]} text-6xl text-${player.color}-500 drop-shadow-[0_0_15px_rgba(255,255,255,0.2)]`;
-                
-                // Hitung posisi baru
+                const icons = ['','fa-dice-one','fa-dice-two','fa-dice-three','fa-dice-four','fa-dice-five','fa-dice-six'];
+                d1el.className = `fa-solid ${icons[v1]} text-6xl text-${player.color}-500 drop-shadow-[0_0_15px_rgba(255,255,255,0.2)]`;
+                d2el.className = `fa-solid ${icons[v2]} text-6xl text-${player.color}-500 drop-shadow-[0_0_15px_rgba(255,255,255,0.2)]`;
+
                 player.position = (parseInt(player.position) + total) % 40;
                 const landedCell = board[player.position];
-                
+
                 let title = `🎲 Dadu: ${total}`;
-                let text = `<b>Kamu mendarat di:</b><br><span style="font-size:1.4rem;font-weight:900;color:#38bdf8">${landedCell.name}</span>`;
-                let icon = 'success';
-                let color = '#38bdf8';
-                
-                if(landedCell.name === 'Kesempatan') {
-                    icon = 'question';
-                    title = '🃏 Kartu Kesempatan!';
-                    text = 'Ambil kartu dari tumpukan <b>Kesempatan</b> dan ikuti instruksinya.';
-                    color = '#f59e0b';
-                } else if(landedCell.name === 'Dana Umum') {
-                    icon = 'question';
-                    title = '💰 Dana Umum!';
-                    text = 'Ambil kartu dari tumpukan <b>Dana Umum</b> dan ikuti instruksinya.';
-                    color = '#10b981';
-                } else if(landedCell.name === 'Penjara') {
-                    icon = 'info';
-                    title = '👀 Hanya Berkunjung';
-                    text = 'Kamu sedang berada di area Penjara sebagai <b>pengunjung bebas</b>.';
-                    color = '#6366f1';
-                } else if(landedCell.name === 'Masuk Penjara') {
-                    icon = 'error';
-                    title = '🚔 DITANGKAP!';
-                    text = 'Kamu masuk penjara! Pindah pion ke kotak Penjara.';
-                    color = '#ef4444';
-                } else if(landedCell.name === 'Pajak Mewah' || landedCell.name === 'Pajak') {
-                    icon = 'warning';
-                    title = '🏛️ Bayar Pajak!';
-                    text = `Kamu kena pajak di <b>${landedCell.name}</b>. Bayar ke Bank Negara!`;
-                    color = '#f97316';
-                } else if(landedCell.name === 'Parkir Bebas') {
-                    icon = 'success';
-                    title = '🅿️ Parkir Bebas!';
-                    text = 'Kamu istirahat di Parkir Bebas. Tidak ada denda!';
-                    color = '#22c55e';
-                } else if(landedCell.name === 'Start') {
-                    icon = 'success';
-                    title = '⭐ Melewati Start!';
-                    text = 'Kamu melewati kotak Start. Terima <b>Rp 2.000</b> dari Bank!';
-                    color = '#eab308';
-                }
-                
+                let text = `<b>Mendarat di:</b><br><span style="font-size:1.4rem;font-weight:900;color:#38bdf8">${landedCell.name}</span>`;
+                let icon = 'success', color = '#38bdf8';
+
+                if (landedCell.name === 'Kesempatan') { icon='question'; title='🃏 Kartu Kesempatan!'; text='Ambil kartu <b>Kesempatan</b> dan ikuti instruksinya.'; color='#f59e0b'; }
+                else if (landedCell.name === 'Dana Umum') { icon='question'; title='💰 Dana Umum!'; text='Ambil kartu <b>Dana Umum</b> dan ikuti instruksinya.'; color='#10b981'; }
+                else if (landedCell.name === 'Penjara') { icon='info'; title='👀 Hanya Berkunjung'; text='Kamu di area Penjara sebagai <b>pengunjung bebas</b>.'; color='#6366f1'; }
+                else if (landedCell.name === 'Masuk Penjara') { icon='error'; title='🚔 DITANGKAP!'; text='Kamu masuk penjara!'; color='#ef4444'; }
+                else if (landedCell.name === 'Pajak Mewah' || landedCell.name === 'Pajak') { icon='warning'; title='🏛️ Bayar Pajak!'; text=`Kamu kena pajak di <b>${landedCell.name}</b>.`; color='#f97316'; }
+                else if (landedCell.name === 'Parkir Bebas') { icon='success'; title='🅿️ Parkir Bebas!'; text='Tidak ada denda!'; color='#22c55e'; }
+                else if (landedCell.name === 'Start') { title='⭐ Melewati Start!'; text='Terima <b>Rp 2.000</b> dari Bank!'; color='#eab308'; }
+
                 showModal(title, text, icon, color);
-                
-                // Kirim AJAX ke server
-                fetch('<?= BASEURL; ?>/player/apiRoll', {
+
+                // Kirim ke server
+                fetch(BASEURL + '/player/apiRoll', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                     body: `id=${player.id}&new_position=${player.position}`
-                }).then(res => res.json())
-                  .then(() => {
-                      setTimeout(() => { btn.disabled = false; }, 2000);
-                  })
-                  .catch(() => {
-                      setTimeout(() => { btn.disabled = false; }, 2000);
-                  });
-                  
+                }).then(r => r.json()).then(res => {
+                    if (res.status === 'success') {
+                        hasRolled = true;
+                        // Tampilkan tombol Selesai Giliran
+                        endTurnBtn.classList.remove('hidden');
+                    } else if (res.msg) {
+                        showModal('⚠️ ' + res.msg, '', 'warning', '#f59e0b');
+                        btn.disabled = false;
+                    }
+                }).catch(() => { btn.disabled = false; });
+
             }, 800);
         });
+
+        // Selesai Giliran
+        endTurnBtn.addEventListener('click', function() {
+            this.disabled = true;
+            fetch(BASEURL + '/player/apiEndTurn', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `id=${player.id}`
+            }).then(r => r.json()).then(res => {
+                if (res.status === 'success') {
+                    showModal('✅ Giliran Selesai!', 'Menunggu giliran berikutnya...', 'info', '#3b82f6');
+                    endTurnBtn.classList.add('hidden');
+                    isTurn = false;
+                    // Polling akan update status
+                } else {
+                    this.disabled = false;
+                }
+            });
+        });
+
+        // Polling status giliran (setiap 2 detik)
+        setInterval(() => {
+            fetch(BASEURL + '/player/apiStatus/' + player.id)
+                .then(r => r.json())
+                .then(status => {
+                    const wasMyTurn = isTurn;
+                    isTurn = status.is_turn;
+                    
+                    // Update uang
+                    const moneyEl = document.querySelector('.font-mono');
+                    if (moneyEl) moneyEl.textContent = 'Rp ' + parseInt(status.money).toLocaleString('id-ID');
+
+                    if (!wasMyTurn && isTurn) {
+                        // Giliran baru dimulai!
+                        rollBtn.disabled = false;
+                        rollBtn.classList.remove('opacity-30');
+                        endTurnBtn.classList.add('hidden');
+                        hasRolled = false;
+                        showModal('🎲 Giliran Kamu!', 'Sekarang giliranmu! Lempar dadu.', 'success', '#22c55e');
+                    }
+
+                    // Update badge status
+                    const badge = document.getElementById('turn-badge');
+                    if (badge) {
+                        badge.innerHTML = isTurn
+                            ? '<span class="text-2xl animate-pulse">👑</span><div><div class="text-emerald-400 font-black text-base">GILIRAN KAMU!</div><div class="text-emerald-400/60 text-xs">Lempar dadu sekarang</div></div>'
+                            : '<span class="text-2xl opacity-50">⏳</span><div><div class="text-slate-400 font-black text-base">MENUNGGU...</div><div class="text-slate-600 text-xs">Bukan giliranmu saat ini</div></div>';
+                    }
+                }).catch(() => {});
+        }, 2000);
     });
 </script>
 
-<!-- Fallback Modal jika Swal belum load -->
+<!-- Fallback Modal -->
 <div id="fallback-modal" class="hidden fixed inset-0 bg-black/90 z-[999] items-center justify-center p-6">
     <div class="bg-slate-900 border border-white/10 rounded-2xl p-8 w-full max-w-sm text-center shadow-2xl">
         <h2 id="fm-title" class="text-2xl font-black text-white mb-4"></h2>
         <p id="fm-text" class="text-slate-300 mb-6"></p>
-        <button onclick="document.getElementById('fallback-modal').classList.add('hidden'); document.getElementById('fallback-modal').classList.remove('flex');" class="px-8 py-3 bg-blue-500 hover:bg-blue-600 text-white font-bold rounded-xl w-full transition">
-            Oke
-        </button>
+        <button onclick="document.getElementById('fallback-modal').classList.add('hidden');document.getElementById('fallback-modal').classList.remove('flex');"
+            class="px-8 py-3 bg-blue-500 text-white font-bold rounded-xl w-full">Oke</button>
     </div>
 </div>
+
