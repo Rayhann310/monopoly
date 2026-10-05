@@ -13,6 +13,7 @@ if (typeof dbPlayers !== 'undefined' && dbPlayers.length > 0) {
         color: p.color,
         position: parseInt(p.position),
         money: parseInt(p.money),
+        is_turn: parseInt(p.is_turn) === 1,
     }));
 }
 
@@ -39,9 +40,23 @@ function placeTokens() {
 function updateCenterInfo() {
     const currentTurnPlayer = players.find(p => p.is_turn);
     const el = document.getElementById('center-turn-info');
-    if (el && currentTurnPlayer) {
-        el.innerHTML = `<span style="color: var(--color-${currentTurnPlayer.color})">👑 Giliran ${currentTurnPlayer.name}</span>`;
+    if (el) {
+        if (currentTurnPlayer) {
+            el.innerHTML = `<span style="color: var(--color-${currentTurnPlayer.color})">👑 Giliran ${currentTurnPlayer.name}</span>`;
+        } else {
+            el.innerHTML = '';
+        }
     }
+
+    // Update token glow/highlight
+    players.forEach(p => {
+        const token = document.querySelector(`.player-token.p${p.id}`);
+        if (token) {
+            token.style.outline = p.is_turn ? '3px solid white' : '';
+            token.style.transform = p.is_turn ? 'scale(1.4)' : '';
+            token.style.zIndex = p.is_turn ? '10' : '';
+        }
+    });
 }
 
 // ---- Bank Modal: Tombol +/- ----
@@ -95,18 +110,14 @@ setInterval(() => {
         .then(res => res.json())
         .then(serverPlayers => {
             if (!Array.isArray(serverPlayers)) return;
-            let posChanged = false;
             serverPlayers.forEach(sp => {
                 const lp = players.find(p => p.id == sp.id);
                 if (!lp) return;
-                if (lp.position != parseInt(sp.position)) {
-                    lp.position = parseInt(sp.position);
-                    posChanged = true;
-                }
+                lp.position = parseInt(sp.position);
                 lp.money = parseInt(sp.money);
-                lp.is_turn = parseInt(sp.is_turn);
+                lp.is_turn = parseInt(sp.is_turn) === 1;
             });
-            if (posChanged) placeTokens();
+            placeTokens();
             updateBankModal();
             updateCenterInfo();
         })
