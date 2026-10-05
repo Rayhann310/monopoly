@@ -51,42 +51,64 @@
             height: 100%;
         }
         
-        /* The Board - White Background */
+        /* The Board - Semi-3D White Background */
         .monopoly-board {
             display: grid;
             grid-template-columns: repeat(11, 1fr);
             grid-template-rows: repeat(11, 1fr);
             
-            width: 90vmin;
-            height: 90vmin;
-            max-width: 900px;
-            max-height: 900px;
+            width: 88vmin;
+            height: 88vmin;
+            max-width: 880px;
+            max-height: 880px;
             
-            background: #ffffff;
+            background: #f1f5f9;
             gap: 3px;
             padding: 10px;
-            border-radius: 16px;
+            border-radius: 20px;
+            
+            /* === SEMI-3D EFFECT === */
+            transform: perspective(1200px) rotateX(6deg) scale(0.97);
+            transform-origin: center center;
+            transform-style: preserve-3d;
             
             box-shadow: 
-                0 0 0 1px rgba(255,255,255,0.2),
-                0 30px 60px rgba(0,0,0,0.8),
-                inset 0 0 0 8px #e2e8f0;
+                /* Top edge highlight */
+                0 -4px 0 rgba(255,255,255,0.15),
+                /* Bottom depth shadow (gives 3D floor effect) */
+                0 40px 60px -10px rgba(0,0,0,0.9),
+                0 20px 30px -5px rgba(0,0,0,0.6),
+                /* Rim border */
+                0 0 0 2px rgba(255,255,255,0.1),
+                /* Inner bevel */
+                inset 0 2px 4px rgba(255,255,255,0.5),
+                inset 0 -2px 4px rgba(0,0,0,0.15);
             
-            transform: scale(0.97);
+            transition: transform 0.4s ease;
         }
 
-        /* Cells - White board style */
+        .monopoly-board:hover {
+            transform: perspective(1200px) rotateX(3deg) scale(0.99);
+        }
+
+        /* Cells - 3D depth style */
         .cell { 
             position: relative; 
             background-color: #ffffff;
             border-radius: 4px;
-            box-shadow: inset 0 0 0 1px #e2e8f0;
-            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 
+                inset 0 0 0 1px #d1d5db,
+                0 2px 4px rgba(0,0,0,0.12),
+                0 1px 0 rgba(255,255,255,0.8);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
 
         .cell:hover {
-            transform: scale(1.15);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            transform: translateZ(6px) scale(1.12);
+            box-shadow: 
+                inset 0 0 0 1px #94a3b8,
+                0 8px 20px rgba(0,0,0,0.3),
+                0 2px 0 rgba(255,255,255,0.9);
             z-index: 20;
         }
 
@@ -133,17 +155,20 @@
         .c-brown { background-color: #8b5cf6; } 
         .c-cyan { background-color: #06b6d4; }
 
-        /* Tokens */
+        /* Tokens - 3D glossy balls */
         .player-token {
             width: clamp(14px, 2.8vmin, 24px); 
             height: clamp(14px, 2.8vmin, 24px); 
             border-radius: 50%; 
             position: absolute;
             bottom: 4px; 
-            background-image: radial-gradient(circle at 35% 35%, rgba(255,255,255,0.9) 10%, rgba(255,255,255,0) 60%);
-            box-shadow: 0 4px 6px rgba(0,0,0,0.8), inset -2px -2px 6px rgba(0,0,0,0.6);
-            border: 1px solid rgba(255,255,255,0.8);
-            transition: all 0.5s ease-in-out;
+            background-image: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.95) 15%, rgba(255,255,255,0) 65%);
+            box-shadow: 
+                0 4px 8px rgba(0,0,0,0.7), 
+                inset -2px -2px 6px rgba(0,0,0,0.4),
+                inset 1px 1px 4px rgba(255,255,255,0.6);
+            border: 1.5px solid rgba(255,255,255,0.9);
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
         
         .p1 { background-color: #ef4444; left: 10%; z-index: 4; }
@@ -151,17 +176,20 @@
         .p3 { background-color: #22c55e; left: 25%; bottom: 25%; z-index: 2; }
         .p4 { background-color: #eab308; right: 10%; z-index: 1; }
         
-        /* Center Area - White board style */
+        /* Center Area - Semi-3D */
         .center-space {
             grid-column: 2 / 11;
             grid-row: 2 / 11;
-            background: #f8fafc;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
             display: flex;
             align-items: center;
             justify-content: center;
             flex-direction: column;
-            border-radius: 8px;
-            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            border: 2px solid #cbd5e1;
+            box-shadow:
+                inset 0 2px 8px rgba(0,0,0,0.08),
+                inset 0 -2px 4px rgba(255,255,255,0.8);
         }
 
         .center-content-wrapper {
