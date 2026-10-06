@@ -364,6 +364,10 @@ class Player extends Controller {
                 $this->model('PlayerModel')->setJail($player['id'], 1, 0);
                 break;
             case 'free':
+                $db = new Database();
+                $db->query("UPDATE players SET free_jail_cards = free_jail_cards + 1 WHERE id = :id");
+                $db->bind('id', $player['id']);
+                $db->execute();
                 break;
         }
 
@@ -543,6 +547,53 @@ class Player extends Controller {
         if ($player) {
             $this->model('SessionModel')->clearActiveCard($player['session_id']);
             echo json_encode(['status' => 'success']);
+        }
+    }
+
+    public function apiUseJailCard() {
+        header('Content-Type: application/json');
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            echo json_encode(['status' => 'error', 'msg' => 'Method not allowed']); return;
+        }
+
+        $id = (int)($_POST['player_id'] ?? 0);
+        $player = $this->model('PlayerModel')->getPlayerById($id);
+
+        if (!$player) {
+            echo json_encode(['status' => 'error', 'msg' => 'Pemain tidak ditemukan']); return;
+        }
+        if (!$player['is_turn']) {
+            echo json_encode(['status' => 'error', 'msg' => 'Bukan giliran kamu!']); return;
+        }
+        if (empty($player['in_jail'])) {
+            echo json_encode(['status' => 'error', 'msg' => 'Kamu tidak sedang di penjara!']); return;
+        }
+        if ((int)($player['free_jail_cards'] ?? 0) <= 0) {
+            echo json_encode(['status' => 'error', 'msg' => 'Kamu tidak punya Kartu Bebas Penjara!']); return;
+        }
+        if ($player['has_rolled']) {
+            echo json_encode(['status' => 'error', 'msg' => 'Sudah melempar dadu, selesaikan aksi saat ini!']); return;
+        }
+
+        $db = new Database();
+        $db->query("UPDATE players SET free_jail_cards = free_jail_cards - 1, in_jail = 0, jail_turns = 0 WHERE id = :id AND free_jail_cards > 0");
+        $db->bind('id', $id);
+        $db->execute();
+        
+        if ($db->rowCount() > 0) {
+            // Log action
+            $db->query("INSERT INTO game_log (session_id, player_id, action) VALUES (:sid, :pid, :act)");
+            $db->bind('sid', $player['session_id']);
+            $db->bind('pid', $id);
+            $db->bind('act', "Menggunakan Kartu Bebas Penjara!");
+            $db->execute();
+
+            echo json_encode([
+                'status' => 'success', 
+                'msg' => 'Berhasil menggunakan Kartu Bebas Penjara! Silakan melempar dadu sekarang.'
+            ]);
+        } else {
+            echo json_encode(['status' => 'error', 'msg' => 'Gagal menggunakan kartu!']);
         }
     }
 }

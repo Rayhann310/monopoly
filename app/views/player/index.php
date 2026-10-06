@@ -92,6 +92,11 @@
         <div class="relative z-10 my-3">
             <div class="text-[10px] uppercase font-bold text-white/70 tracking-widest flex items-center gap-1.5">
                 <span>Saldo Rekening</span>
+                <?php if ((int)($data['player']['free_jail_cards'] ?? 0) > 0): ?>
+                <span class="ml-2 bg-emerald-500/20 px-2 py-0.5 rounded-full text-[10px] font-bold text-emerald-300 border border-emerald-400/30" title="Kartu Bebas Penjara">
+                    <i class="fa-solid fa-ticket-simple"></i> <?= $data['player']['free_jail_cards'] ?>
+                </span>
+                <?php endif; ?>
                 <span id="lap-counter-badge" class="ml-auto bg-black/40 px-2.5 py-0.5 rounded-full text-[10px] font-mono text-amber-300 border border-amber-400/30">
                     <i class="fa-solid fa-flag-checkered mr-1"></i>Putaran <?= max(1, ((int)($data['player']['laps'] ?? 0)) + 1) ?>
                 </span>
@@ -138,12 +143,20 @@
     $jailTurns = (int)($data['player']['jail_turns'] ?? 0);
 ?>
     <i class="fa-solid fa-handcuffs text-2xl text-rose-400 animate-pulse"></i>
-    <div>
-        <div class="text-rose-400 font-black text-base flex items-center gap-2">
+    <div class="flex-1 w-full">
+        <div class="text-rose-400 font-black text-base flex flex-wrap items-center gap-2">
             <span>TERTAHAN DI PENJARA!</span>
             <span class="text-xs bg-rose-500/30 text-rose-300 border border-rose-500/50 px-2 py-0.5 rounded-full font-bold">Percobaan <?= $jailTurns ?>/3</span>
         </div>
-        <div class="text-rose-300/80 text-xs">Dadu KEMBAR untuk bebas • Putaran ke-4 otomatis bebas</div>
+        <div class="text-rose-300/80 text-xs mt-0.5">Dadu KEMBAR untuk bebas • Putaran ke-4 otomatis bebas</div>
+        
+        <?php 
+        $freeCards = (int)($data['player']['free_jail_cards'] ?? 0);
+        if ($freeCards > 0 && $isTurn && empty($data['player']['has_rolled'])): ?>
+            <button onclick="useJailCard()" class="mt-2 w-full bg-emerald-500 hover:bg-emerald-600 border border-emerald-400 text-white font-bold py-2 px-3 rounded-lg text-xs transition flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(16,185,129,0.3)]">
+                <i class="fa-solid fa-ticket-simple"></i> Pakai Kartu Bebas Penjara (Sisa: <?= $freeCards ?>)
+            </button>
+        <?php endif; ?>
     </div>
 <?php elseif ($isTurn): ?>
     <i class="fa-solid fa-crown text-2xl text-amber-400 animate-pulse"></i>
@@ -1033,6 +1046,39 @@ function closePropModal() {
     const modal = document.getElementById('prop-detail-modal');
     modal.classList.add('hidden');
     modal.classList.remove('flex');
+}
+
+async function useJailCard() {
+    const playerId = <?= (int)$data['player']['id'] ?>;
+    const btn = document.querySelector('button[onclick="useJailCard()"]');
+    if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Memproses...'; }
+
+    try {
+        const res = await fetch('<?= BASEURL ?>/player/apiUseJailCard', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: 'player_id=' + playerId
+        });
+        const data = await res.json();
+
+        if (data.status === 'success') {
+            Swal.fire({
+                icon: 'success',
+                title: 'Bebas!',
+                text: data.msg,
+                background: '#0f172a',
+                color: '#f8fafc',
+                confirmButtonText: 'Lempar Dadu!',
+                confirmButtonColor: '#10b981',
+            }).then(() => location.reload());
+        } else {
+            Swal.fire({ icon: 'error', title: 'Gagal', text: data.msg, background: '#0f172a', color: '#f8fafc' });
+            if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-ticket-simple"></i> Pakai Kartu Bebas Penjara'; }
+        }
+    } catch(e) {
+        Swal.fire({ icon: 'error', title: 'Error', text: 'Gagal menghubungi server', background: '#0f172a', color: '#f8fafc' });
+        if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-ticket-simple"></i> Pakai Kartu Bebas Penjara'; }
+    }
 }
 </script>
 
