@@ -123,53 +123,68 @@ class Database {
             effect_value INT DEFAULT 0,
             pass_start_money INT DEFAULT 0,
             is_active TINYINT(1) DEFAULT 1,
-            image_url VARCHAR(255) NULL
+            image_url VARCHAR(255) NULL,
+            text_hash VARCHAR(64) NULL
         )");
-        
-        // Self healing database for cards table updates
-        try { $this->dbh->query("SELECT image_url FROM cards LIMIT 1"); } 
+
+        // Self-heal: add missing columns
+        try { $this->dbh->query("SELECT image_url FROM cards LIMIT 1"); }
         catch (PDOException $e) { $this->dbh->exec("ALTER TABLE cards ADD COLUMN image_url VARCHAR(255) NULL"); }
-        
-        try { $this->dbh->query("SELECT pass_start_money FROM cards LIMIT 1"); } 
-        catch (PDOException $e) { 
-            $this->dbh->exec("ALTER TABLE cards ADD COLUMN pass_start_money INT DEFAULT 0 AFTER effect_value"); 
+
+        try { $this->dbh->query("SELECT pass_start_money FROM cards LIMIT 1"); }
+        catch (PDOException $e) {
+            $this->dbh->exec("ALTER TABLE cards ADD COLUMN pass_start_money INT DEFAULT 0 AFTER effect_value");
             $this->dbh->exec("ALTER TABLE cards MODIFY COLUMN effect_type VARCHAR(50) DEFAULT 'none'");
-            // Migrate old data
+            // Migrate old effect_type data
             $this->dbh->exec("UPDATE cards SET effect_type = 'money_bank' WHERE effect_type = 'money' AND text NOT LIKE '%setiap pemain%'");
             $this->dbh->exec("UPDATE cards SET effect_type = 'money_players' WHERE effect_type = 'money' AND text LIKE '%setiap pemain%'");
             $this->dbh->exec("UPDATE cards SET effect_type = 'move_pos' WHERE effect_type = 'move' AND effect_value >= 0");
             $this->dbh->exec("UPDATE cards SET effect_type = 'move_steps' WHERE effect_type = 'move' AND effect_value < 0");
             $this->dbh->exec("UPDATE cards SET pass_start_money = 2000 WHERE effect_type = 'move_pos' AND text LIKE '%melewati Start%'");
         }
-
-        $cardCount = $this->dbh->query("SELECT COUNT(*) FROM cards")->fetchColumn();
-        if ($cardCount == 0) {
-            $this->dbh->exec("INSERT INTO cards (type, text, effect_type, effect_value, pass_start_money) VALUES
-                -- ========== KESEMPATAN (10 kartu) ==========
-                ('kesempatan','📱 Viral di TikTok! Kontenmu tentang properti meledak. Terima endorse Rp 1.500.','money_bank',1500,0),
-                ('kesempatan','🚔 Kena razia tilang! Lupa bayar pajak kendaraan. Bayar Rp 1.000.','money_bank',-1000,0),
-                ('kesempatan','✈️ Liburan ke Bali! Maju ke Denpasar. Jika melewati Start terima Rp 2.000.','move_pos',21,2000),
-                ('kesempatan','🏛️ Masuk penjara! Tertangkap korupsi anggaran RT. Jangan lewati Start.','jail',10,0),
-                ('kesempatan','🎰 Menang judi online! ... eh maksudnya menang undian. Terima Rp 2.500.','money_bank',2500,0),
-                ('kesempatan','🍜 Usaha warmie-mu bangkrut. Bayar utang supplier Rp 1.200.','money_bank',-1200,0),
-                ('kesempatan','👑 Terpilih jadi ketua OSIS! Traktir semua pemain Rp 500.','money_players',-500,0),
-                ('kesempatan','📦 Dapet paket salah kirim, isinya duit. Terima Rp 800 dari setiap pemain.','money_players',800,0),
-                ('kesempatan','🕳️ Nyasar 3 langkah ke belakang gara-gara Google Maps error.','move_steps',-3,0),
-                ('kesempatan','🃏 Bebas penjara! Simpan kartu ini. Bisa dipakai kapan saja.','free',0,0),
-
-                -- ========== DANA UMUM (10 kartu) ==========
-                ('dana_umum','💸 THR cair! Pemerintah bagi-bagi dana. Terima Rp 3.000.','money_bank',3000,0),
-                ('dana_umum','🏥 Kecelakaan main dadu terlalu semangat. Biaya RS Rp 2.000.','money_bank',-2000,0),
-                ('dana_umum','🎂 Selamat ulang tahun! Semua pemain kasih hadiah Rp 500.','money_players',500,0),
-                ('dana_umum','🔒 Ketahuan nyontek saat ujian dadu. Masuk penjara!','jail',10,0),
-                ('dana_umum','💰 Subsidi BBM dialihkan ke rekening kamu. Terima Rp 1.500.','money_bank',1500,0),
-                ('dana_umum','🧾 Bayar pajak bumi dan bangunan. Denda Rp 1.800.','money_bank',-1800,0),
-                ('dana_umum','🏆 Juara lomba 17-an tingkat kelurahan! Hadiah Rp 1.000.','money_bank',1000,0),
-                ('dana_umum','🎓 Dapat beasiswa! Dana pendidikan cair Rp 2.000.','money_bank',2000,0),
-                ('dana_umum','📺 TV kamu meledak. Beli yang baru, bayar Rp 900.','money_bank',-900,0),
-                ('dana_umum','🃏 Bebas penjara! Simpan kartu ini. Bisa dipakai kapan saja.','free',0,0)
-            ");
+        try { $this->dbh->query("SELECT text_hash FROM cards LIMIT 1"); }
+        catch (PDOException $e) {
+            $this->dbh->exec("ALTER TABLE cards ADD COLUMN text_hash VARCHAR(64) NULL");
+            // Backfill existing rows
+            $this->dbh->exec("UPDATE cards SET text_hash = MD5(CONCAT(type,'|',text)) WHERE text_hash IS NULL");
+            try { $this->dbh->exec("ALTER TABLE cards ADD UNIQUE KEY uq_card_hash (text_hash)"); } catch(Exception $ex) {}
         }
+        // Ensure unique key exists
+        try { $this->dbh->exec("ALTER TABLE cards ADD UNIQUE KEY uq_card_hash (text_hash)"); } catch(Exception $e) {}
+
+        // Seed kartu — INSERT IGNORE: tidak pernah duplikat, tidak menimpa kartu custom
+        $seedCards = [
+            // ===== KESEMPATAN =====
+            ['kesempatan','📱 Viral di TikTok! Kontenmu tentang properti meledak. Terima endorse Rp 1.500.','money_bank',1500,0],
+            ['kesempatan','🚔 Kena razia tilang! Lupa bayar pajak kendaraan. Bayar Rp 1.000.','money_bank',-1000,0],
+            ['kesempatan','✈️ Liburan ke Bali! Maju ke Denpasar. Jika melewati Start terima Rp 2.000.','move_pos',21,2000],
+            ['kesempatan','🏛️ Masuk penjara! Tertangkap korupsi anggaran RT. Jangan lewati Start.','jail',10,0],
+            ['kesempatan','🎰 Menang judi online! ... eh maksudnya menang undian. Terima Rp 2.500.','money_bank',2500,0],
+            ['kesempatan','🍜 Usaha warmie-mu bangkrut. Bayar utang supplier Rp 1.200.','money_bank',-1200,0],
+            ['kesempatan','👑 Terpilih jadi ketua OSIS! Traktir semua pemain Rp 500.','money_players',-500,0],
+            ['kesempatan','📦 Dapet paket salah kirim, isinya duit. Terima Rp 800 dari setiap pemain.','money_players',800,0],
+            ['kesempatan','🕳️ Nyasar 3 langkah ke belakang gara-gara Google Maps error.','move_steps',-3,0],
+            ['kesempatan','🃏 Bebas penjara! Simpan kartu ini. Bisa dipakai kapan saja.','free',0,0],
+            // ===== DANA UMUM =====
+            ['dana_umum','💸 THR cair! Pemerintah bagi-bagi dana. Terima Rp 3.000.','money_bank',3000,0],
+            ['dana_umum','🏥 Kecelakaan main dadu terlalu semangat. Biaya RS Rp 2.000.','money_bank',-2000,0],
+            ['dana_umum','🎂 Selamat ulang tahun! Semua pemain kasih hadiah Rp 500.','money_players',500,0],
+            ['dana_umum','🔒 Ketahuan nyontek saat ujian dadu. Masuk penjara!','jail',10,0],
+            ['dana_umum','💰 Subsidi BBM dialihkan ke rekening kamu. Terima Rp 1.500.','money_bank',1500,0],
+            ['dana_umum','🧾 Bayar pajak bumi dan bangunan. Denda Rp 1.800.','money_bank',-1800,0],
+            ['dana_umum','🏆 Juara lomba 17-an tingkat kelurahan! Hadiah Rp 1.000.','money_bank',1000,0],
+            ['dana_umum','🎓 Dapat beasiswa! Dana pendidikan cair Rp 2.000.','money_bank',2000,0],
+            ['dana_umum','📺 TV kamu meledak. Beli yang baru, bayar Rp 900.','money_bank',-900,0],
+            ['dana_umum','🃏 Bebas penjara! Simpan kartu ini. Bisa dipakai kapan saja.','free',0,0],
+        ];
+        $stmtCard = $this->dbh->prepare(
+            "INSERT IGNORE INTO cards (type, text, effect_type, effect_value, pass_start_money, text_hash)
+             VALUES (?, ?, ?, ?, ?, MD5(CONCAT(?, '|', ?)))"
+        );
+        foreach ($seedCards as $c) {
+            $stmtCard->execute([$c[0], $c[1], $c[2], $c[3], $c[4], $c[0], $c[1]]);
+        }
+
 
         // === TABEL SESI ===
         $this->dbh->exec("CREATE TABLE IF NOT EXISTS sessions (
