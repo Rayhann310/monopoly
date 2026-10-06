@@ -476,23 +476,43 @@ body { height: 100dvh; overflow: hidden; display: flex; flex-direction: column; 
         });
     }
 
-    document.addEventListener('DOMContentLoaded', function() {
-        const player = <?= json_encode($data['player']); ?>;
-        const board = <?= json_encode($data['board']); ?>;
-        const BASEURL = '<?= BASEURL ?>';
-        const SETTINGS = {
-            name_kesempatan: '<?= htmlspecialchars($data['settings']['name_kesempatan']['setting_value'] ?? 'Kesempatan') ?>',
-            name_dana_umum:  '<?= htmlspecialchars($data['settings']['name_dana_umum']['setting_value'] ?? 'Dana Umum') ?>',
-            allow_trade:     <?= !empty($data['settings']['allow_trade']['setting_value']) ? 'true' : 'false' ?>,
-        };
-        let currentPropsHash = JSON.stringify(<?= json_encode($data['properties'] ?? []) ?>);
-        let hasRolled = <?= $data['player']['has_rolled'] ? 'true' : 'false' ?>;
-        let isTurn = <?= $data['player']['is_turn'] ? 'true' : 'false' ?>;
-        let lastShownCardText = null;
-        let isRolling = false; // Guard against double-click/race condition
-        let currentDisplayedMoney = parseInt(player.money) || 0;
-        let moneyAnimFrame = null;
+    // Global variables accessible by inline onclick handlers
+    let player = <?= json_encode($data['player']); ?>;
+    let board = <?= json_encode($data['board']); ?>;
+    const BASEURL = '<?= BASEURL ?>';
+    const SETTINGS = {
+        name_kesempatan: '<?= htmlspecialchars($data['settings']['name_kesempatan']['setting_value'] ?? 'Kesempatan') ?>',
+        name_dana_umum:  '<?= htmlspecialchars($data['settings']['name_dana_umum']['setting_value'] ?? 'Dana Umum') ?>',
+        allow_trade:     <?= !empty($data['settings']['allow_trade']['setting_value']) ? 'true' : 'false' ?>,
+    };
+    let currentPropsHash = JSON.stringify(<?= json_encode($data['properties'] ?? []) ?>);
+    let hasRolled = <?= $data['player']['has_rolled'] ? 'true' : 'false' ?>;
+    let isTurn = <?= $data['player']['is_turn'] ? 'true' : 'false' ?>;
+    let lastShownCardText = null;
+    let isRolling = false; // Guard against double-click/race condition
+    let currentDisplayedMoney = parseInt(player.money) || 0;
+    let moneyAnimFrame = null;
 
+    // Global helper
+    function showModal(title, text, icon, color) {
+        if (typeof Swal !== 'undefined') {
+            Swal.fire({
+                title, html: text, icon,
+                background: '#0f172a', color: '#f1f5f9',
+                confirmButtonColor: color || '#3b82f6',
+                confirmButtonText: '<i class="fa fa-check"></i> Oke',
+                customClass: { popup: 'rounded-2xl border border-white/10 shadow-2xl' }
+            });
+        } else {
+            const modal = document.getElementById('fallback-modal');
+            document.getElementById('fm-title').innerText = title;
+            document.getElementById('fm-text').innerHTML = text;
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
         function animateMoney(targetMoney, customDuration = 900) {
             targetMoney = parseInt(targetMoney);
             if (isNaN(targetMoney)) return;
@@ -616,24 +636,7 @@ body { height: 100dvh; overflow: hidden; display: flex; flex-direction: column; 
         }
         // else: giliran kita dan belum roll — tombol aktif (default)
 
-        // Helper SweetAlert
-        function showModal(title, text, icon, color) {
-            if (typeof Swal !== 'undefined') {
-                Swal.fire({
-                    title, html: text, icon,
-                    background: '#0f172a', color: '#f1f5f9',
-                    confirmButtonColor: color || '#3b82f6',
-                    confirmButtonText: '<i class="fa fa-check"></i> Oke',
-                    customClass: { popup: 'rounded-2xl border border-white/10 shadow-2xl' }
-                });
-            } else {
-                const modal = document.getElementById('fallback-modal');
-                document.getElementById('fm-title').innerText = title;
-                document.getElementById('fm-text').innerHTML = text;
-                modal.classList.remove('hidden');
-                modal.classList.add('flex');
-            }
-        }
+        // Helper SweetAlert removed because it's now global
 
         // Roll Dadu
         rollBtn.addEventListener('click', function() {
