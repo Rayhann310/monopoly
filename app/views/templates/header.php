@@ -13,6 +13,24 @@
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700;900&display=swap" rel="stylesheet">
     <style>
+        /* Force Landscape Overlay */
+        #portrait-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            z-index: 9999;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            text-align: center;
+            padding: 20px;
+        }
+        @media screen and (max-width: 896px) and (orientation: portrait) {
+            #portrait-overlay { display: flex; }
+            #main-nav, .game-wrapper { display: none !important; }
+        }
         :root {
             --board-bg: #fef3c7;
             --cell-bg: #fffbeb;
@@ -79,6 +97,23 @@
                 
             transform-style: preserve-3d;
             transform: rotateX(55deg) rotateZ(45deg);
+        }
+
+        @media (max-width: 768px) {
+            .board-area {
+                perspective: 900px;
+            }
+            .monopoly-board {
+                transform: rotateX(50deg) rotateZ(45deg) scale(0.9);
+                width: 98vmin;
+                height: 98vmin;
+            }
+            .center-content-wrapper {
+                transform: rotateZ(-45deg) rotateX(-50deg) scale(1.2) translateZ(30px) !important;
+            }
+            .player-token {
+                transform: rotateZ(-45deg) rotateX(-50deg) translateZ(15px) !important;
+            }
         }
 
         /* === CELLS === */
@@ -317,45 +352,52 @@
 </head>
 <body>
 
+<!-- Portrait Overlay -->
+<div id="portrait-overlay">
+    <i class="fa-solid fa-mobile-screen fa-rotate-270 text-6xl mb-4 animate-bounce"></i>
+    <h1 class="text-3xl font-black mb-2">Putar Perangkat Anda</h1>
+    <p class="text-lg opacity-80">Game ini hanya dapat dimainkan dalam mode Landscape.</p>
+</div>
+
 <!-- Floating Hamburger to toggle Navbar -->
 <button onclick="document.getElementById('main-nav').classList.toggle('-translate-y-full')" class="absolute top-3 right-4 z-[60] w-12 h-12 bg-white/20 hover:bg-white/30 backdrop-blur-md border-2 border-white/40 rounded-xl flex items-center justify-center text-white transition shadow-[0_4px_15px_rgba(0,0,0,0.2)]">
     <i class="fa-solid fa-bars text-xl drop-shadow-md"></i>
 </button>
 
 <!-- Navbar -->
-<nav id="main-nav" class="absolute top-0 left-0 w-full h-[65px] px-6 pr-20 flex justify-between items-center z-50 bg-gradient-to-r from-amber-600/90 via-amber-500/90 to-yellow-500/90 backdrop-blur-md border-b-4 border-amber-300 shadow-[0_10px_20px_rgba(0,0,0,0.3)] transition-transform duration-500 rounded-b-3xl mx-auto">
-    <div class="text-white font-black text-2xl tracking-widest flex items-center gap-3 drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]">
-        <i class="fa-solid fa-dice text-yellow-200 text-3xl"></i> LET'S GET RICH!
+<nav id="main-nav" class="absolute top-0 left-0 w-full min-h-[65px] py-3 md:py-0 px-4 md:px-6 pr-16 md:pr-20 flex flex-col md:flex-row justify-between items-center gap-3 md:gap-0 z-50 bg-gradient-to-r from-amber-600/90 via-amber-500/90 to-yellow-500/90 backdrop-blur-md border-b-4 border-amber-300 shadow-[0_10px_20px_rgba(0,0,0,0.3)] transition-transform duration-500 rounded-b-3xl mx-auto">
+    <div class="text-white font-black text-lg md:text-2xl tracking-widest flex items-center gap-2 md:gap-3 drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]">
+        <i class="fa-solid fa-dice text-yellow-200 text-2xl md:text-3xl"></i> <span class="hidden sm:inline">LET'S GET RICH!</span><span class="sm:hidden">GET RICH!</span>
         <?php if (!empty($data['session'])): ?>
-        <span class="text-amber-100 font-bold text-base bg-black/20 px-3 py-1 rounded-full border border-white/20 shadow-inner">SESI: <?= htmlspecialchars($data['session']['name']) ?></span>
+        <span class="text-amber-100 font-bold text-xs md:text-base bg-black/20 px-2 md:px-3 py-0.5 md:py-1 rounded-full border border-white/20 shadow-inner max-w-[150px] truncate">SESI: <?= htmlspecialchars($data['session']['name']) ?></span>
         <?php if (!empty($data['is_host'])): ?>
-        <span class="text-xs bg-gradient-to-r from-yellow-300 to-amber-300 text-amber-900 border-2 border-white/50 px-2.5 py-1.5 rounded-full font-black shadow-lg uppercase tracking-wider"><i class="fa-solid fa-crown mr-1"></i> HOST</span>
+        <span class="hidden sm:inline text-xs bg-gradient-to-r from-yellow-300 to-amber-300 text-amber-900 border-2 border-white/50 px-2.5 py-1.5 rounded-full font-black shadow-lg uppercase tracking-wider"><i class="fa-solid fa-crown mr-1"></i> HOST</span>
         <?php endif; ?>
         <?php endif; ?>
     </div>
-    <div class="flex gap-2.5">
-        <a href="<?= BASEURL ?>/setup" class="px-4 py-2 bg-black/20 hover:bg-black/40 border-2 border-white/30 rounded-xl text-white font-bold transition flex items-center gap-2 shadow-lg hover:-translate-y-0.5 active:translate-y-0">
-            <i class="fa-solid fa-arrow-left text-yellow-200"></i> Lobby
+    <div class="flex flex-wrap justify-center gap-2 md:gap-2.5">
+        <a href="<?= BASEURL ?>/setup" class="px-3 py-1.5 md:px-4 md:py-2 text-sm md:text-base bg-black/20 hover:bg-black/40 border-2 border-white/30 rounded-xl text-white font-bold transition flex items-center gap-1.5 md:gap-2 shadow-lg hover:-translate-y-0.5 active:translate-y-0">
+            <i class="fa-solid fa-arrow-left text-yellow-200"></i> <span class="hidden lg:inline">Lobby</span>
         </a>
         <?php if (!empty($data['is_host'])): ?>
-        <a href="<?= BASEURL ?>/admin/stopSession/<?= $data['session']['id'] ?>" onclick="return confirm('Hentikan permainan sesi ini?')" class="px-4 py-2 bg-rose-600/80 hover:bg-rose-600 border-2 border-rose-400 rounded-xl text-white font-bold transition flex items-center gap-2 shadow-lg hover:-translate-y-0.5 active:translate-y-0">
-            <i class="fa-solid fa-stop text-rose-200"></i> Stop
+        <a href="<?= BASEURL ?>/admin/stopSession/<?= $data['session']['id'] ?>" onclick="return confirm('Hentikan permainan sesi ini?')" class="px-3 py-1.5 md:px-4 md:py-2 text-sm md:text-base bg-rose-600/80 hover:bg-rose-600 border-2 border-rose-400 rounded-xl text-white font-bold transition flex items-center gap-1.5 md:gap-2 shadow-lg hover:-translate-y-0.5 active:translate-y-0">
+            <i class="fa-solid fa-stop text-rose-200"></i> <span class="hidden lg:inline">Stop</span>
         </a>
-        <a href="<?= BASEURL ?>/home/apiReset/<?= $data['session']['id'] ?? '' ?>" onclick="return confirm('Reset semua posisi & uang pemain?')" class="px-4 py-2 bg-orange-600/80 hover:bg-orange-600 border-2 border-orange-400 rounded-xl text-white font-bold transition flex items-center gap-2 shadow-lg hover:-translate-y-0.5 active:translate-y-0">
-            <i class="fa-solid fa-rotate-left text-orange-200"></i> Reset
+        <a href="<?= BASEURL ?>/home/apiReset/<?= $data['session']['id'] ?? '' ?>" onclick="return confirm('Reset semua posisi & uang pemain?')" class="px-3 py-1.5 md:px-4 md:py-2 text-sm md:text-base bg-orange-600/80 hover:bg-orange-600 border-2 border-orange-400 rounded-xl text-white font-bold transition flex items-center gap-1.5 md:gap-2 shadow-lg hover:-translate-y-0.5 active:translate-y-0">
+            <i class="fa-solid fa-rotate-left text-orange-200"></i> <span class="hidden lg:inline">Reset</span>
         </a>
         <?php endif; ?>
-        <button onclick="refreshPage(this)" class="px-4 py-2 bg-black/20 hover:bg-black/40 border-2 border-white/30 rounded-xl text-white font-bold transition flex items-center justify-center shadow-lg hover:-translate-y-0.5 active:translate-y-0 w-11" title="Refresh Halaman">
+        <button onclick="refreshPage(this)" class="px-3 py-1.5 md:px-4 md:py-2 bg-black/20 hover:bg-black/40 border-2 border-white/30 rounded-xl text-white font-bold transition flex items-center justify-center shadow-lg hover:-translate-y-0.5 active:translate-y-0 w-9 md:w-11" title="Refresh Halaman">
             <i id="refresh-icon" class="fa-solid fa-arrows-rotate text-yellow-200"></i>
         </button>
-        <button id="fullscreen-btn" onclick="toggleFullscreen()" class="px-4 py-2 bg-black/20 hover:bg-black/40 border-2 border-white/30 rounded-xl text-white font-bold transition flex items-center justify-center shadow-lg hover:-translate-y-0.5 active:translate-y-0 w-11" title="Fullscreen">
+        <button id="fullscreen-btn" onclick="toggleFullscreen()" class="px-3 py-1.5 md:px-4 md:py-2 bg-black/20 hover:bg-black/40 border-2 border-white/30 rounded-xl text-white font-bold transition flex items-center justify-center shadow-lg hover:-translate-y-0.5 active:translate-y-0 w-9 md:w-11" title="Fullscreen">
             <i id="fs-icon" class="fa-solid fa-expand text-yellow-200"></i>
         </button>
-        <button onclick="document.getElementById('bank-modal').classList.remove('hidden'); document.getElementById('bank-modal').classList.add('flex');" class="px-5 py-2 bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-400 hover:to-green-500 border-2 border-emerald-300 rounded-xl text-white font-black transition flex items-center gap-2 shadow-[0_4px_15px_rgba(16,185,129,0.4)] hover:-translate-y-0.5 active:translate-y-0">
-            <i class="fa-solid fa-building-columns text-emerald-100"></i> Bank
+        <button onclick="document.getElementById('bank-modal').classList.remove('hidden'); document.getElementById('bank-modal').classList.add('flex');" class="px-3 py-1.5 md:px-5 md:py-2 text-sm md:text-base bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-400 hover:to-green-500 border-2 border-emerald-300 rounded-xl text-white font-black transition flex items-center gap-1.5 md:gap-2 shadow-[0_4px_15px_rgba(16,185,129,0.4)] hover:-translate-y-0.5 active:translate-y-0">
+            <i class="fa-solid fa-building-columns text-emerald-100"></i> <span class="hidden sm:inline">Bank</span>
         </button>
-        <button onclick="document.getElementById('qr-modal').classList.remove('hidden'); document.getElementById('qr-modal').classList.add('flex');" class="px-5 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-400 hover:to-indigo-500 border-2 border-blue-300 rounded-xl text-white font-black transition flex items-center gap-2 shadow-[0_4px_15px_rgba(59,130,246,0.4)] hover:-translate-y-0.5 active:translate-y-0">
-            <i class="fa-solid fa-qrcode text-blue-100"></i> Gabung
+        <button onclick="document.getElementById('qr-modal').classList.remove('hidden'); document.getElementById('qr-modal').classList.add('flex');" class="px-3 py-1.5 md:px-5 md:py-2 text-sm md:text-base bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-400 hover:to-indigo-500 border-2 border-blue-300 rounded-xl text-white font-black transition flex items-center gap-1.5 md:gap-2 shadow-[0_4px_15px_rgba(59,130,246,0.4)] hover:-translate-y-0.5 active:translate-y-0">
+            <i class="fa-solid fa-qrcode text-blue-100"></i> <span class="hidden sm:inline">Gabung</span>
         </button>
     </div>
 </nav>
