@@ -515,9 +515,73 @@ body { height: 100dvh; overflow: hidden; display: flex; flex-direction: column; 
         }
     }
 
+    function bribeJail() {
+        if (!isTurn) { showModal('Bukan Giliran Kamu', 'Tunggu giliranmu!', 'warning'); return; }
+        const bribeCost = <?= (int)($data['settings']['jail_bribe_cost']['setting_value'] ?? 50000) ?>;
+        Swal.fire({
+            title: '<i class="fa-solid fa-money-bill-wave text-amber-400 mr-2"></i> Suap Petugas?',
+            html: `Bayar <b class="text-amber-400">Rp ${bribeCost.toLocaleString('id-ID')}</b> untuk bebas dari penjara sekarang.<br><small class="text-slate-400">Kamu masih bisa melempar dadu setelah ini.</small>`,
+            background: '#0f172a', color: '#f1f5f9',
+            showCancelButton: true,
+            confirmButtonText: '<i class="fa-solid fa-money-bill-wave mr-1"></i> Bayar Suap',
+            cancelButtonText: 'Batal',
+            confirmButtonColor: '#f59e0b',
+            cancelButtonColor: '#475569',
+            customClass: { popup: 'rounded-2xl border border-white/10 shadow-2xl' }
+        }).then(result => {
+            if (!result.isConfirmed) return;
+            fetch(BASEURL + '/player/apiBribeJail', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `player_id=${player.id}`
+            }).then(r => r.json()).then(res => {
+                if (res.status === 'success') {
+                    animateMoney(res.money);
+                    showModal('<i class="fa-solid fa-door-open text-emerald-400 mr-1"></i> Bebas!', res.msg, 'success', '#10b981');
+                } else {
+                    showModal('<i class="fa-solid fa-triangle-exclamation mr-1"></i> Gagal', res.msg, 'error', '#ef4444');
+                }
+            }).catch(() => {
+                showModal('Error', 'Koneksi gagal, coba lagi.', 'error', '#ef4444');
+            });
+        });
+    }
+
+    function useJailCard() {
+        if (!isTurn) { showModal('Bukan Giliran Kamu', 'Tunggu giliranmu!', 'warning'); return; }
+        Swal.fire({
+            title: '<i class="fa-solid fa-ticket-simple text-emerald-400 mr-2"></i> Pakai Kartu Bebas?',
+            html: 'Gunakan <b class="text-emerald-400">Kartu Bebas Penjara</b> untuk langsung keluar dari penjara tanpa membayar.',
+            background: '#0f172a', color: '#f1f5f9',
+            showCancelButton: true,
+            confirmButtonText: '<i class="fa-solid fa-ticket-simple mr-1"></i> Pakai Kartu',
+            cancelButtonText: 'Batal',
+            confirmButtonColor: '#10b981',
+            cancelButtonColor: '#475569',
+            customClass: { popup: 'rounded-2xl border border-white/10 shadow-2xl' }
+        }).then(result => {
+            if (!result.isConfirmed) return;
+            fetch(BASEURL + '/player/apiUseJailCard', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `player_id=${player.id}`
+            }).then(r => r.json()).then(res => {
+                if (res.status === 'success') {
+                    showModal('<i class="fa-solid fa-door-open text-emerald-400 mr-1"></i> Bebas!', res.msg || 'Kartu digunakan! Kamu bebas.', 'success', '#10b981');
+                } else {
+                    showModal('<i class="fa-solid fa-triangle-exclamation mr-1"></i> Gagal', res.msg, 'error', '#ef4444');
+                }
+            }).catch(() => {
+                showModal('Error', 'Koneksi gagal, coba lagi.', 'error', '#ef4444');
+            });
+        });
+    }
+
+    let pendingMoneyCheck = null;
+    let animateMoney = function() {}; // placeholder, defined in DOMContentLoaded
+
     document.addEventListener('DOMContentLoaded', function() {
-        let pendingMoneyCheck = null;
-        function animateMoney(targetMoney, customDuration = 900) {
+        animateMoney = function animateMoney(targetMoney, customDuration = 900) {
             targetMoney = parseInt(targetMoney);
             if (isNaN(targetMoney)) return;
             if (targetMoney === currentDisplayedMoney) return;

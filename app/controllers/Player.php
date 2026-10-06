@@ -428,12 +428,15 @@ class Player extends Controller {
             return $rents[$idx];
         }
         // Standard property — check tier-based rent
-        $houses = max(0, min((int)($owner['houses'] ?? 0), 5));
-        $levelKey = "level{$houses}_rent";
+        // houses = 0 means Tanah Kosong (Level 1 in DB)
+        $houses = max(0, (int)($owner['houses'] ?? 0));
+        $dbLevel = $houses + 1;
+        $levelKey = "level{$dbLevel}_rent";
+        
         if (isset($cell[$levelKey]) && $cell[$levelKey] > 0) {
             return (int)$cell[$levelKey];
         }
-        // Fallback multiplier formula
+        // Fallback multiplier formula if not defined in DB
         $multiplier = [1, 5, 15, 45, 80, 125];
         return (int)round($basePrice * 0.1 * ($multiplier[$houses] ?? 1));
     }
