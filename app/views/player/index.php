@@ -56,8 +56,22 @@
 .prop-modal-inner { animation: slideUp 0.28s cubic-bezier(.34,1.56,.64,1); }
 </style>
 
+<!-- Top Action Bar -->
+<div class="px-5 pt-4 pb-1 flex items-center justify-between">
+    <div class="flex items-center gap-2">
+        <div class="w-8 h-8 rounded-full bg-slate-800 border border-white/10 flex items-center justify-center shadow-lg">
+            <i class="fa-solid fa-user text-slate-400 text-xs"></i>
+        </div>
+        <span class="font-black text-white text-sm tracking-wide"><?= htmlspecialchars($data['player']['name']) ?></span>
+    </div>
+    <button onclick="showRulebook()" class="flex items-center gap-2 bg-indigo-500/20 hover:bg-indigo-500/30 text-indigo-300 px-3 py-1.5 rounded-full border border-indigo-400/30 transition-all active:scale-95">
+        <i class="fa-solid fa-book-open text-[10px]"></i>
+        <span class="text-[10px] font-black uppercase tracking-wider">Aturan</span>
+    </button>
+</div>
+
 <!-- Credit Card Container -->
-<div class="px-5 pt-5 pb-2">
+<div class="px-5 pt-2 pb-2">
     <div id="player-credit-card" class="relative overflow-hidden rounded-3xl p-6 shadow-2xl border border-white/20 text-white transition-all duration-500 bg-gradient-to-br <?= $bgGrad ?> select-none"
          style="box-shadow: 0 20px 40px -15px rgba(0,0,0,0.7), inset 0 1px 1px rgba(255,255,255,0.4);">
         
@@ -391,6 +405,61 @@
 
 
 <script>
+    function showRulebook() {
+        const rulesHtml = `
+            <div style="text-align: left; font-size: 0.9rem; line-height: 1.6; color: #cbd5e1; max-height: 60vh; overflow-y: auto; padding-right: 10px;" class="custom-scroll">
+                
+                <div style="margin-bottom: 20px;">
+                    <div style="font-weight: 900; color: #f8fafc; font-size: 1.1rem; display: flex; align-items: center; gap: 8px; margin-bottom: 5px;">
+                        <i class="fa-solid fa-flag-checkered text-blue-400"></i> Aturan Putaran Pertama
+                    </div>
+                    Kamu <b style="color: #60a5fa">tidak boleh membeli properti</b> sebelum berhasil melewati petak START (menyelesaikan 1 putaran penuh). Putaran pertama hanya untuk adaptasi!
+                </div>
+
+                <div style="margin-bottom: 20px;">
+                    <div style="font-weight: 900; color: #f8fafc; font-size: 1.1rem; display: flex; align-items: center; gap: 8px; margin-bottom: 5px;">
+                        <i class="fa-solid fa-parking text-emerald-400"></i> Jackpot Parkir Bebas
+                    </div>
+                    Setiap pemain yang membayar <b style="color: #fb7185">Pajak (Biasa/Mewah)</b>, uangnya tidak hilang! Uang pajak tersebut akan ditampung di <b>Pot Parkir Bebas</b>. Jika kamu mendarat di petak Parkir Bebas, kamu berhak mengambil <b style="color: #34d399">SELURUH POT</b> tersebut!
+                </div>
+
+                <div style="margin-bottom: 20px;">
+                    <div style="font-weight: 900; color: #f8fafc; font-size: 1.1rem; display: flex; align-items: center; gap: 8px; margin-bottom: 5px;">
+                        <i class="fa-solid fa-house-chimney-crack text-amber-400"></i> Denda & Sewa
+                    </div>
+                    Jika kamu mendarat di properti milik lawan, saldo rekeningmu akan <b style="color: #fb7185">otomatis terpotong</b> untuk membayar sewa. Hati-hati jangan sampai bangkrut!
+                </div>
+
+                <div style="margin-bottom: 10px;">
+                    <div style="font-weight: 900; color: #f8fafc; font-size: 1.1rem; display: flex; align-items: center; gap: 8px; margin-bottom: 5px;">
+                        <i class="fa-solid fa-handcuffs text-rose-400"></i> Masuk Penjara
+                    </div>
+                    Masuk penjara menahanmu maksimal <b style="color: #f8fafc">3 putaran</b>. Kamu bisa keluar jika mendapat lemparan dadu kembar, memakai Kartu Bebas Penjara, atau membayar denda di putaran ke-3.
+                </div>
+
+            </div>
+            <style>
+                .custom-scroll::-webkit-scrollbar { width: 6px; }
+                .custom-scroll::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); border-radius: 10px; }
+                .custom-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 10px; }
+            </style>
+        `;
+
+        Swal.fire({
+            title: '<div style="font-weight: 900; font-size: 1.5rem; letter-spacing: 1px;"><i class="fa-solid fa-book-open text-indigo-400 mr-2"></i> PANDUAN GAME</div>',
+            html: rulesHtml,
+            background: 'linear-gradient(145deg, #1e293b, #0f172a)',
+            color: '#f8fafc',
+            width: '24em',
+            confirmButtonText: '<i class="fa-solid fa-check"></i> Mengerti!',
+            confirmButtonColor: '#6366f1',
+            customClass: {
+                popup: 'rounded-3xl border border-white/10 shadow-2xl',
+                title: 'border-b border-white/10 pb-4 mb-2'
+            }
+        });
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
         const player = <?= json_encode($data['player']); ?>;
         const board = <?= json_encode($data['board']); ?>;
