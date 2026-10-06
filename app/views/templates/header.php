@@ -93,11 +93,17 @@
                 0 15px 30px rgba(0,0,0,0.4);
         }
 
-        @media (max-width: 768px) {
+        @media (max-width: 896px) and (orientation: landscape) {
             .monopoly-board {
-                width: 92vmin;
-                height: 92vmin;
+                width: 95vmin;
+                height: 95vmin;
             }
+            .name { font-size: 1.6vh !important; padding: 1px !important; }
+            .price { font-size: 1.4vh !important; padding: 1px !important; }
+            .title-text { font-size: 6vh !important; }
+            .subtitle-text { font-size: 2vh !important; padding: 0.5vh 1vh !important; margin-bottom: 1vh !important; }
+            .info-badge { font-size: 2.2vh !important; padding: 1vh 2vh !important; margin-top: 1vh !important; }
+            .player-token { width: 4vh !important; height: 4vh !important; }
         }
 
         /* === CELLS === */
@@ -254,6 +260,10 @@
         .p2 { background-color: #3b82f6; left: 45%; z-index: 3; }
         .p3 { background-color: #22c55e; left: 25%; bottom: 25%; z-index: 2; }
         .p4 { background-color: #eab308; right: 10%; z-index: 1; }
+        .p5 { background-color: #a855f7; top: 10%; left: 10%; z-index: 5; } /* Purple */
+        .p6 { background-color: #ec4899; top: 10%; right: 10%; z-index: 6; } /* Pink */
+        .p7 { background-color: #06b6d4; top: 45%; right: 10%; z-index: 7; } /* Cyan */
+        .p8 { background-color: #f97316; bottom: 45%; left: 10%; z-index: 8; } /* Orange */
         
         /* === CENTER AREA — Get Rich vibrant card island === */
         .center-space {
