@@ -27,7 +27,7 @@
             text-align: center;
             padding: 20px;
         }
-        @media screen and (max-width: 896px) and (orientation: portrait) {
+        @media screen and (orientation: portrait) {
             #portrait-overlay { display: flex; }
             #main-nav, .game-wrapper { display: none !important; }
         }
