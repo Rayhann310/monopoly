@@ -194,98 +194,175 @@
     </button>
 </div>
 
-<!-- Properties Slider -->
-<div class="mt-auto">
-    <div class="px-6 flex justify-between items-end mb-2">
-        <h3 class="font-bold text-white text-lg"><i class="fa-solid fa-city text-blue-400 mr-2"></i>Aset Tanah</h3>
-        <span class="text-xs text-slate-500 font-bold bg-slate-800 px-2 py-1 rounded">Geser <i class="fa-solid fa-arrow-right"></i></span>
-    </div>
-    
-    <div class="card-slider">
-        <?php if (empty($data['properties'])): ?>
-            <div class="property-card border-t-4 border-t-slate-500 flex flex-col justify-center items-center opacity-50">
-                <i class="fa-solid fa-city text-2xl mb-2 text-slate-500"></i>
-                <span class="text-xs font-bold text-center text-slate-500">Belum ada properti</span>
+<!-- Properties Section - Premium Redesign -->
+<div class="mt-auto px-3 pb-3">
+
+    <!-- Section Header -->
+    <div class="flex items-center justify-between mb-3 px-1">
+        <div class="flex items-center gap-2">
+            <div class="w-7 h-7 rounded-lg bg-blue-500/20 border border-blue-500/30 flex items-center justify-center">
+                <i class="fa-solid fa-city text-blue-400 text-xs"></i>
             </div>
-        <?php else: ?>
-            <?php foreach ($data['properties'] as $prop): 
-                // Cari data board berdasarkan cell_index
-                $boardCell = null;
-                foreach ($data['board'] as $idx => $cell) {
-                    if ($idx == $prop['cell_index']) {
-                        $boardCell = $cell;
-                        break;
-                    }
-                }
-                if (!$boardCell) continue;
-                $color = $boardCell['color_group'] ?? 'slate';
-                $houses = (int)$prop['houses'];
-                $imgPath = '';
-                if (!empty($boardCell['image_url'])) {
-                    $imgPath = (strpos($boardCell['image_url'], '/') === false)
-                        ? BASEURL . '/assets_static/cities/' . $boardCell['image_url']
-                        : BASEURL . '/' . $boardCell['image_url'];
-                }
-                // Build JSON for JS
-                $propData = json_encode([
-                    'cell_index'  => (int)$prop['cell_index'],
-                    'name'        => $boardCell['name'] ?? '',
-                    'color'       => $color,
-                    'price'       => (int)($boardCell['price'] ?? 0),
-                    'house_price' => (int)($boardCell['house_price'] ?? 0),
-                    'houses'      => $houses,
-                    'image'       => $imgPath,
-                    'level1_name' => $boardCell['level1_name'] ?? 'Rumah 1',
-                    'level2_name' => $boardCell['level2_name'] ?? 'Rumah 2',
-                    'level3_name' => $boardCell['level3_name'] ?? 'Rumah 3',
-                    'level4_name' => $boardCell['level4_name'] ?? 'Rumah 4',
-                    'level5_name' => $boardCell['level5_name'] ?? 'Hotel/Apartemen',
-                    'level0_rent' => (int)(($boardCell['price'] ?? 0) * 0.1),
-                    'level1_rent' => (int)($boardCell['level1_rent'] ?? 0),
-                    'level2_rent' => (int)($boardCell['level2_rent'] ?? 0),
-                    'level3_rent' => (int)($boardCell['level3_rent'] ?? 0),
-                    'level4_rent' => (int)($boardCell['level4_rent'] ?? 0),
-                    'level5_rent' => (int)($boardCell['level5_rent'] ?? 0),
-                    'type'        => $boardCell['type'] ?? 'property',
-                ]);
-            ?>
-            <div class="property-card border-t-4 border-t-<?= $color ?>-500 flex flex-col justify-between"
-                 onclick="showPropertyDetail(<?= htmlspecialchars($propData, ENT_QUOTES) ?>)"
-                 title="Klik untuk detail">
-                <?php if ($imgPath): ?>
-                <div class="w-full h-14 overflow-hidden rounded-lg mb-2 bg-slate-800">
-                    <img src="<?= $imgPath ?>" class="w-full h-full object-cover" loading="lazy">
-                </div>
-                <?php endif; ?>
-                <div>
-                    <div class="text-[0.65rem] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Kota</div>
-                    <div class="font-black text-white text-sm leading-tight mb-1.5"><?= $boardCell['name'] ?></div>
-                    <div class="flex gap-1 flex-wrap">
-                        <?php 
-                        if ($houses > 0): 
-                            for ($i = 0; $i < $houses; $i++): 
-                                $isHotel = ($i === 4);
-                        ?>
-                            <i class="fa-solid <?= $isHotel ? 'fa-hotel text-red-500' : 'fa-house text-emerald-500' ?> text-xs"></i>
-                            <?php if ($isHotel) break; ?>
-                        <?php 
-                            endfor; 
-                        else:
-                        ?>
-                            <span class="text-xs text-slate-500 italic">Tanah Kosong</span>
-                        <?php endif; ?>
-                    </div>
-                </div>
-                <!-- Tap hint -->
-                <div class="mt-1.5 flex items-center gap-1 tap-hint">
-                    <i class="fa-solid fa-hand-pointer text-[9px] text-slate-500"></i>
-                    <span class="text-[9px] text-slate-500 font-bold">Lihat Detail</span>
-                </div>
+            <div>
+                <h3 class="font-black text-white text-sm leading-none">Aset Properti</h3>
+                <span class="text-[9px] text-slate-500 font-bold uppercase tracking-wider">
+                    <?= count($data['properties']) ?> kota dimiliki
+                </span>
             </div>
-            <?php endforeach; ?>
+        </div>
+        <?php if (!empty($data['properties'])): ?>
+        <div class="flex items-center gap-1 text-slate-500 text-[10px] font-bold bg-slate-800/60 px-2 py-1 rounded-lg border border-white/5">
+            <i class="fa-solid fa-hand-point-left text-[9px]"></i> Geser
+        </div>
         <?php endif; ?>
     </div>
+
+    <!-- Cards Slider -->
+    <div class="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory scrollbar-none" style="-webkit-overflow-scrolling:touch; scrollbar-width:none;">
+
+        <?php if (empty($data['properties'])): ?>
+        <!-- Empty State -->
+        <div class="snap-center shrink-0 w-36 h-48 rounded-2xl border border-dashed border-white/10 bg-white/3 flex flex-col items-center justify-center gap-2 opacity-50">
+            <div class="w-12 h-12 rounded-xl bg-slate-800 flex items-center justify-center">
+                <i class="fa-solid fa-city text-slate-600 text-xl"></i>
+            </div>
+            <div class="text-center px-2">
+                <div class="text-[11px] font-black text-slate-500 uppercase tracking-wide">Belum Ada</div>
+                <div class="text-[9px] text-slate-600 mt-0.5">Beli properti saat mendarat</div>
+            </div>
+        </div>
+
+        <?php else: ?>
+        <?php foreach ($data['properties'] as $prop):
+            $boardCell = null;
+            foreach ($data['board'] as $idx => $cell) {
+                if ($idx == $prop['cell_index']) { $boardCell = $cell; break; }
+            }
+            if (!$boardCell) continue;
+            $color = $boardCell['color_group'] ?? 'slate';
+            $houses = (int)$prop['houses'];
+            $imgPath = '';
+            if (!empty($boardCell['image_url'])) {
+                $imgPath = (strpos($boardCell['image_url'], '/') === false)
+                    ? BASEURL . '/assets_static/cities/' . $boardCell['image_url']
+                    : BASEURL . '/' . $boardCell['image_url'];
+            }
+            $propData = json_encode([
+                'cell_index'  => (int)$prop['cell_index'],
+                'name'        => $boardCell['name'] ?? '',
+                'color'       => $color,
+                'price'       => (int)($boardCell['price'] ?? 0),
+                'house_price' => (int)($boardCell['house_price'] ?? 0),
+                'houses'      => $houses,
+                'image'       => $imgPath,
+                'level1_name' => $boardCell['level1_name'] ?? 'Rumah 1',
+                'level2_name' => $boardCell['level2_name'] ?? 'Rumah 2',
+                'level3_name' => $boardCell['level3_name'] ?? 'Rumah 3',
+                'level4_name' => $boardCell['level4_name'] ?? 'Rumah 4',
+                'level5_name' => $boardCell['level5_name'] ?? 'Hotel/Apartemen',
+                'level0_rent' => (int)(($boardCell['price'] ?? 0) * 0.1),
+                'level1_rent' => (int)($boardCell['level1_rent'] ?? 0),
+                'level2_rent' => (int)($boardCell['level2_rent'] ?? 0),
+                'level3_rent' => (int)($boardCell['level3_rent'] ?? 0),
+                'level4_rent' => (int)($boardCell['level4_rent'] ?? 0),
+                'level5_rent' => (int)($boardCell['level5_rent'] ?? 0),
+                'type'        => $boardCell['type'] ?? 'property',
+            ]);
+
+            // Color mapping
+            $colorPalette = [
+                'blue'   => ['bg'=>'#1d4ed8','glow'=>'rgba(59,130,246,0.35)','text'=>'#93c5fd','border'=>'rgba(59,130,246,0.5)'],
+                'green'  => ['bg'=>'#065f46','glow'=>'rgba(16,185,129,0.35)','text'=>'#6ee7b7','border'=>'rgba(16,185,129,0.5)'],
+                'red'    => ['bg'=>'#991b1b','glow'=>'rgba(239,68,68,0.35)','text'=>'#fca5a5','border'=>'rgba(239,68,68,0.5)'],
+                'yellow' => ['bg'=>'#92400e','glow'=>'rgba(245,158,11,0.35)','text'=>'#fde68a','border'=>'rgba(245,158,11,0.5)'],
+                'purple' => ['bg'=>'#5b21b6','glow'=>'rgba(139,92,246,0.35)','text'=>'#c4b5fd','border'=>'rgba(139,92,246,0.5)'],
+                'orange' => ['bg'=>'#9a3412','glow'=>'rgba(249,115,22,0.35)','text'=>'#fdba74','border'=>'rgba(249,115,22,0.5)'],
+                'pink'   => ['bg'=>'#9d174d','glow'=>'rgba(236,72,153,0.35)','text'=>'#f9a8d4','border'=>'rgba(236,72,153,0.5)'],
+                'teal'   => ['bg'=>'#115e59','glow'=>'rgba(20,184,166,0.35)','text'=>'#99f6e4','border'=>'rgba(20,184,166,0.5)'],
+                'slate'  => ['bg'=>'#334155','glow'=>'rgba(100,116,139,0.25)','text'=>'#94a3b8','border'=>'rgba(100,116,139,0.4)'],
+            ];
+            $pal = $colorPalette[$color] ?? $colorPalette['slate'];
+            $levelLabel = $houses === 0 ? 'Tanah' : ($houses === 5 ? 'Hotel' : "Rumah $houses");
+            $levelColor = $houses === 0 ? '#64748b' : ($houses >= 5 ? '#f87171' : '#34d399');
+        ?>
+
+        <!-- Property Card -->
+        <div class="snap-center shrink-0 w-36 rounded-2xl overflow-hidden cursor-pointer relative group transition-all duration-300 active:scale-95"
+             style="box-shadow: 0 8px 24px <?= $pal['glow'] ?>, 0 0 0 1px <?= $pal['border'] ?>; background: linear-gradient(160deg, #1e293b 0%, #0f172a 100%);"
+             onclick="showPropertyDetail(<?= htmlspecialchars($propData, ENT_QUOTES) ?>)">
+
+            <!-- Color accent bar -->
+            <div class="h-1.5 w-full" style="background: linear-gradient(90deg, <?= $pal['bg'] ?>, <?= $pal['text'] ?>)"></div>
+
+            <!-- City Image -->
+            <?php if ($imgPath): ?>
+            <div class="w-full h-20 overflow-hidden relative">
+                <img src="<?= $imgPath ?>" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" loading="lazy">
+                <div class="absolute inset-0" style="background: linear-gradient(to bottom, transparent 40%, #0f172a 100%)"></div>
+                <!-- Level badge on image -->
+                <div class="absolute bottom-2 right-2 text-[9px] font-black px-2 py-0.5 rounded-full" style="background:<?= $levelColor ?>22; border:1px solid <?= $levelColor ?>66; color:<?= $levelColor ?>">
+                    <?= $levelLabel ?>
+                </div>
+            </div>
+            <?php else: ?>
+            <!-- No image placeholder -->
+            <div class="w-full h-20 flex items-center justify-center" style="background: linear-gradient(135deg, <?= $pal['bg'] ?>33, <?= $pal['bg'] ?>11)">
+                <i class="fa-solid fa-city text-2xl" style="color:<?= $pal['text'] ?>55"></i>
+                <div class="absolute bottom-2 right-2 text-[9px] font-black px-2 py-0.5 rounded-full" style="background:<?= $levelColor ?>22; border:1px solid <?= $levelColor ?>66; color:<?= $levelColor ?>">
+                    <?= $levelLabel ?>
+                </div>
+            </div>
+            <?php endif; ?>
+
+            <!-- Card Body -->
+            <div class="p-2.5">
+                <!-- City name -->
+                <div class="font-black text-white text-[11px] leading-tight mb-1.5 line-clamp-2"><?= htmlspecialchars($boardCell['name']) ?></div>
+
+                <!-- House icons -->
+                <div class="flex gap-0.5 items-center mb-2 min-h-[14px]">
+                    <?php if ($houses > 0):
+                        for ($i = 0; $i < $houses; $i++):
+                            $isHotel = ($i === 4);
+                    ?>
+                        <i class="fa-solid <?= $isHotel ? 'fa-hotel' : 'fa-house' ?> text-[10px]" style="color:<?= $isHotel ? '#f87171' : '#34d399' ?>"></i>
+                        <?php if ($isHotel) break; ?>
+                    <?php endfor; else: ?>
+                        <span class="text-[9px] italic" style="color:<?= $pal['text'] ?>80">Tanah kosong</span>
+                    <?php endif; ?>
+                </div>
+
+                <!-- Price & Tap hint -->
+                <div class="flex items-center justify-between">
+                    <span class="text-[10px] font-black" style="color:<?= $pal['text'] ?>">
+                        <?php if ($boardCell['price']): ?>
+                        Rp <?= number_format($boardCell['price'], 0, ',', '.') ?>
+                        <?php else: ?>
+                        &nbsp;
+                        <?php endif; ?>
+                    </span>
+                    <div class="w-5 h-5 rounded-lg flex items-center justify-center" style="background:<?= $pal['bg'] ?>44">
+                        <i class="fa-solid fa-arrow-up-right-from-square text-[8px]" style="color:<?= $pal['text'] ?>"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Glow overlay on hover -->
+            <div class="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" style="background: radial-gradient(circle at 50% 0%, <?= $pal['glow'] ?>, transparent 70%)"></div>
+        </div>
+
+        <?php endforeach; ?>
+        <?php endif; ?>
+
+        <!-- Spacer at end -->
+        <div class="shrink-0 w-1"></div>
+    </div>
 </div>
+
+<style>
+.scrollbar-none::-webkit-scrollbar { display: none; }
+</style>
+
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
