@@ -95,30 +95,31 @@
                         
                         // Tumpukan Dana Umum
                         $nameDU = htmlspecialchars($data['settings']['name_dana_umum'] ?? 'DANA UMUM');
-                        echo '<div class="absolute left-[10%] top-1/2 -translate-y-1/2 flex flex-col items-center opacity-80 hover:opacity-100 transition cursor-pointer z-10">';
-                        echo '    <div class="w-[clamp(50px,12vmin,140px)] h-[clamp(80px,18vmin,200px)] bg-emerald-500 rounded-xl border-4 border-emerald-300 shadow-[2px_2px_0_#064e3b,-2px_-2px_0_white,0_10px_20px_rgba(0,0,0,0.4)] flex flex-col items-center justify-center transform -rotate-12 hover:-translate-y-2 transition-transform p-1">';
-                        echo '        <i class="fa-solid fa-gem text-white/60 text-3xl md:text-6xl mb-3"></i>';
-                        echo '        <div class="text-white font-black text-[0.55rem] md:text-xs text-center uppercase tracking-widest leading-tight break-words max-w-full">'.$nameDU.'</div>';
+                        echo '<div class="absolute left-[5%] bottom-[8%] flex flex-col items-center opacity-90 hover:opacity-100 transition cursor-pointer z-10">';
+                        echo '    <div class="w-[clamp(40px,9vmin,110px)] h-[clamp(65px,14vmin,160px)] bg-emerald-500 rounded-xl border-4 border-emerald-300 shadow-[2px_2px_0_#064e3b,-2px_-2px_0_white,0_10px_20px_rgba(0,0,0,0.4)] flex flex-col items-center justify-center transform -rotate-12 hover:-translate-y-2 transition-transform p-1">';
+                        echo '        <i class="fa-solid fa-gem text-white/60 text-2xl md:text-4xl mb-2"></i>';
+                        echo '        <div class="text-white font-black text-[0.5rem] md:text-[0.6rem] text-center uppercase tracking-widest leading-tight break-words max-w-full">'.$nameDU.'</div>';
                         echo '    </div>';
-                        echo '    <div class="w-[clamp(50px,12vmin,140px)] h-[clamp(80px,18vmin,200px)] bg-emerald-600 rounded-xl absolute top-1 left-1 -z-10 shadow-[5px_5px_15px_rgba(0,0,0,0.5)] transform -rotate-6"></div>';
-                        echo '    <div class="w-[clamp(50px,12vmin,140px)] h-[clamp(80px,18vmin,200px)] bg-emerald-700 rounded-xl absolute top-2 left-2 -z-20 transform -rotate-3"></div>';
+                        echo '    <div class="w-[clamp(40px,9vmin,110px)] h-[clamp(65px,14vmin,160px)] bg-emerald-600 rounded-xl absolute top-1 left-1 -z-10 shadow-[5px_5px_15px_rgba(0,0,0,0.5)] transform -rotate-6"></div>';
+                        echo '    <div class="w-[clamp(40px,9vmin,110px)] h-[clamp(65px,14vmin,160px)] bg-emerald-700 rounded-xl absolute top-2 left-2 -z-20 transform -rotate-3"></div>';
                         echo '</div>';
                         
                         // Tumpukan Kesempatan
                         $nameKes = htmlspecialchars($data['settings']['name_kesempatan'] ?? 'KESEMPATAN');
-                        echo '<div class="absolute right-[10%] top-1/2 -translate-y-1/2 flex flex-col items-center opacity-80 hover:opacity-100 transition cursor-pointer z-10">';
-                        echo '    <div class="w-[clamp(50px,12vmin,140px)] h-[clamp(80px,18vmin,200px)] bg-amber-500 rounded-xl border-4 border-amber-300 shadow-[-2px_2px_0_#78350f,2px_-2px_0_white,0_10px_20px_rgba(0,0,0,0.4)] flex flex-col items-center justify-center transform rotate-12 hover:-translate-y-2 transition-transform p-1">';
-                        echo '        <i class="fa-solid fa-question text-white/60 text-4xl md:text-7xl mb-3"></i>';
-                        echo '        <div class="text-white font-black text-[0.55rem] md:text-xs text-center uppercase tracking-widest leading-tight break-words max-w-full">'.$nameKes.'</div>';
+                        echo '<div class="absolute right-[5%] bottom-[8%] flex flex-col items-center opacity-90 hover:opacity-100 transition cursor-pointer z-10">';
+                        echo '    <div class="w-[clamp(40px,9vmin,110px)] h-[clamp(65px,14vmin,160px)] bg-amber-500 rounded-xl border-4 border-amber-300 shadow-[-2px_2px_0_#78350f,2px_-2px_0_white,0_10px_20px_rgba(0,0,0,0.4)] flex flex-col items-center justify-center transform rotate-12 hover:-translate-y-2 transition-transform p-1">';
+                        echo '        <i class="fa-solid fa-question text-white/60 text-2xl md:text-5xl mb-2"></i>';
+                        echo '        <div class="text-white font-black text-[0.5rem] md:text-[0.6rem] text-center uppercase tracking-widest leading-tight break-words max-w-full">'.$nameKes.'</div>';
                         echo '    </div>';
-                        echo '    <div class="w-[clamp(50px,12vmin,140px)] h-[clamp(80px,18vmin,200px)] bg-amber-600 rounded-xl absolute top-1 right-1 -z-10 shadow-[-5px_5px_15px_rgba(0,0,0,0.5)] transform rotate-6"></div>';
-                        echo '    <div class="w-[clamp(50px,12vmin,140px)] h-[clamp(80px,18vmin,200px)] bg-amber-700 rounded-xl absolute top-2 right-2 -z-20 transform rotate-3"></div>';
+                        echo '    <div class="w-[clamp(40px,9vmin,110px)] h-[clamp(65px,14vmin,160px)] bg-amber-600 rounded-xl absolute top-1 right-1 -z-10 shadow-[-5px_5px_15px_rgba(0,0,0,0.5)] transform rotate-6"></div>';
+                        echo '    <div class="w-[clamp(40px,9vmin,110px)] h-[clamp(65px,14vmin,160px)] bg-amber-700 rounded-xl absolute top-2 right-2 -z-20 transform rotate-3"></div>';
                         echo '</div>';
 
-                        echo '<div class="center-content-wrapper relative z-20">';
+                        // Konten tengah: MONOPOLY + EDISI INDONESIA + Giliran (di atas, tidak menutupi kartu)
+                        echo '<div class="center-content-wrapper absolute top-[8%] left-1/2 -translate-x-1/2 z-20 w-full flex flex-col items-center">';
                         echo '<h1 class="title-text font-black">MONOPOLY</h1>';
                         echo '<h2 class="subtitle-text font-bold">EDISI INDONESIA</h2>';
-                        echo '<p id="center-turn-info" class="info-badge mt-4 text-lg font-bold shadow-lg"></p>';
+                        echo '<p id="center-turn-info" class="info-badge font-bold"></p>';
                         echo '</div>';
                         echo '</div>';
                     }
