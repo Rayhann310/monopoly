@@ -347,15 +347,15 @@
         }
 
         .info-badge {
-            margin-top: 12px;
+            margin-top: 6px;
             color: #78350f;
             font-weight: 700;
             background: rgba(255,255,255,0.7);
-            padding: 8px 18px;
+            padding: 4px 12px;
             border-radius: 30px;
             border: 2px solid #fbbf24;
-            font-size: 0.82rem;
-            box-shadow: 0 4px 12px rgba(251,191,36,0.4);
+            font-size: 0.65rem;
+            box-shadow: 0 3px 8px rgba(251,191,36,0.4);
         }
 
         /* Custom Scrollbar */
