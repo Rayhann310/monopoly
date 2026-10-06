@@ -1477,6 +1477,8 @@ async function bribeJail() {
         Swal.fire({ icon: 'error', title: 'Error', text: 'Gagal menghubungi server', background: '#0f172a', color: '#f8fafc' });
         if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-money-bill-wave mr-1"></i> Suap'; }
     }
+}
+
 async function openTradeModal() {
     if (!isTurn) {
         showModal('Belum Giliran', 'Kamu hanya bisa mengajukan penawaran saat giliranmu.', 'error');
