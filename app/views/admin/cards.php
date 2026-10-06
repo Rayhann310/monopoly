@@ -19,7 +19,7 @@
                 <a href="<?= BASEURL ?>/admin/dashboard" class="text-slate-500 hover:text-white text-sm mb-2 block"><i class="fa-solid fa-arrow-left mr-1"></i> Dashboard</a>
                 <h1 class="text-3xl font-black"><i class="fa-solid fa-cards-blank text-amber-400 mr-3"></i>Kelola Kartu</h1>
             </div>
-            <button onclick="document.getElementById('add-modal').classList.remove('hidden');document.getElementById('add-modal').classList.add('flex');"
+            <button onclick="openAddModal()"
                 class="px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white font-bold rounded-xl transition">
                 <i class="fa-solid fa-plus mr-2"></i> Tambah Kartu
             </button>
@@ -117,9 +117,15 @@
                         </select>
                     </div>
                     <div>
-                        <label class="text-slate-400 text-sm font-bold uppercase mb-2 block">Nilai</label>
-                        <input type="number" name="effect_value" id="card-value" value="0" placeholder="contoh: 2000 atau -1500"
+                        <label class="text-slate-400 text-sm font-bold uppercase mb-2 block" id="label-nilai">Nilai</label>
+                        <input type="hidden" name="effect_value" id="real-card-value" value="0">
+                        <input type="number" id="card-value-num" value="0" placeholder="contoh: 2000 atau -1500"
                             class="w-full bg-slate-800 border border-white/10 rounded-xl px-4 py-3 text-white font-bold focus:outline-none focus:border-blue-500">
+                        <select id="card-value-select" class="w-full bg-slate-800 border border-white/10 rounded-xl px-4 py-3 text-white font-bold focus:outline-none focus:border-blue-500 hidden">
+                            <?php foreach ($data['board'] as $index => $cell): ?>
+                                <option value="<?= $index ?>"><?= $index ?> - <?= htmlspecialchars($cell['name']) ?></option>
+                            <?php endforeach; ?>
+                        </select>
                     </div>
                 </div>
                 <div class="mb-4">
@@ -156,12 +162,63 @@ function editCard(card) {
     document.getElementById('card-type').value = card.type;
     document.getElementById('card-text').value = card.text;
     document.getElementById('card-effect').value = card.effect_type;
-    document.getElementById('card-value').value = card.effect_value;
+    
+    document.getElementById('real-card-value').value = card.effect_value;
+    if (card.effect_type === 'move_pos') {
+        document.getElementById('card-value-select').value = card.effect_value;
+    } else {
+        document.getElementById('card-value-num').value = card.effect_value;
+    }
+    toggleEffectInput();
+    
     document.getElementById('card-pass-start').value = card.pass_start_money || 0;
     document.getElementById('card-active').checked = card.is_active == 1;
     document.getElementById('add-modal').classList.remove('hidden');
     document.getElementById('add-modal').classList.add('flex');
 }
+
+function openAddModal() {
+    document.getElementById('card-form').reset();
+    document.getElementById('modal-title').innerHTML = '<i class="fa-solid fa-plus-circle text-blue-400 mr-2"></i>Tambah Kartu';
+    document.getElementById('card-id').value = 0;
+    toggleEffectInput();
+    document.getElementById('add-modal').classList.remove('hidden');
+    document.getElementById('add-modal').classList.add('flex');
+}
+
+function toggleEffectInput() {
+    const type = document.getElementById('card-effect').value;
+    const numInput = document.getElementById('card-value-num');
+    const selInput = document.getElementById('card-value-select');
+    const realInput = document.getElementById('real-card-value');
+    
+    if (type === 'move_pos') {
+        numInput.classList.add('hidden');
+        selInput.classList.remove('hidden');
+        if (!selInput.value) selInput.selectedIndex = 0;
+        realInput.value = selInput.value;
+    } else {
+        numInput.classList.remove('hidden');
+        selInput.classList.add('hidden');
+        realInput.value = numInput.value;
+    }
+}
+
+// Add event listeners when modal is ready
+document.addEventListener('DOMContentLoaded', () => {
+    const effectDropdown = document.getElementById('card-effect');
+    if (effectDropdown) {
+        effectDropdown.addEventListener('change', toggleEffectInput);
+    }
+    
+    document.getElementById('card-value-num')?.addEventListener('input', e => {
+        document.getElementById('real-card-value').value = e.target.value;
+    });
+
+    document.getElementById('card-value-select')?.addEventListener('change', e => {
+        document.getElementById('real-card-value').value = e.target.value;
+    });
+});
 function closeModal() {
     document.getElementById('add-modal').classList.add('hidden');
     document.getElementById('add-modal').classList.remove('flex');

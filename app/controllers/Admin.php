@@ -135,6 +135,7 @@ class Admin extends Controller {
         $db = new Database;
         $db->query("SELECT * FROM cards ORDER BY type, id");
         $data['cards'] = $db->resultSet();
+        $data['board'] = $this->model('BoardModel')->getBoard();
         $this->view('admin/cards', $data);
     }
 
