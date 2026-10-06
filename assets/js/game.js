@@ -392,14 +392,7 @@ setInterval(() => {
                 renderProperties(serverData.properties);
             }
 
-            // Show active card popup on board (for all spectators/non-rolling players)
-            if (serverData.active_card) {
-                const cardText = serverData.active_card.text;
-                if (cardText !== lastActiveCardText && !cardModalOpen) {
-                    lastActiveCardText = cardText;
-                    showBoardCardModal(serverData.active_card);
-                }
-            }
+            // Card popup only shown on player screen (phone), not on board
 
             updateBankModal();
             updateCenterInfo();
