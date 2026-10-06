@@ -46,22 +46,29 @@
 
                         // Color bar / image
                         if ($cell['color'] != 'white') {
-                            echo '<div class="color-bar c-'.$cell['color'].'">';
+                            echo '<div class="color-bar c-'.$cell['color'].' flex items-center justify-center">';
+                            // Title in header, white text
+                            echo '<div class="name-in-color text-white font-black uppercase text-center leading-none flex items-center justify-center w-full h-full" style="font-size:clamp(0.4rem, 1vmin, 0.7rem);">';
+                            echo $cell['name'];
+                            echo '</div>';
+                            echo '</div>';
+
+                            echo '<div class="name flex items-center justify-center w-full h-full p-1 relative">';
                             if (isset($cityImages[$cellIndex]) && !empty($cityImages[$cellIndex])) {
                                 $imgPath = $cityImages[$cellIndex];
                                 if (strpos($imgPath, '/') === false) $imgPath = 'public/img/cities/' . $imgPath;
-                                echo '<img src="'.BASEURL.'/'.$imgPath.'" alt="'.$cell['name'].'" style="width:100%;height:100%;object-fit:cover;opacity:0.95;border-radius:3px;">';
+                                echo '<img src="'.BASEURL.'/'.$imgPath.'" style="width:100%;height:100%;object-fit:cover;border-radius:4px;box-shadow:inset 0 0 5px rgba(0,0,0,0.2);">';
                             }
                             echo '</div>';
                         } else {
                             echo '<div class="spacer-bar"></div>';
+                            echo '<div class="name">' . $cell['name'] . '</div>';
                         }
 
-                        echo '<div class="name">' . $cell['name'] . '</div>';
                         if (isset($cell['price'])) {
-                            echo '<div class="price">Rp ' . number_format($cell['price'], 0, ',', '.') . '</div>';
+                            echo '<div class="price z-10">Rp ' . number_format($cell['price'], 0, ',', '.') . '</div>';
                         } else {
-                            echo '<div class="price"></div>';
+                            echo '<div class="price z-10"></div>';
                         }
                         echo '<div class="tokens absolute inset-0 pointer-events-none"></div>';
                         echo '</div></div>';

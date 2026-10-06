@@ -416,8 +416,15 @@ function renderProperties(properties) {
         if (!cell) return;
         
         // Bar kepemilikan
+        let barClass = `owner-bar bg-${prop.owner_color}-500 absolute z-30 opacity-80 shadow-[0_0_8px_rgba(0,0,0,0.5)] `;
+        if (cell.classList.contains('cell-bottom')) barClass += 'left-0 right-0 top-0 h-3';
+        else if (cell.classList.contains('cell-top')) barClass += 'left-0 right-0 bottom-0 h-3';
+        else if (cell.classList.contains('cell-left')) barClass += 'top-0 bottom-0 right-0 w-3';
+        else if (cell.classList.contains('cell-right')) barClass += 'top-0 bottom-0 left-0 w-3';
+        else barClass += 'left-0 right-0 bottom-0 h-3';
+
         const ownerBar = document.createElement('div');
-        ownerBar.className = `owner-bar bg-${prop.owner_color}-500 absolute left-0 right-0 h-2 bottom-0 z-30 opacity-80`;
+        ownerBar.className = barClass;
         cell.appendChild(ownerBar);
         
         // Tampilkan rumah (houses)

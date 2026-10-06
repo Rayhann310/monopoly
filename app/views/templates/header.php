@@ -139,19 +139,16 @@
         .cell-bottom .cell-content, .cell-top .cell-content {
             flex-direction: column;
         }
-        .cell-top .cell-content {
-            transform: rotate(180deg);
-        }
         
-        .cell-bottom .color-bar, .cell-bottom .spacer-bar,
-        .cell-top .color-bar, .cell-top .spacer-bar {
-            height: 25%;
-            width: 100%;
-        }
-        .cell-bottom .name, .cell-top .name {
-            flex-grow: 1;
-            padding: 2px 4px;
-        }
+        /* Top cells: Color bar at the bottom, so order:3 */
+        .cell-top .name { order: 1; flex-grow: 1; padding: 2px 4px; }
+        .cell-top .price { order: 2; padding: 2px; }
+        .cell-top .color-bar, .cell-top .spacer-bar { order: 3; height: 25%; width: 100%; }
+
+        /* Bottom cells: Color bar at the top, so order:1 */
+        .cell-bottom .color-bar, .cell-bottom .spacer-bar { order: 1; height: 25%; width: 100%; }
+        .cell-bottom .name { order: 2; flex-grow: 1; padding: 2px 4px; }
+        .cell-bottom .price { order: 3; padding: 2px; }
 
         /* === LEFT & RIGHT CELLS (Horizontal Layout) === */
         /* To make text face center, we rotate the text itself */
@@ -168,20 +165,19 @@
             height: 100%;
         }
         
-        .cell-left .name, .cell-right .name {
+        .cell-left .name, .cell-right .name,
+        .cell-left .name-in-color, .cell-right .name-in-color {
             flex-grow: 1;
             writing-mode: vertical-rl;
             padding: 4px 2px;
+            transform: none; /* No rotation, so it reads top-to-bottom cleanly */
         }
-        /* Make text bottom face center */
-        .cell-left .name { transform: rotate(180deg); }
-        .cell-right .name { /* defaults to bottom facing left, which is center */ }
         
         .cell-left .price, .cell-right .price {
             writing-mode: vertical-rl;
             padding: 4px 2px;
+            transform: none; /* No rotation */
         }
-        .cell-left .price { transform: rotate(180deg); }
 
         /* Container inside left/right to hold name and price side-by-side vertically */
         .lr-text-container {
