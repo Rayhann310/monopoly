@@ -205,11 +205,8 @@ class Admin extends Controller {
         $data['custom_props'] = [];
         foreach ($rows as $r) {
             $data['images'][(int)$r['cell_index']] = $r['image_url'];
-            $data['custom_props'][(int)$r['cell_index']] = [
-                'name' => $r['name'],
-                'price' => $r['price'],
-                'house_price' => $r['house_price']
-            ];
+            // Load ALL fields so the form can show saved values
+            $data['custom_props'][(int)$r['cell_index']] = $r;
         }
 
         $data['success'] = $_GET['saved'] ?? null;
