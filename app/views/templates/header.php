@@ -432,6 +432,28 @@ function refreshPage(btn) {
     setTimeout(() => { window.location.reload(); }, 500);
 }
 
+// ===== SCREEN WAKE LOCK =====
+// Cegah layar mati otomatis saat halaman board dibuka
+let wakeLock = null;
+async function requestWakeLock() {
+    if ('wakeLock' in navigator) {
+        try {
+            wakeLock = await navigator.wakeLock.request('screen');
+            console.log('Wake Lock aktif — layar tidak akan mati.');
+        } catch (err) {
+            console.warn('Wake Lock gagal:', err.message);
+        }
+    }
+}
+// Re-acquire wake lock jika tab kembali aktif (misal setelah ganti tab)
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+        requestWakeLock();
+    }
+});
+// Aktifkan saat halaman dimuat
+requestWakeLock();
+
 function toggleFullscreen() {
     const icon = document.getElementById('fs-icon');
     if (!document.fullscreenElement) {
