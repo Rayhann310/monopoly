@@ -16,7 +16,12 @@ class Setup extends Controller {
             header('Location: ' . BASEURL . '/setup'); exit;
         }
         $name = htmlspecialchars(trim($_POST['session_name'] ?? 'Permainan Baru'));
-        $numPlayers = min(4, max(2, (int)($_POST['num_players'] ?? 4)));
+        // Ambil maks pemain dari pengaturan
+        $dbTemp = new Database;
+        $dbTemp->query("SELECT setting_value FROM game_settings WHERE setting_key = 'max_players'");
+        $maxPlayersRow = $dbTemp->single();
+        $maxPlayers = $maxPlayersRow ? (int)$maxPlayersRow['setting_value'] : 4;
+        $numPlayers = min($maxPlayers, max(2, (int)($_POST['num_players'] ?? $maxPlayers)));
         $colors = ['red', 'blue', 'green', 'yellow'];
 
         // Buat sesi dengan host_token unik

@@ -138,6 +138,11 @@
         const player = <?= json_encode($data['player']); ?>;
         const board = <?= json_encode($data['board']); ?>;
         const BASEURL = '<?= BASEURL ?>';
+        const SETTINGS = {
+            name_kesempatan: '<?= htmlspecialchars($data['settings']['name_kesempatan']['setting_value'] ?? 'Kesempatan') ?>',
+            name_dana_umum:  '<?= htmlspecialchars($data['settings']['name_dana_umum']['setting_value'] ?? 'Dana Umum') ?>',
+            allow_trade:     <?= !empty($data['settings']['allow_trade']['setting_value']) ? 'true' : 'false' ?>,
+        };
         let currentPropsHash = JSON.stringify(<?= json_encode($data['properties'] ?? []) ?>);
         let hasRolled = <?= $data['player']['has_rolled'] ? 'true' : 'false' ?>;
         let isTurn = <?= $data['player']['is_turn'] ? 'true' : 'false' ?>;
@@ -228,7 +233,8 @@
 
                 function showCardAnimation(cardType, cardText, cardImg) {
                     cardText = cardText || 'Ambil kartu fisik dan ikuti instruksinya.';
-                    const isKesempatan = cardType === 'Kesempatan';
+                    const isKesempatan = cardType === 'kesempatan' || cardType === SETTINGS.name_kesempatan;
+                    const cardLabel = isKesempatan ? SETTINGS.name_kesempatan : SETTINGS.name_dana_umum;
                     const cColor = isKesempatan ? '#f59e0b' : '#10b981';
                     const cIcon = isKesempatan ? 'fa-question' : 'fa-gem';
                     
@@ -246,12 +252,12 @@
                         <div class="mc-card">
                             <div class="mc-face mc-front">
                                 <i class="fa-solid ${cIcon} mc-front-icon animate-pulse"></i>
-                                <div style="color:white; margin-top:20px; font-weight:bold; font-size:1.2rem; letter-spacing:2px; text-transform:uppercase">${cardType}</div>
+                                <div style="color:white; margin-top:20px; font-weight:bold; font-size:1.2rem; letter-spacing:2px; text-transform:uppercase">${cardLabel}</div>
                                 <div style="color:#94a3b8; font-size:0.8rem; margin-top:10px">Ketuk untuk membalik</div>
                             </div>
                             <div class="mc-face mc-back">
                                 <div style="background:${cColor}; color:white; width:calc(100% + 40px); margin-top:-20px; padding:10px 15px; font-weight:900; text-transform:uppercase; font-size:1rem; border-top-left-radius: 10px; border-top-right-radius: 10px;">
-                                    ${cardType}
+                                    ${cardLabel}
                                 </div>
                                 <div style="flex-grow:1; display:flex; flex-direction:column; justify-content:center; align-items:center; padding:15px;">
                                     ${cardImg ? `<img src="${cardImg}" style="width:80px;height:80px;object-fit:cover;border-radius:10px;margin-bottom:12px;box-shadow:0 4px 12px rgba(0,0,0,0.2)">` : `<div style="width:70px;height:70px;border-radius:10px;background:${cColor}20;display:flex;align-items:center;justify-content:center;margin-bottom:12px;"><i class="fa-solid ${cIcon}" style="font-size:2rem;color:${cColor}"></i></div>`}

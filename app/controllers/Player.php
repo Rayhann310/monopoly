@@ -9,6 +9,7 @@ class Player extends Controller {
         if (!$data['player']) { die("Pemain tidak ditemukan!"); }
         
         $data['properties'] = $this->model('PropertyModel')->getPlayerProperties($data['player']['session_id'], $id);
+        $data['settings'] = $this->model('SettingsModel')->getAll();
 
         $this->view('templates/header_player', $data);
         $this->view('player/index', $data);
@@ -354,13 +355,17 @@ class Player extends Controller {
         $session = $this->model('SessionModel')->getSessionById($player['session_id']);
         $activeCard = ($session && !empty($session['active_card'])) ? json_decode($session['active_card'], true) : null;
 
+        $settings = $this->model('SettingsModel');
         echo json_encode([
-            'is_turn'     => (bool)$player['is_turn'],
-            'has_rolled'  => (bool)$player['has_rolled'],
-            'position'    => (int)$player['position'],
-            'money'       => (int)$player['money'],
-            'properties'  => $properties,
-            'active_card' => $activeCard
+            'is_turn'          => (bool)$player['is_turn'],
+            'has_rolled'       => (bool)$player['has_rolled'],
+            'position'         => (int)$player['position'],
+            'money'            => (int)$player['money'],
+            'properties'       => $properties,
+            'active_card'      => $activeCard,
+            'name_dana_umum'   => $settings->get('name_dana_umum', 'Dana Umum'),
+            'name_kesempatan'  => $settings->get('name_kesempatan', 'Kesempatan'),
+            'allow_trade'      => (bool)$settings->get('allow_trade', 1),
         ]);
     }
 
