@@ -513,10 +513,24 @@ body { height: 100dvh; overflow: hidden; display: flex; flex-direction: column; 
     }
 
     document.addEventListener('DOMContentLoaded', function() {
+        let pendingMoneyCheck = null;
         function animateMoney(targetMoney, customDuration = 900) {
             targetMoney = parseInt(targetMoney);
             if (isNaN(targetMoney)) return;
             if (targetMoney === currentDisplayedMoney) return;
+
+            // Jika ada popup yang terbuka, tunggu sampai ditutup
+            if (typeof Swal !== 'undefined' && Swal.isVisible()) {
+                if (pendingMoneyCheck) clearInterval(pendingMoneyCheck);
+                pendingMoneyCheck = setInterval(() => {
+                    if (!Swal.isVisible()) {
+                        clearInterval(pendingMoneyCheck);
+                        pendingMoneyCheck = null;
+                        animateMoney(targetMoney, customDuration);
+                    }
+                }, 400);
+                return;
+            }
 
             const startVal = currentDisplayedMoney;
             const diff = targetMoney - startVal;
