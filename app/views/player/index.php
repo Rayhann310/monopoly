@@ -10,7 +10,8 @@
 
 <style>
 body { height: 100dvh; overflow: hidden; display: flex; flex-direction: column; background-color: #020617; } /* bg-slate-950 */
-#player-container { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+#player-container { flex: 1; display: flex; flex-direction: column; overflow-y: auto; overflow-x: hidden; scrollbar-width: none; -ms-overflow-style: none; }
+#player-container::-webkit-scrollbar { display: none; }
 
 @keyframes shake {
     0% { transform: translate(1px, 1px) rotate(0deg); }
