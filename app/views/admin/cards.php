@@ -84,7 +84,7 @@
     <div id="add-modal" class="hidden fixed inset-0 bg-black/90 z-50 items-center justify-center p-4">
         <div class="bg-slate-900 border border-white/10 rounded-2xl p-8 w-full max-w-lg">
             <h2 class="text-2xl font-black mb-6" id="modal-title"><i class="fa-solid fa-plus-circle text-blue-400 mr-2"></i>Tambah Kartu</h2>
-            <form method="POST" action="<?= BASEURL ?>/admin/saveCard" enctype="multipart/form-data">
+            <form id="card-form" method="POST" action="<?= BASEURL ?>/admin/saveCard" enctype="multipart/form-data">
                 <input type="hidden" name="id" id="card-id" value="0">
                 <div class="mb-4">
                     <label class="text-slate-400 text-sm font-bold uppercase mb-2 block">Tipe Kartu</label>

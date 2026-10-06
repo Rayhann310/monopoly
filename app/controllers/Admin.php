@@ -6,10 +6,26 @@ class Admin extends Controller {
     }
 
     private function requireLogin() {
-
         if (empty($_SESSION['admin_logged_in'])) {
             header('Location: ' . BASEURL . '/admin/login');
             exit;
+        }
+    }
+
+    private function isAjax() {
+        return (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') || isset($_POST['ajax']) || isset($_GET['ajax']);
+    }
+
+    private function respond($status, $message, $redirectUrl = '') {
+        if ($this->isAjax()) {
+            header('Content-Type: application/json');
+            echo json_encode(['status' => $status, 'message' => $message]);
+            exit;
+        } else {
+            if ($redirectUrl) {
+                header('Location: ' . BASEURL . $redirectUrl);
+                exit;
+            }
         }
     }
 
@@ -98,12 +114,13 @@ class Admin extends Controller {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $db = new Database;
             foreach ($_POST['settings'] as $key => $value) {
+                if ($key === 'ajax') continue;
                 $db->query("UPDATE game_settings SET setting_value = :val WHERE setting_key = :key");
                 $db->bind('val', $value);
                 $db->bind('key', $key);
                 $db->execute();
             }
-            header('Location: ' . BASEURL . '/admin/dashboard?saved=1'); exit;
+            $this->respond('success', 'Pengaturan berhasil disimpan!', '/admin/dashboard');
         }
         $data['settings'] = $this->model('SettingsModel')->getAll();
         $data['judul'] = 'Pengaturan Game';
@@ -159,8 +176,9 @@ class Admin extends Controller {
             $db->bind('text', $text); $db->bind('type', $type);
             $db->bind('et', $effectType); $db->bind('ev', $effectValue); $db->bind('psm', $passStartMoney); $db->bind('ia', $isActive);
             $db->execute();
+            $this->respond('success', 'Kartu berhasil disimpan!', '/admin/cards');
         }
-        header('Location: ' . BASEURL . '/admin/cards'); exit;
+        $this->respond('error', 'Metode tidak valid', '/admin/cards');
     }
 
     public function deleteCard($id) {
@@ -169,7 +187,7 @@ class Admin extends Controller {
         $db->query("DELETE FROM cards WHERE id = :id");
         $db->bind('id', (int)$id);
         $db->execute();
-        header('Location: ' . BASEURL . '/admin/cards'); exit;
+        $this->respond('success', 'Kartu berhasil dihapus!', '/admin/cards');
     }
 
     public function properties() {
@@ -259,7 +277,7 @@ class Admin extends Controller {
         if ($imageUrl) { $db->bind('img', $imageUrl); $db->bind('img2', $imageUrl); }
         $db->execute();
 
-        header('Location: ' . BASEURL . '/admin/properties?saved=Pengaturan kota berhasil disimpan!'); exit;
+        $this->respond('success', 'Pengaturan kota berhasil disimpan!', '/admin/properties');
     }
 
     public function deleteCityImage($cellIndex) {
@@ -275,14 +293,14 @@ class Admin extends Controller {
         $db->query("DELETE FROM board_properties WHERE cell_index = :ci");
         $db->bind('ci', $cellIndex);
         $db->execute();
-        header('Location: ' . BASEURL . '/admin/properties'); exit;
+        $this->respond('success', 'Gambar kota berhasil dihapus!', '/admin/properties');
     }
 
     public function repairDb() {
         $this->requireLogin();
         $db = new Database;
         $db->selfHeal(); // jalankan ulang self-heal
-        header('Location: ' . BASEURL . '/admin/dashboard?repaired=1'); exit;
+        $this->respond('success', 'Database berhasil diperbaiki!', '/admin/dashboard');
     }
 
     public function stopSession($id) {
@@ -291,19 +309,13 @@ class Admin extends Controller {
         $db->query("UPDATE sessions SET status = 'finished' WHERE id = :id");
         $db->bind('id', (int)$id);
         $db->execute();
-        $data['settings'] = $this->model('SettingsModel')->getAll();
-        $data['judul'] = 'Pengaturan Game';
-        $data['admin'] = $_SESSION['admin_username'];
-        $this->view('admin/settings', $data);
+        $this->respond('success', 'Sesi berhasil dihentikan!', '/admin/sessions');
     }
 
     public function deleteSession($id) {
         $this->requireLogin();
         $this->model('SessionModel')->deleteSession((int)$id);
-        $data['settings'] = $this->model('SettingsModel')->getAll();
-        $data['judul'] = 'Pengaturan Game';
-        $data['admin'] = $_SESSION['admin_username'];
-        $this->view('admin/settings', $data);
+        $this->respond('success', 'Sesi berhasil dihapus!', '/admin/sessions');
     }
 
     public function cleanFinished() {
@@ -315,7 +327,7 @@ class Admin extends Controller {
         foreach ($finished as $s) {
             $this->model('SessionModel')->deleteSession($s['id']);
         }
-        header('Location: ' . BASEURL . '/admin/dashboard?repaired=1'); exit;
+        $this->respond('success', 'Sesi selesai berhasil dibersihkan!', '/admin/dashboard');
     }
 
     public function changePassword() {
@@ -329,8 +341,10 @@ class Admin extends Controller {
                 $db->bind('hash', $hash);
                 $db->bind('u', $_SESSION['admin_username']);
                 $db->execute();
+                $this->respond('success', 'Password berhasil diubah!', '/admin/dashboard');
             }
+            $this->respond('error', 'Password minimal 6 karakter', '/admin/password');
         }
-        header('Location: ' . BASEURL . '/admin/dashboard?saved=1'); exit;
+        $this->respond('error', 'Metode tidak valid', '/admin/dashboard');
     }
 }
