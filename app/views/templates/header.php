@@ -76,10 +76,10 @@
             grid-template-columns: 1.5fr repeat(9, 1fr) 1.5fr;
             grid-template-rows: 1.5fr repeat(9, 1fr) 1.5fr;
             
-            width: 95vmin;
-            height: 95vmin;
-            max-width: 960px;
-            max-height: 960px;
+            width: 85vmin;
+            height: 85vmin;
+            max-width: 800px;
+            max-height: 800px;
             
             gap: 2px;
             padding: 10px;
@@ -96,8 +96,8 @@
 
         @media (max-width: 768px) {
             .monopoly-board {
-                width: 98vmin;
-                height: 98vmin;
+                width: 92vmin;
+                height: 92vmin;
             }
         }
 
