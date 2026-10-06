@@ -47,8 +47,10 @@
                         // Color bar / image
                         if ($cell['color'] != 'white') {
                             echo '<div class="color-bar c-'.$cell['color'].'">';
-                            if (isset($cityImages[$cellIndex])) {
-                                echo '<img src="'.BASEURL.'/'.$cityImages[$cellIndex].'" alt="'.$cell['name'].'" style="width:100%;height:100%;object-fit:cover;opacity:0.95;border-radius:3px;">';
+                            if (isset($cityImages[$cellIndex]) && !empty($cityImages[$cellIndex])) {
+                                $imgPath = $cityImages[$cellIndex];
+                                if (strpos($imgPath, '/') === false) $imgPath = 'public/img/cities/' . $imgPath;
+                                echo '<img src="'.BASEURL.'/'.$imgPath.'" alt="'.$cell['name'].'" style="width:100%;height:100%;object-fit:cover;opacity:0.95;border-radius:3px;">';
                             }
                             echo '</div>';
                         } else {

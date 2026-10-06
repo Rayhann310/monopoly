@@ -54,201 +54,159 @@
             height: 100%;
         }
         
-        /* The Board - Flat 2D */
+        /* The Board - Premium Look */
         .monopoly-board {
             display: grid;
-            grid-template-columns: repeat(11, 1fr);
-            grid-template-rows: repeat(11, 1fr);
+            /* 1.4fr untuk sudut (lebih besar), 1fr untuk sisi */
+            grid-template-columns: 1.4fr repeat(9, 1fr) 1.4fr;
+            grid-template-rows: 1.4fr repeat(9, 1fr) 1.4fr;
             
             width: 95vmin;
             height: 95vmin;
             max-width: 950px;
             max-height: 950px;
             
-            background: #cbd5e1; /* Darker gap for better contrast */
+            background: #cbd5e1; /* Grid gap color */
             gap: 2px;
-            padding: 12px;
+            padding: 10px;
             border-radius: 12px;
             position: relative;
             
-            border: 2px solid rgba(255,255,255,0.6);
+            border: 4px solid #fff;
             box-shadow: 
-                0 20px 40px -10px rgba(0,0,0,0.8),
-                0 10px 20px -5px rgba(0,0,0,0.6);
+                0 0 0 8px #d1d5db,
+                0 30px 60px -12px rgba(0,0,0,0.5),
+                inset 0 0 20px rgba(0,0,0,0.1);
+            background-color: #f1f5f9;
         }
 
         /* Cells */
         .cell { 
             position: relative; 
             background-color: #ffffff;
-            border-radius: 4px;
-            box-shadow: inset 0 0 0 1px rgba(0,0,0,0.04);
-            transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
             overflow: hidden;
+            box-shadow: inset 0 0 0 1px rgba(0,0,0,0.05);
+            transition: background-color 0.2s, box-shadow 0.2s;
         }
-
         .cell:hover {
-            transform: scale(1.08);
-            box-shadow: 
-                0 8px 20px rgba(0,0,0,0.4),
-                inset 0 0 0 2px rgba(16, 185, 129, 0.5);
+            background-color: #f8fafc;
+            box-shadow: inset 0 0 0 2px rgba(16, 185, 129, 0.8);
             z-index: 20;
         }
 
-        /* === CORNER CELLS === */
-        .cell-corner .cell-content {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            width: 100%;
-            height: 100%;
-            gap: 2px;
+        /* Corner cells need to be distinct */
+        .cell-corner {
+            background-color: #f8fafc;
         }
-        .cell-corner .name { 
-            font-size: clamp(0.45rem, 1.35vmin, 0.75rem);
-            font-weight: 900;
-            text-align: center;
-            color: #0f172a;
-            line-height: 1.2;
-            padding: 2px 3px;
-        }
-        .cell-corner .price, .cell-corner .color-bar, .cell-corner .spacer-bar { display: none; }
-
-        /* === BOTTOM CELLS (normal orientation) === */
-        .cell-bottom .cell-content {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: space-between;
-            width: 100%;
-            height: 100%;
-        }
-        .cell-bottom .color-bar, .cell-bottom .spacer-bar { order: 0; }
-        .cell-bottom .name  { order: 1; flex-grow: 1; }
-        .cell-bottom .price { order: 2; }
-
-        /* === TOP CELLS (color bar at bottom, text rotated 180deg) === */
-        .cell-top .cell-content {
-            display: flex;
-            flex-direction: column-reverse;
-            align-items: center;
-            justify-content: space-between;
-            width: 100%;
-            height: 100%;
-        }
-        .cell-top .name { 
-            writing-mode: horizontal-tb;
-            transform: rotate(180deg);
-            flex-grow: 1;
-        }
-        .cell-top .price { 
-            transform: rotate(180deg);
-        }
-
-        /* === LEFT CELLS (color bar on right, rotated 90deg CW to face center) === */
-        .cell-left .cell-content {
-            display: flex;
-            flex-direction: row;          /* horizontal layout */
-            align-items: center;
-            justify-content: space-between;
-            width: 100%;
-            height: 100%;
-        }
-        .cell-left .color-bar, .cell-left .spacer-bar {
-            height: 100%;
-            width: 28%;
-            flex-shrink: 0;
-            order: 2;  /* bar on right side */
-        }
-        .cell-left .name {
-            flex-grow: 1;
-            order: 1;
-            writing-mode: vertical-rl;
-            transform: rotate(180deg);
-            text-align: center;
-            font-size: clamp(0.38rem, 1.15vmin, 0.75rem);
-        }
-        .cell-left .price {
-            order: 0;
-            writing-mode: vertical-rl;
-            transform: rotate(180deg);
-            font-size: clamp(0.35rem, 1.05vmin, 0.65rem);
-            padding: 3px 0;
-        }
-
-        /* === RIGHT CELLS (color bar on left, rotated 90deg CCW to face center) === */
-        .cell-right .cell-content {
-            display: flex;
-            flex-direction: row;
-            align-items: center;
-            justify-content: space-between;
-            width: 100%;
-            height: 100%;
-        }
-        .cell-right .color-bar, .cell-right .spacer-bar {
-            height: 100%;
-            width: 28%;
-            flex-shrink: 0;
-            order: 0;  /* bar on left side */
-        }
-        .cell-right .name {
-            flex-grow: 1;
-            order: 1;
-            writing-mode: vertical-rl;
-            text-align: center;
-            font-size: clamp(0.38rem, 1.15vmin, 0.75rem);
-        }
-        .cell-right .price {
-            order: 2;
-            writing-mode: vertical-rl;
-            font-size: clamp(0.35rem, 1.05vmin, 0.65rem);
-            padding: 3px 0;
-        }
-
-        /* === SHARED NAME & PRICE === */
+        
+        /* Inner cell content wrappers */
         .cell-content { 
             width: 100%; 
             height: 100%; 
-            border-radius: 5px;
-            overflow: hidden;
+            display: flex;
+            box-sizing: border-box;
         }
 
-        .name { 
-            font-size: clamp(0.42rem, 1.25vmin, 0.78rem); 
-            font-weight: 800; 
-            padding: 2px 2px;
-            color: #0f172a; 
-            line-height: 1.15;
+        /* Base styles for parts */
+        .color-bar {
+            background-color: transparent;
+            position: relative;
+            box-shadow: inset 0 0 0 1px rgba(0,0,0,0.1);
+        }
+        .name {
+            font-size: clamp(0.45rem, 1.15vmin, 0.75rem);
+            font-weight: 800;
+            color: #1e293b;
             text-align: center;
+            text-transform: uppercase;
+            line-height: 1.1;
             display: flex;
             align-items: center;
             justify-content: center;
-            flex-grow: 1;
         }
-        
-        .price { 
-            font-size: clamp(0.38rem, 1.1vmin, 0.7rem); 
-            color: #64748b;
-            font-weight: 700; 
-            padding: 0 2px 3px;
+        .price {
+            font-size: clamp(0.4rem, 1vmin, 0.7rem);
+            font-weight: 700;
+            color: #475569;
             text-align: center;
+            padding: 2px;
         }
-
         .spacer-bar {
-            height: 28%;
-            width: 100%;
-            flex-shrink: 0;
             background: transparent;
         }
 
-        .color-bar { 
-            height: 28%; 
-            width: 100%;
-            flex-shrink: 0;
-            position: relative;
-            overflow: hidden;
+        /* === BOTTOM & TOP CELLS (Vertical Layout) === */
+        .cell-bottom .cell-content, .cell-top .cell-content {
+            flex-direction: column;
         }
+        .cell-top .cell-content {
+            transform: rotate(180deg);
+        }
+        
+        .cell-bottom .color-bar, .cell-bottom .spacer-bar,
+        .cell-top .color-bar, .cell-top .spacer-bar {
+            height: 25%;
+            width: 100%;
+        }
+        .cell-bottom .name, .cell-top .name {
+            flex-grow: 1;
+            padding: 2px 4px;
+        }
+
+        /* === LEFT & RIGHT CELLS (Horizontal Layout) === */
+        /* To make text face center, we rotate the text itself */
+        .cell-left .cell-content {
+            flex-direction: row-reverse; /* Color bar on right */
+        }
+        .cell-right .cell-content {
+            flex-direction: row; /* Color bar on left */
+        }
+        
+        .cell-left .color-bar, .cell-left .spacer-bar,
+        .cell-right .color-bar, .cell-right .spacer-bar {
+            width: 25%;
+            height: 100%;
+        }
+        
+        .cell-left .name, .cell-right .name {
+            flex-grow: 1;
+            writing-mode: vertical-rl;
+            padding: 4px 2px;
+        }
+        /* Make text bottom face center */
+        .cell-left .name { transform: rotate(180deg); }
+        .cell-right .name { /* defaults to bottom facing left, which is center */ }
+        
+        .cell-left .price, .cell-right .price {
+            writing-mode: vertical-rl;
+            padding: 4px 2px;
+        }
+        .cell-left .price { transform: rotate(180deg); }
+
+        /* Container inside left/right to hold name and price side-by-side vertically */
+        .lr-text-container {
+            display: flex;
+            flex-direction: row; /* Because writing-mode is vertical, row acts visually like column */
+            flex-grow: 1;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        /* CORNER CELLS */
+        .cell-corner .cell-content {
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 8px;
+        }
+        .cell-corner .name {
+            font-size: clamp(0.55rem, 1.4vmin, 0.9rem);
+            transform: rotate(-45deg); /* Diagonal text for corners */
+            width: 140%;
+        }
+        .cell-corner .price, .cell-corner .color-bar, .cell-corner .spacer-bar {
+            display: none;
+        }        }
         
         .c-white { background-color: transparent; }
         .c-blue { background-color: #3b82f6; }

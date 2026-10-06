@@ -131,6 +131,9 @@ class Player extends Controller {
                 case 'utility':
                     $owner = $this->model('PropertyModel')->getOwner($sessionId, $newPos);
                     $cellImage = $cell['image_url'] ?? null;
+                    if ($cellImage && strpos($cellImage, '/') === false) {
+                        $cellImage = 'public/img/cities/' . $cellImage;
+                    }
                     if (!$owner) {
                         $action['type']  = 'buy';
                         $action['price'] = (int)($cell['price'] ?? 0);
