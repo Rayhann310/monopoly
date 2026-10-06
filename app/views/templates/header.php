@@ -224,6 +224,19 @@
             padding: 4px 2px;
         }
 
+        /* Fix: counter-rotate images inside left cells so they aren't upside down */
+        .cell-left .name img,
+        .cell-left .name-in-color img {
+            transform: rotate(-180deg);
+            width: 100%; height: 100%; object-fit: cover; border-radius: 4px;
+        }
+        /* Fix: top row images should not inherit writing-mode distortion */
+        .cell-top .name img,
+        .cell-bottom .name img {
+            width: 100%; height: 100%; object-fit: cover; border-radius: 4px;
+            writing-mode: horizontal-tb;
+        }
+
         /* CORNER CELLS */
         .cell-corner .cell-content {
             flex-direction: column;
