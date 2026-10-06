@@ -36,8 +36,10 @@ try {
         }
     }
 
-    // === SETUP WIZARD: Jika .env tidak ada, tampilkan form setup ===
-    if (!file_exists(__DIR__ . '/.env')) {
+    // === SETUP WIZARD: Jika .env tidak ada DAN env vars tidak diset via Docker/Easypanel ===
+    // Di Docker/Easypanel, variabel sudah diinjeksi langsung tanpa file .env
+    $hasEnvVars = !empty(getenv('DB_HOST')) || !empty($_ENV['DB_HOST']) || !empty($_SERVER['DB_HOST']);
+    if (!file_exists(__DIR__ . '/.env') && !$hasEnvVars) {
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['setup_action'])) {
             $envContent = "APP_NAME=\"Monopoly Indonesia\"\n"
                 . "APP_ENV=production\n"
