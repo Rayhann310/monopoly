@@ -250,13 +250,14 @@ class Player extends Controller {
                             $lvl = $currentLevel + 1;
                             $options = [];
                             if ($lvl <= $maxPropLevel) {
-                                $stepKey = "level{$lvl}_price";
-                                $stepPrice = isset($cell[$stepKey]) && $cell[$stepKey] > 0
+                                // Level 0→1 pakai harga beli properti (price), level 1+→ pakai level{n}_price
+                                $stepKey   = ($currentLevel === 0) ? null : "level{$lvl}_price";
+                                $stepPrice = ($stepKey && isset($cell[$stepKey]) && $cell[$stepKey] > 0)
                                     ? (int)$cell[$stepKey]
-                                    : $housePrice;
-                                $cumCost = $stepPrice; // Only 1 level allowed per upgrade
+                                    : (($currentLevel === 0) ? (int)($cell['price'] ?? $housePrice) : $housePrice);
+                                $cumCost = $stepPrice;
 
-                                $lvlName = $cell["level{$lvl}_name"] ?? ($lvl === 5 ? 'Hotel / Apartemen' : "Rumah {$lvl}");
+                                $lvlName = $cell["level{$lvl}_name"] ?? ($lvl === 5 ? 'Hotel' : "Rumah {$lvl}");
                                 $lvlRent = isset($cell["level{$lvl}_rent"]) && $cell["level{$lvl}_rent"] > 0
                                     ? (int)$cell["level{$lvl}_rent"]
                                     : $this->calcRent($cell, ['houses' => $lvl, 'owner_id' => $id], $sessionId, $dice);
@@ -483,10 +484,16 @@ class Player extends Controller {
 
                 $totalCost = 0;
                 for ($step = $currentLevel + 1; $step <= $target; $step++) {
-                    $stepKey = "level{$step}_price";
-                    $stepPrice = isset($cell[$stepKey]) && $cell[$stepKey] > 0
-                        ? (int)$cell[$stepKey]
-                        : $defaultHousePrice;
+                    // level 0→1: gunakan harga beli properti (price)
+                    // level 1→2+: gunakan level{n}_price
+                    if ($currentLevel === 0 && $step === 1) {
+                        $stepPrice = (int)($cell['price'] ?? $defaultHousePrice);
+                    } else {
+                        $stepKey   = "level{$step}_price";
+                        $stepPrice = isset($cell[$stepKey]) && $cell[$stepKey] > 0
+                            ? (int)$cell[$stepKey]
+                            : $defaultHousePrice;
+                    }
                     $totalCost += $stepPrice;
                 }
 
