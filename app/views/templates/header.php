@@ -27,7 +27,7 @@
             text-align: center;
             padding: 20px;
         }
-        @media screen and (orientation: portrait) {
+        @media screen and (max-width: 1024px) and (orientation: portrait) {
             #portrait-overlay { display: flex; }
             #main-nav, .game-wrapper { display: none !important; }
         }
@@ -93,13 +93,14 @@
                 0 15px 30px rgba(0,0,0,0.4);
         }
 
-        @media (max-width: 896px) and (orientation: landscape) {
-            .board-area { padding: 4px; }
+        @media (max-width: 1024px) and (orientation: landscape) {
+            .board-area { padding: 2px; }
+            .game-wrapper { padding: 0; }
             .monopoly-board {
-                width: 96vh;
-                height: 96vh;
-                max-width: 96vh;
-                max-height: 96vh;
+                width: calc(100svh - 10px);
+                height: calc(100svh - 10px);
+                max-width: calc(100svh - 10px);
+                max-height: calc(100svh - 10px);
                 padding: 4px;
                 gap: 1px;
             }
