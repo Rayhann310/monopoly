@@ -71,6 +71,8 @@ class Player extends Controller {
         $luxuryTax    = (int)$settings->get('luxury_tax',   7500);
         $maxPropLevel = (int)$settings->get('max_property_level', 4);
         $housePrice   = (int)$settings->get('house_price', 150);
+        $freeParkingOn   = (int)$settings->get('free_parking_enabled', 1);
+        $freeParkingSeed = (int)$settings->get('free_parking_seed', 0);
 
         $newMoney = (int)$player['money'];
         $action   = ['type' => 'move'];
@@ -150,9 +152,15 @@ class Player extends Controller {
                 case 'tax':
                     $deduct = ($newPos == 38) ? $luxuryTax : $taxAmount;
                     $newMoney -= $deduct;
-                    $action['type']   = 'tax';
-                    $action['amount'] = -$deduct;
-                    $action['msg']    = "Kena " . ($newPos == 38 ? 'Pajak Mewah' : 'Pajak Biasa') . "! Bayar Rp " . number_format($deduct, 0, ',', '.');
+                    // Masukkan pajak ke pot Parkir Bebas jika fitur aktif
+                    if ($freeParkingOn) {
+                        $this->model('SessionModel')->addToParkingPot($sessionId, $deduct);
+                    }
+                    $pot = $this->model('SessionModel')->getParkingPot($sessionId);
+                    $action['type']        = 'tax';
+                    $action['amount']      = -$deduct;
+                    $action['parking_pot'] = $pot;
+                    $action['msg']         = "Kena " . ($newPos == 38 ? 'Pajak Mewah' : 'Pajak Biasa') . "! Bayar Rp " . number_format($deduct, 0, ',', '.') . ($freeParkingOn ? " (masuk Pot Parkir Bebas: Rp " . number_format($pot, 0, ',', '.') . ")" : "");
                     break;
 
                 case 'go_to_jail':
@@ -285,6 +293,24 @@ class Player extends Controller {
                     break;
 
                 case 'free_parking':
+                    if ($freeParkingOn) {
+                        $collected = $this->model('SessionModel')->collectParkingPot($sessionId, $freeParkingSeed);
+                        if ($collected > 0) {
+                            $newMoney += $collected;
+                            $action['type']        = 'free_parking_win';
+                            $action['amount']       = $collected;
+                            $action['parking_pot']  = $freeParkingSeed;
+                            $action['msg']          = "PARKIR BEBAS! Kamu mengambil seluruh Pot sebesar Rp " . number_format($collected, 0, ',', '.');
+                        } else {
+                            $action['type']        = 'free_parking_empty';
+                            $action['parking_pot']  = 0;
+                            $action['msg']          = "Parkir Bebas! Pot sedang kosong. Nikmati istirahatmu!";
+                        }
+                    } else {
+                        $action['type'] = 'safe';
+                        $action['msg']  = "Parkir Bebas. Petak aman — tidak ada efek.";
+                    }
+                    break;
                 case 'start':
                     $action['type'] = 'safe';
                     $action['msg']  = "Petak aman.";
@@ -297,13 +323,14 @@ class Player extends Controller {
         $this->model('PlayerModel')->markRolled($id);
 
         echo json_encode([
-            'status'     => 'success',
-            'position'   => $newPos,
-            'money'      => $newMoney,
-            'laps'       => (int)($player['laps'] ?? 0),
-            'in_jail'    => (bool)($player['in_jail'] ?? false),
-            'jail_turns' => (int)($player['jail_turns'] ?? 0),
-            'action'     => $action
+            'status'      => 'success',
+            'position'    => $newPos,
+            'money'       => $newMoney,
+            'laps'        => (int)($player['laps'] ?? 0),
+            'in_jail'     => (bool)($player['in_jail'] ?? false),
+            'jail_turns'  => (int)($player['jail_turns'] ?? 0),
+            'parking_pot' => $this->model('SessionModel')->getParkingPot($sessionId),
+            'action'      => $action
         ]);
     }
 

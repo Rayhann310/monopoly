@@ -110,6 +110,32 @@
             </div>
         </div>
 
+        <!-- Parking Pot Indicator -->
+        <?php 
+        $parkingPot = 0;
+        // Fetch from session
+        if (!empty($data['player']['session_id'])) {
+            $db = new Database();
+            $db->query("SELECT COALESCE(free_parking_pot,0) as pot FROM sessions WHERE id = :sid");
+            $db->bind('sid', $data['player']['session_id']);
+            $row = $db->single();
+            $parkingPot = $row ? (int)$row['pot'] : 0;
+        }
+        ?>
+        <div id="parking-pot-bar" class="relative z-10 mt-2 flex items-center gap-2 bg-black/25 rounded-xl px-3 py-1.5 border border-emerald-500/20 <?= $parkingPot > 0 ? '' : 'opacity-50' ?>" style="transition: opacity 0.5s">
+            <span class="text-lg">🅿️</span>
+            <div class="flex-1">
+                <div class="text-[9px] font-bold uppercase tracking-wider text-emerald-400/70">Pot Parkir Bebas</div>
+                <div id="parking-pot-val" class="text-sm font-black font-mono text-emerald-300">
+                    <?= $parkingPot > 0 ? 'Rp ' . number_format($parkingPot, 0, ',', '.') : 'Kosong' ?>
+                </div>
+            </div>
+            <?php if ($parkingPot > 0): ?>
+            <div class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></div>
+            <?php endif; ?>
+        </div>
+
+
         <!-- Bottom Row: Cardholder Name, Virtual Card Number, & Brand Circles -->
         <div class="relative z-10 flex items-end justify-between mt-4 pt-2 border-t border-white/15">
             <div>
@@ -465,6 +491,19 @@
             moneyAnimFrame = requestAnimationFrame(step);
         }
 
+        function updateParkingPotDisplay(pot) {
+            const el = document.getElementById('parking-pot-val');
+            const bar = document.getElementById('parking-pot-bar');
+            if (!el) return;
+            if (pot > 0) {
+                el.textContent = 'Rp ' + parseInt(pot).toLocaleString('id-ID');
+                if (bar) { bar.style.opacity = '1'; }
+            } else {
+                el.textContent = 'Kosong';
+                if (bar) { bar.style.opacity = '0.5'; }
+            }
+        }
+
         const rollBtn = document.getElementById('mobile-roll-btn');
         const endTurnBtn = document.getElementById('end-turn-btn');
 
@@ -651,10 +690,38 @@
                         jailBanner = `<div class="p-2.5 mb-3 bg-emerald-500/20 border border-emerald-500/40 rounded-xl text-emerald-300 text-xs font-bold leading-relaxed text-center"><i class="fa-solid fa-dice mr-1"></i> ${act.msg_jail}</div>`;
                     }
 
+                    // Update parking pot display globally
+                    if (res.parking_pot !== undefined) {
+                        updateParkingPotDisplay(res.parking_pot);
+                    }
+
                     // Show action modal
                     if (act.type === 'jail_stay') {
                         // Tertahan di penjara karena dadu tidak kembar
                         showModal('<i class="fa-solid fa-handcuffs text-rose-500 mr-1"></i> Tertahan di Penjara!', act.msg, 'warning', '#ef4444');
+                    } else if (act.type === 'free_parking_win') {
+                        Swal.fire({
+                            title: `<span style="font-size:2rem">🅿️</span> PARKIR BEBAS!`,
+                            html: `<div style="background:linear-gradient(135deg,#065f46,#064e3b);border-radius:16px;padding:20px;margin:10px 0;border:2px solid #10b981;">
+                                <div style="font-size:2.5rem;font-weight:900;color:#34d399;font-family:monospace;">
+                                    +Rp ${parseInt(act.amount).toLocaleString('id-ID')}
+                                </div>
+                                <div style="color:#6ee7b7;font-size:0.85rem;margin-top:6px;">Pot Parkir Bebas berhasil kamu ambil!</div>
+                            </div>
+                            <div style="color:#94a3b8;font-size:0.8rem;margin-top:8px;">Pot kini direset. Pajak berikutnya mulai mengisi pot lagi.</div>`,
+                            background: '#0f172a', color: '#f1f5f9',
+                            confirmButtonText: '<i class="fa-solid fa-coins mr-1"></i> Sip, Terima kasih!',
+                            confirmButtonColor: '#10b981',
+                        });
+                    } else if (act.type === 'free_parking_empty') {
+                        Swal.fire({
+                            title: `<span style="font-size:2rem">🅿️</span> Parkir Bebas`,
+                            html: `<div style="color:#64748b;font-size:1.2rem;margin:15px 0;">Pot Parkir Bebas masih <b style="color:#f1f5f9">kosong</b>.</div>
+                            <div style="color:#94a3b8;font-size:0.85rem;">Nikmati istirahat — ketika pemain lain kena pajak, pot akan terisi!</div>`,
+                            background: '#0f172a', color: '#f1f5f9',
+                            confirmButtonText: '<i class="fa-solid fa-parking mr-1"></i> Oke!',
+                            confirmButtonColor: '#3b82f6',
+                        });
                     } else if (act.type === 'first_lap_info') {
                         // Informasi putaran pertama belum boleh beli properti
                         const imgHtml = act.image 

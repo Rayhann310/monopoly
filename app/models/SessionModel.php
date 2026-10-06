@@ -55,4 +55,28 @@ class SessionModel {
     public function lastInsertId() {
         return $this->db->lastInsertId();
     }
+
+    public function getParkingPot($sessionId) {
+        $this->db->query("SELECT COALESCE(free_parking_pot, 0) as pot FROM sessions WHERE id = :id");
+        $this->db->bind('id', $sessionId);
+        $row = $this->db->single();
+        return $row ? (int)$row['pot'] : 0;
+    }
+
+    public function addToParkingPot($sessionId, $amount) {
+        $this->db->query("UPDATE sessions SET free_parking_pot = COALESCE(free_parking_pot, 0) + :amt WHERE id = :id");
+        $this->db->bind('amt', abs((int)$amount));
+        $this->db->bind('id', $sessionId);
+        $this->db->execute();
+    }
+
+    public function collectParkingPot($sessionId, $seed = 0) {
+        $pot = $this->getParkingPot($sessionId);
+        // Reset pot to seed value (or 0)
+        $this->db->query("UPDATE sessions SET free_parking_pot = :seed WHERE id = :id");
+        $this->db->bind('seed', (int)$seed);
+        $this->db->bind('id', $sessionId);
+        $this->db->execute();
+        return $pot;
+    }
 }

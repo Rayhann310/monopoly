@@ -97,16 +97,18 @@ class Database {
         )");
         // Default settings
         $defaults = [
-            ['starting_money',  '15000', 'Uang Awal Pemain (Rp)', 'number'],
-            ['pass_go_bonus',   '2000',  'Bonus Melewati Start (Rp)', 'number'],
-            ['tax_amount',      '2000',  'Jumlah Pajak Biasa (Rp)', 'number'],
-            ['luxury_tax',      '7500',  'Jumlah Pajak Mewah (Rp)', 'number'],
-            ['max_players',     '4',     'Maksimal Pemain per Sesi', 'number'],
-            ['allow_trade',     '1',     'Izinkan Tukar Properti antar Pemain', 'boolean'],
-            ['name_dana_umum',  'DANA UMUM', 'Nama Kartu Dana Umum', 'text'],
-            ['name_kesempatan', 'KESEMPATAN', 'Nama Kartu Kesempatan', 'text'],
-            ['max_property_level', '4',   'Maksimal Tingkat Properti (Rumah/Hotel)', 'number'],
-            ['house_price',     '150',   'Harga Beli Rumah/Tingkat Baru (Rp)', 'number']
+            ['starting_money',       '15000', 'Uang Awal Pemain (Rp)', 'number'],
+            ['pass_go_bonus',        '2000',  'Bonus Melewati Start (Rp)', 'number'],
+            ['tax_amount',           '2000',  'Jumlah Pajak Biasa (Rp)', 'number'],
+            ['luxury_tax',           '7500',  'Jumlah Pajak Mewah (Rp)', 'number'],
+            ['max_players',          '4',     'Maksimal Pemain per Sesi', 'number'],
+            ['allow_trade',          '1',     'Izinkan Tukar Properti antar Pemain', 'boolean'],
+            ['name_dana_umum',       'DANA UMUM', 'Nama Kartu Dana Umum', 'text'],
+            ['name_kesempatan',      'KESEMPATAN', 'Nama Kartu Kesempatan', 'text'],
+            ['max_property_level',   '4',   'Maksimal Tingkat Properti (Rumah/Hotel)', 'number'],
+            ['house_price',          '150', 'Harga Beli Rumah/Tingkat Baru (Rp)', 'number'],
+            ['free_parking_enabled', '1',   'Aktifkan Pot Parkir Bebas (pajak masuk pot)', 'boolean'],
+            ['free_parking_seed',    '0',   'Dana Awal Pot Parkir Bebas (Rp)', 'number'],
         ];
         foreach ($defaults as $d) {
             $this->dbh->exec("INSERT IGNORE INTO game_settings (setting_key, setting_value, label, type) VALUES ('{$d[0]}','{$d[1]}','{$d[2]}','{$d[3]}')");
@@ -173,9 +175,10 @@ class Database {
             active_card TEXT NULL DEFAULT NULL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )");
-        // Self-heal: tambah host_token jika belum ada
+        // Self-heal sessions columns
         try { $this->dbh->exec("ALTER TABLE sessions ADD COLUMN host_token VARCHAR(64) NOT NULL DEFAULT ''"); } catch(Exception $e) {}
         try { $this->dbh->exec("ALTER TABLE sessions ADD COLUMN active_card TEXT NULL DEFAULT NULL"); } catch(Exception $e) {}
+        try { $this->dbh->exec("ALTER TABLE sessions ADD COLUMN free_parking_pot INT DEFAULT 0"); } catch(Exception $e) {}
 
         // === TABEL PEMAIN ===
         $this->dbh->exec("CREATE TABLE IF NOT EXISTS players (
