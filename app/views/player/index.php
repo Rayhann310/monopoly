@@ -25,26 +25,91 @@
 .shake { animation: shake 0.3s; animation-iteration-count: infinite; }
 </style>
 
-<!-- Header / Status Bar -->
-<div class="bg-gradient-to-r <?= $bgGrad ?> p-6 rounded-b-[2rem] shadow-2xl relative overflow-hidden">
-    <div class="absolute -right-10 -top-10 text-white/10 text-9xl">
-        <i class="fa-solid fa-user"></i>
-    </div>
-    <div class="relative z-10 flex flex-col gap-2">
-        <div class="text-white/80 font-bold uppercase tracking-widest text-sm">Identitas Pemain</div>
-        <h1 class="text-3xl font-black text-white"><?= $data['player']['name'] ?></h1>
-        <div class="flex items-center gap-3 mt-4">
-            <div class="bg-black/30 backdrop-blur px-4 py-2 rounded-xl flex items-center gap-2 border border-white/20">
-                <i class="fa-solid fa-wallet text-emerald-400"></i>
-                <span class="text-xl font-bold font-mono">Rp <?= number_format($data['player']['money'], 0, ',', '.') ?></span>
+<!-- Credit Card Container -->
+<div class="px-5 pt-5 pb-2">
+    <div id="player-credit-card" class="relative overflow-hidden rounded-3xl p-6 shadow-2xl border border-white/20 text-white transition-all duration-500 bg-gradient-to-br <?= $bgGrad ?> select-none"
+         style="box-shadow: 0 20px 40px -15px rgba(0,0,0,0.7), inset 0 1px 1px rgba(255,255,255,0.4);">
+        
+        <!-- Background Decorative Watermark & Holographic Sheen -->
+        <div class="absolute -right-8 -bottom-10 text-white/10 text-9xl pointer-events-none transform -rotate-12">
+            <i class="fa-solid fa-gem"></i>
+        </div>
+        <div class="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-white/15 pointer-events-none"></div>
+
+        <!-- Top Row: Chip, Contactless, & Monopoly VIP Logo -->
+        <div class="relative z-10 flex items-center justify-between mb-4">
+            <div class="flex items-center gap-3">
+                <!-- EMV Smart Chip -->
+                <div class="w-11 h-8 rounded-lg bg-gradient-to-br from-amber-200 via-amber-400 to-amber-600 border border-amber-200/80 shadow-md flex items-center justify-center relative overflow-hidden">
+                    <div class="w-full h-[1px] bg-amber-800/40 absolute top-2.5"></div>
+                    <div class="w-full h-[1px] bg-amber-800/40 absolute bottom-2.5"></div>
+                    <div class="h-full w-[1px] bg-amber-800/40 absolute left-3"></div>
+                    <div class="h-full w-[1px] bg-amber-800/40 absolute right-3"></div>
+                    <div class="w-3.5 h-3 rounded border border-amber-800/50"></div>
+                </div>
+                <!-- Contactless Icon -->
+                <i class="fa-solid fa-wifi rotate-90 text-white/70 text-lg"></i>
+            </div>
+            <!-- Bank / Game Branding -->
+            <div class="flex items-center gap-1.5 bg-black/30 backdrop-blur-md px-3 py-1 rounded-full border border-white/15">
+                <i class="fa-solid fa-crown text-amber-400 text-xs"></i>
+                <span class="font-black text-[11px] tracking-wider uppercase">MONOPOLY VIP</span>
+            </div>
+        </div>
+
+        <!-- Middle: Balance & Laps -->
+        <div class="relative z-10 my-3">
+            <div class="text-[10px] uppercase font-bold text-white/70 tracking-widest flex items-center gap-1.5">
+                <span>Saldo Rekening</span>
+                <span id="lap-counter-badge" class="ml-auto bg-black/40 px-2.5 py-0.5 rounded-full text-[10px] font-mono text-amber-300 border border-amber-400/30">
+                    <i class="fa-solid fa-flag-checkered mr-1"></i>Putaran <?= max(1, ((int)($data['player']['laps'] ?? 0)) + 1) ?>
+                </span>
+            </div>
+            <div id="player-wallet-box" class="flex items-center gap-2 mt-1 relative transition-all duration-300">
+                <i id="player-wallet-icon" class="fa-solid fa-wallet text-amber-300 text-xl transition-all duration-300"></i>
+                <span id="player-money-val" class="text-3xl font-black font-mono tracking-tight drop-shadow-md">
+                    Rp <?= number_format($data['player']['money'], 0, ',', '.') ?>
+                </span>
+                <span id="money-diff-badge" class="absolute -top-4 right-0 font-mono font-black text-xs px-2.5 py-0.5 rounded-full shadow-2xl transition-all duration-700 pointer-events-none opacity-0 scale-75"></span>
+            </div>
+        </div>
+
+        <!-- Bottom Row: Cardholder Name, Virtual Card Number, & Brand Circles -->
+        <div class="relative z-10 flex items-end justify-between mt-4 pt-2 border-t border-white/15">
+            <div>
+                <div class="text-[9px] uppercase tracking-wider text-white/60 font-bold">Pemegang Kartu</div>
+                <div class="text-sm font-black tracking-wide uppercase drop-shadow"><?= htmlspecialchars($data['player']['name']) ?></div>
+                <div class="text-[10px] font-mono tracking-widest text-white/70 mt-0.5">•••• •••• •••• <?= str_pad($data['player']['id'], 4, '0', STR_PAD_LEFT) ?></div>
+            </div>
+            <!-- Platinum Overlapping Circles -->
+            <div class="flex items-center -space-x-3 opacity-80">
+                <div class="w-7 h-7 rounded-full bg-rose-500/80 shadow-sm"></div>
+                <div class="w-7 h-7 rounded-full bg-amber-400/80 shadow-sm"></div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Status Giliran -->
-<div id="turn-badge" class="mx-6 mt-4 rounded-2xl px-4 py-3 flex items-center gap-3 <?= $data['player']['is_turn'] ? 'bg-emerald-500/20 border border-emerald-500/40' : 'bg-slate-800/60 border border-white/10' ?>">
-<?php if ($data['player']['is_turn']): ?>
+<!-- Status Giliran / Status Penjara -->
+<?php 
+    $inJail = !empty($data['player']['in_jail']);
+    $isTurn = !empty($data['player']['is_turn']);
+    if ($inJail) {
+        $badgeClass = 'bg-rose-950/70 border border-rose-500/50 shadow-rose-950/50';
+    } elseif ($isTurn) {
+        $badgeClass = 'bg-emerald-500/20 border border-emerald-500/40 shadow-emerald-950/50';
+    } else {
+        $badgeClass = 'bg-slate-800/60 border border-white/10';
+    }
+?>
+<div id="turn-badge" class="mx-6 mt-3 rounded-2xl px-4 py-3 flex items-center gap-3 shadow-lg <?= $badgeClass ?>">
+<?php if ($inJail): ?>
+    <i class="fa-solid fa-handcuffs text-2xl text-rose-400 animate-pulse"></i>
+    <div>
+        <div class="text-rose-400 font-black text-base">TERTAHAN DI PENJARA!</div>
+        <div class="text-rose-300/80 text-xs">Lempar dadu KEMBAR (angka sama) untuk keluar</div>
+    </div>
+<?php elseif ($isTurn): ?>
     <i class="fa-solid fa-crown text-2xl text-amber-400 animate-pulse"></i>
     <div>
         <div class="text-emerald-400 font-black text-base">GILIRAN KAMU!</div>
@@ -148,6 +213,91 @@
         let isTurn = <?= $data['player']['is_turn'] ? 'true' : 'false' ?>;
         let lastShownCardText = null;
         let isRolling = false; // Guard against double-click/race condition
+        let currentDisplayedMoney = parseInt(player.money) || 0;
+        let moneyAnimFrame = null;
+
+        function animateMoney(targetMoney, customDuration = 900) {
+            targetMoney = parseInt(targetMoney);
+            if (isNaN(targetMoney)) return;
+            if (targetMoney === currentDisplayedMoney) return;
+
+            const startVal = currentDisplayedMoney;
+            const diff = targetMoney - startVal;
+            const isIncrease = diff > 0;
+            const duration = customDuration;
+            const startTime = performance.now();
+
+            // Floating Diff Badge & Visual Feedback
+            const badge = document.getElementById('money-diff-badge');
+            const walletBox = document.getElementById('player-wallet-box');
+            const walletIcon = document.getElementById('player-wallet-icon');
+
+            if (badge) {
+                badge.textContent = (isIncrease ? '+' : '-') + ' Rp ' + Math.abs(diff).toLocaleString('id-ID');
+                badge.className = 'absolute -top-3.5 -right-2 font-mono font-black text-xs px-2.5 py-0.5 rounded-full shadow-xl pointer-events-none transition-all duration-500 ' + 
+                    (isIncrease ? 'bg-emerald-500 text-white shadow-emerald-500/50' : 'bg-rose-500 text-white shadow-rose-500/50');
+                badge.style.opacity = '1';
+                badge.style.transform = 'translateY(-6px) scale(1.05)';
+                
+                clearTimeout(badge._fadeTimer);
+                badge._fadeTimer = setTimeout(() => {
+                    badge.style.opacity = '0';
+                    badge.style.transform = 'translateY(-16px) scale(0.85)';
+                }, 1800);
+            }
+
+            if (walletBox) {
+                walletBox.classList.remove('ring-2', 'ring-emerald-400', 'ring-rose-400');
+                void walletBox.offsetWidth; // trigger reflow
+                walletBox.classList.add('ring-2', isIncrease ? 'ring-emerald-400' : 'ring-rose-400');
+                walletBox.style.transform = isIncrease ? 'scale(1.06)' : 'scale(0.96)';
+                clearTimeout(walletBox._boxTimer);
+                walletBox._boxTimer = setTimeout(() => {
+                    walletBox.classList.remove('ring-2', 'ring-emerald-400', 'ring-rose-400');
+                    walletBox.style.transform = '';
+                }, 1000);
+            }
+
+            if (walletIcon) {
+                walletIcon.style.transform = isIncrease ? 'scale(1.35) rotate(-12deg)' : 'scale(1.25) rotate(12deg)';
+                walletIcon.style.color = isIncrease ? '#34d399' : '#f87171';
+                clearTimeout(walletIcon._iconTimer);
+                walletIcon._iconTimer = setTimeout(() => {
+                    walletIcon.style.transform = '';
+                    walletIcon.style.color = '';
+                }, 1000);
+            }
+
+            if (moneyAnimFrame) {
+                cancelAnimationFrame(moneyAnimFrame);
+            }
+
+            function step(currentTime) {
+                const elapsed = currentTime - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                
+                // easeOutCubic
+                const ease = 1 - Math.pow(1 - progress, 3);
+                const currentVal = Math.round(startVal + (diff * ease));
+                
+                const moneyEl = document.getElementById('player-money-val') || document.querySelector('.font-mono');
+                if (moneyEl) {
+                    moneyEl.textContent = 'Rp ' + currentVal.toLocaleString('id-ID');
+                }
+
+                if (progress < 1) {
+                    moneyAnimFrame = requestAnimationFrame(step);
+                } else {
+                    currentDisplayedMoney = targetMoney;
+                    player.money = targetMoney;
+                    if (moneyEl) {
+                        moneyEl.textContent = 'Rp ' + targetMoney.toLocaleString('id-ID');
+                    }
+                }
+            }
+
+            moneyAnimFrame = requestAnimationFrame(step);
+        }
 
         const rollBtn = document.getElementById('mobile-roll-btn');
         const endTurnBtn = document.getElementById('end-turn-btn');
@@ -291,7 +441,7 @@
                 fetch(BASEURL + '/player/apiRoll', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                    body: `id=${player.id}&new_position=${player.position}&dice=${total}`
+                    body: `id=${player.id}&die1=${v1}&die2=${v2}&dice=${total}`
                 }).then(r => r.json()).then(res => {
                     if (res.status !== 'success') {
                         if (res.already_rolled) {
@@ -319,12 +469,32 @@
                     // Update local position from server (e.g. jail redirect)
                     player.position = res.position;
 
-                    // Update uang di UI
-                    const moneyEl = document.querySelector('.font-mono');
-                    if (moneyEl) moneyEl.textContent = 'Rp ' + parseInt(res.money).toLocaleString('id-ID');
+                    // Update putaran (lap) pada kartu kredit
+                    if (res.laps !== undefined) {
+                        const lapBadge = document.getElementById('lap-counter-badge');
+                        if (lapBadge) lapBadge.innerHTML = `<i class="fa-solid fa-flag-checkered mr-1"></i>Putaran ${(parseInt(res.laps || 0) + 1)}`;
+                    }
+
+                    // Update uang di UI dengan animasi count
+                    animateMoney(res.money);
 
                     // Show action modal
-                    if (act.type === 'card') {
+                    if (act.type === 'jail_stay') {
+                        // Tertahan di penjara karena dadu tidak kembar
+                        showModal('<i class="fa-solid fa-handcuffs text-rose-500 mr-1"></i> Tertahan di Penjara!', act.msg, 'warning', '#ef4444');
+                    } else if (act.type === 'first_lap_info') {
+                        // Informasi putaran pertama belum boleh beli properti
+                        const imgHtml = act.image 
+                            ? `<img src="${BASEURL}/${act.image}" style="width:100%;height:115px;object-fit:cover;border-radius:12px;margin-bottom:10px">`
+                            : '';
+                        Swal.fire({
+                            title: `<i class="fa-solid fa-flag-checkered text-amber-400 mr-2"></i> Putaran Pertama!`,
+                            html: `${imgHtml}<div class="text-lg font-black text-white mb-1">${act.name}</div><div class="text-slate-300 text-sm leading-relaxed">${act.msg}</div>`,
+                            background: '#0f172a', color: '#f1f5f9',
+                            confirmButtonColor: '#f59e0b',
+                            confirmButtonText: '<i class="fa-solid fa-check mr-1"></i> Mengerti'
+                        });
+                    } else if (act.type === 'card') {
                         const isKesempatan = act.card_type === 'kesempatan';
                         showCardAnimation(
                             isKesempatan ? 'Kesempatan' : 'Dana Umum',
@@ -358,7 +528,7 @@
                                     body: `player_id=${player.id}&cell_index=${res.position}`
                                 }).then(r => r.json()).then(buyRes => {
                                     if (buyRes.status === 'success') {
-                                        if (moneyEl) moneyEl.textContent = 'Rp ' + parseInt(buyRes.money).toLocaleString('id-ID');
+                                        animateMoney(buyRes.money);
                                         showModal('<i class="fa-solid fa-check mr-1"></i> Berhasil!', buyRes.msg, 'success', '#10b981');
                                     } else {
                                         showModal('Gagal', buyRes.msg, 'error', '#ef4444');
@@ -367,27 +537,76 @@
                             }
                         });
                     } else if (act.type === 'upgrade') {
-                        const imgHtml = act.image
-                            ? `<img src="${BASEURL}/${act.image}" style="width:100%;height:100px;object-fit:cover;border-radius:12px;margin-bottom:10px">`
+                        // Card Kota: Opsi Tingkat Upgrade Langsung
+                        let optionsHtml = '';
+                        (act.upgrade_options || []).forEach(opt => {
+                            const canAfford = opt.can_afford;
+                            const iconLvl = opt.level === 5 ? 'fa-hotel text-amber-400' : 'fa-house text-emerald-400';
+                            const tagMax = opt.is_max ? '<span class="bg-amber-500/20 text-amber-300 text-[10px] font-black px-1.5 py-0.5 rounded border border-amber-400/40 ml-1">MAX</span>' : '';
+                            optionsHtml += `
+                                <label class="flex items-center justify-between p-3 mb-2 rounded-xl border border-white/10 bg-slate-800/80 ${canAfford ? 'cursor-pointer hover:border-blue-400/80 hover:bg-slate-800' : 'opacity-40 cursor-not-allowed'} transition-all">
+                                    <div class="flex items-center gap-3">
+                                        <input type="radio" name="selected_upgrade_level" value="${opt.level}" ${canAfford ? '' : 'disabled'} class="w-4 h-4 text-blue-500 focus:ring-blue-500" ${opt.level === (act.current_level + 1) && canAfford ? 'checked' : ''}>
+                                        <div class="text-left">
+                                            <div class="font-black text-white text-sm flex items-center gap-1.5">
+                                                <i class="fa-solid ${iconLvl}"></i>
+                                                ${opt.name} ${tagMax}
+                                            </div>
+                                            <div class="text-[11px] text-emerald-400 font-mono">Sewa: Rp ${parseInt(opt.rent).toLocaleString('id-ID')}</div>
+                                        </div>
+                                    </div>
+                                    <div class="text-right">
+                                        <div class="text-xs font-black font-mono ${canAfford ? 'text-blue-400' : 'text-rose-400'}">
+                                            Rp ${parseInt(opt.cost).toLocaleString('id-ID')}
+                                        </div>
+                                        ${!canAfford ? '<div class="text-[9px] text-rose-400 font-bold">Uang kurang</div>' : ''}
+                                    </div>
+                                </label>
+                            `;
+                        });
+
+                        const imgHtml = act.image 
+                            ? `<img src="${BASEURL}/${act.image}" style="width:100%;height:115px;object-fit:cover;border-radius:14px;margin-bottom:10px;border:1px solid rgba(255,255,255,0.1)">`
                             : '';
+
                         Swal.fire({
-                            title: `<i class="fa-solid fa-arrow-up mr-1"></i> Tingkatkan Properti?`,
-                            html: `${imgHtml}<b>${act.name}</b> &rarr; <span style="color:#60a5fa;font-weight:900">${act.next_level_name || ('Level '+(act.current_level+1))}</span><br><span style="font-size:1.3rem;font-weight:900;color:#3b82f6">Rp ${parseInt(act.price).toLocaleString('id-ID')}</span>`,
-                            background: '#0f172a', color: '#f1f5f9',
+                            title: `<i class="fa-solid fa-city mr-1.5 text-blue-400"></i> ${act.name}`,
+                            html: `
+                                ${imgHtml}
+                                <div class="text-xs text-slate-300 mb-3 flex items-center justify-between bg-slate-800/90 px-3 py-2 rounded-xl border border-white/10">
+                                    <span>Status Saat Ini: <b class="text-white">${act.current_level_name}</b></span>
+                                    <span>Tingkat: <b class="text-amber-400">${act.current_level}</b></span>
+                                </div>
+                                <div class="text-left text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Pilih Peningkatan:</div>
+                                <div class="max-h-56 overflow-y-auto pr-1">
+                                    ${optionsHtml}
+                                </div>
+                            `,
+                            background: '#0f172a',
+                            color: '#f1f5f9',
                             showCancelButton: true,
-                            confirmButtonText: '<i class="fa-solid fa-arrow-up mr-1"></i> Tingkatkan!',
+                            confirmButtonText: '<i class="fa-solid fa-arrow-up mr-1"></i> Upgrade Sekarang',
                             cancelButtonText: 'Lewati',
                             confirmButtonColor: '#3b82f6',
                             cancelButtonColor: '#475569',
+                            preConfirm: () => {
+                                const checked = document.querySelector('input[name="selected_upgrade_level"]:checked');
+                                if (!checked) {
+                                    Swal.showValidationMessage('Pilih tingkat yang ingin diupgrade!');
+                                    return false;
+                                }
+                                return checked.value;
+                            }
                         }).then(result => {
-                            if (result.isConfirmed) {
+                            if (result.isConfirmed && result.value) {
+                                const targetLvl = result.value;
                                 fetch(BASEURL + '/player/apiBuy', {
                                     method: 'POST',
                                     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                                    body: `player_id=${player.id}&cell_index=${res.position}`
+                                    body: `player_id=${player.id}&cell_index=${res.position}&target_level=${targetLvl}`
                                 }).then(r => r.json()).then(buyRes => {
                                     if (buyRes.status === 'success') {
-                                        if (moneyEl) moneyEl.textContent = 'Rp ' + parseInt(buyRes.money).toLocaleString('id-ID');
+                                        animateMoney(buyRes.money);
                                         showModal('<i class="fa-solid fa-check mr-1"></i> Berhasil!', buyRes.msg, 'success', '#3b82f6');
                                     } else {
                                         showModal('Gagal', buyRes.msg, 'error', '#ef4444');
@@ -412,7 +631,7 @@
                     } else if (act.type === 'tax') {
                         showModal('<i class="fa-solid fa-landmark mr-1"></i> Bayar Pajak!', act.msg, 'warning', '#f97316');
                     } else if (act.type === 'jail') {
-                        showModal('<i class="fa-solid fa-handcuffs mr-1"></i> DITANGKAP!', act.msg || 'Masuk penjara!', 'error', '#ef4444');
+                        showModal('<i class="fa-solid fa-handcuffs mr-1 text-rose-500"></i> DITANGKAP!', act.msg || 'Masuk penjara!', 'error', '#ef4444');
                     } else if (act.pass_go) {
                         showModal('<i class="fa-solid fa-star mr-1"></i> Melewati Start!', `Terima bonus <b class="text-yellow-400">Rp ${parseInt(act.pass_go_bonus).toLocaleString('id-ID')}</b>!`, 'success', '#eab308');
                     } else {
@@ -477,9 +696,10 @@
                     isTurn = status.is_turn;
                     const serverHasRolled = status.has_rolled;
 
-                    // Update uang
-                    const moneyEl = document.querySelector('.font-mono');
-                    if (moneyEl) moneyEl.textContent = 'Rp ' + parseInt(status.money).toLocaleString('id-ID');
+                    // Update uang dengan animasi count jika berubah (misal menerima pembayaran sewa)
+                    if (status.money !== undefined && parseInt(status.money) !== currentDisplayedMoney) {
+                        animateMoney(status.money);
+                    }
 
                     // Check if properties changed (bought new property or upgraded house)
                     if (status.properties) {
@@ -520,16 +740,29 @@
                     // Update badge status
                     const badge = document.getElementById('turn-badge');
                     if (badge) {
-                        if (isTurn) {
-                            badge.className = 'mx-6 mt-4 rounded-2xl px-4 py-3 flex items-center gap-3 bg-emerald-500/20 border border-emerald-500/40';
+                        if (status.in_jail) {
+                            badge.className = 'mx-6 mt-3 rounded-2xl px-4 py-3 flex items-center gap-3 shadow-lg bg-rose-950/70 border border-rose-500/50 shadow-rose-950/50';
+                            badge.innerHTML = '<i class="fa-solid fa-handcuffs text-2xl text-rose-400 animate-pulse"></i><div><div class="text-rose-400 font-black text-base">TERTAHAN DI PENJARA!</div><div class="text-rose-300/80 text-xs">Lempar dadu KEMBAR (angka sama) untuk keluar</div></div>';
+                            if (isTurn && !serverHasRolled) {
+                                rollBtn.disabled = false;
+                                rollBtn.classList.remove('opacity-30');
+                            }
+                        } else if (isTurn) {
+                            badge.className = 'mx-6 mt-3 rounded-2xl px-4 py-3 flex items-center gap-3 shadow-lg bg-emerald-500/20 border border-emerald-500/40 shadow-emerald-950/50';
                             badge.innerHTML = '<i class="fa-solid fa-crown text-2xl text-amber-400 animate-pulse"></i><div><div class="text-emerald-400 font-black text-base">GILIRAN KAMU!</div><div class="text-emerald-400/60 text-xs">Lempar dadu sekarang</div></div>';
                         } else {
-                            badge.className = 'mx-6 mt-4 rounded-2xl px-4 py-3 flex items-center gap-3 bg-slate-800/60 border border-white/10';
+                            badge.className = 'mx-6 mt-3 rounded-2xl px-4 py-3 flex items-center gap-3 shadow-lg bg-slate-800/60 border border-white/10';
                             badge.innerHTML = '<i class="fa-regular fa-clock text-2xl text-slate-500"></i><div><div class="text-slate-400 font-black text-base">MENUNGGU...</div><div class="text-slate-600 text-xs">Bukan giliranmu saat ini</div></div>';
                             // Nonaktifkan tombol jika bukan giliran
                             rollBtn.disabled = true;
                             rollBtn.classList.add('opacity-30');
                         }
+                    }
+
+                    // Update putaran (laps) pada kartu kredit
+                    const lapBadge = document.getElementById('lap-counter-badge');
+                    if (lapBadge && status.laps !== undefined) {
+                        lapBadge.innerHTML = `<i class="fa-solid fa-flag-checkered mr-1"></i>Putaran ${(parseInt(status.laps || 0) + 1)}`;
                     }
                 }).catch(() => {});
         }, 2000);

@@ -34,6 +34,27 @@ class PlayerModel {
         $this->db->execute();
     }
 
+    public function addMoney($id, $amount) {
+        $this->db->query('UPDATE players SET money = money + :amount WHERE id = :id');
+        $this->db->bind('amount', $amount);
+        $this->db->bind('id', $id);
+        $this->db->execute();
+    }
+
+    public function setJail($id, $inJail) {
+        $this->db->query('UPDATE players SET in_jail = :j WHERE id = :id');
+        $this->db->bind('j', (int)$inJail);
+        $this->db->bind('id', $id);
+        $this->db->execute();
+    }
+
+    public function updateLaps($id, $laps) {
+        $this->db->query('UPDATE players SET laps = :laps WHERE id = :id');
+        $this->db->bind('laps', (int)$laps);
+        $this->db->bind('id', $id);
+        $this->db->execute();
+    }
+
     public function getCurrentTurn($sessionId) {
         $this->db->query('SELECT * FROM players WHERE session_id = :sid AND is_turn = 1 LIMIT 1');
         $this->db->bind('sid', $sessionId);

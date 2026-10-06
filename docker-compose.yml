@@ -1,0 +1,70 @@
+version: '3.8'
+
+services:
+  # ==============================================================
+  # 1. WEB APP (PHP 8.2 + Apache)
+  # ==============================================================
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: monopoly_app
+    restart: unless-stopped
+    ports:
+      - "${PORT:-8080}:80"
+    environment:
+      APP_NAME: "${APP_NAME:-Monopoly Indonesia}"
+      APP_ENV: "${APP_ENV:-production}"
+      APP_DEBUG: "${APP_DEBUG:-false}"
+      APP_URL: "${APP_URL:-http://localhost:8080}"
+      DB_HOST: "db"
+      DB_PORT: "3306"
+      DB_NAME: "${DB_NAME:-monopoly_db}"
+      DB_USER: "${DB_USER:-monopoly_user}"
+      DB_PASS: "${DB_PASS:-monopoly_secret123}"
+      ADMIN_DEFAULT_PASSWORD: "${ADMIN_DEFAULT_PASSWORD:-admin123}"
+      POLLING_INTERVAL: "${POLLING_INTERVAL:-1500}"
+    volumes:
+      # Volume untuk mempertahankan gambar kota dan kartu yang diunggah
+      - monopoly_assets:/var/www/html/assets_static
+      # Volume untuk mempertahankan sesi login admin dan pemain
+      - monopoly_sessions:/var/www/html/storage/sessions
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # ==============================================================
+  # 2. DATABASE (MariaDB 10.11 - Ringan untuk VPS / Easypanel)
+  # ==============================================================
+  db:
+    image: mariadb:10.11
+    container_name: monopoly_db
+    restart: unless-stopped
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    environment:
+      MYSQL_ROOT_PASSWORD: "${DB_ROOT_PASS:-root_secret123}"
+      MYSQL_DATABASE: "${DB_NAME:-monopoly_db}"
+      MYSQL_USER: "${DB_USER:-monopoly_user}"
+      MYSQL_PASSWORD: "${DB_PASS:-monopoly_secret123}"
+    volumes:
+      # Volume untuk mempertahankan seluruh data permainan dan database
+      - monopoly_db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+# ================================================================
+# VOLUMES (PERSISTENSI DATA LENGKAP)
+# ================================================================
+volumes:
+  # Menyimpan semua data database (tabel pemain, properti, sesi game, setting)
+  monopoly_db_data:
+    name: monopoly_db_data
+  # Menyimpan semua file gambar kota dan kartu yang diunggah
+  monopoly_assets:
+    name: monopoly_assets
+  # Menyimpan file sesi login PHP agar tidak ter-logout saat container restart
+  monopoly_sessions:
+    name: monopoly_sessions

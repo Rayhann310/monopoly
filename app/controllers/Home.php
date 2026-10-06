@@ -84,7 +84,7 @@ class Home extends Controller {
             $settings = $this->model('SettingsModel');
             $startMoney = (int)$settings->get('starting_money', 15000);
             $db = new Database;
-            $db->query("UPDATE players SET position = 0, money = :money, is_turn = 0, has_rolled = 0, is_bankrupt = 0 WHERE session_id = :sid");
+            $db->query("UPDATE players SET position = 0, money = :money, is_turn = 0, has_rolled = 0, is_bankrupt = 0, laps = 0, in_jail = 0 WHERE session_id = :sid");
             $db->bind('money', $startMoney);
             $db->bind('sid', $sessionId);
             $db->execute();

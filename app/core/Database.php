@@ -179,7 +179,14 @@ class Database {
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )");
         // Self-heal: tambah kolom baru ke players jika belum ada
-        foreach (['is_turn TINYINT(1) DEFAULT 0','has_rolled TINYINT(1) DEFAULT 0','is_bankrupt TINYINT(1) DEFAULT 0','session_id INT NOT NULL DEFAULT 1'] as $col) {
+        foreach ([
+            'is_turn TINYINT(1) DEFAULT 0',
+            'has_rolled TINYINT(1) DEFAULT 0',
+            'is_bankrupt TINYINT(1) DEFAULT 0',
+            'session_id INT NOT NULL DEFAULT 1',
+            'laps INT DEFAULT 0',
+            'in_jail TINYINT(1) DEFAULT 0'
+        ] as $col) {
             try { $this->dbh->exec("ALTER TABLE players ADD COLUMN $col"); } catch(Exception $e) {}
         }
 

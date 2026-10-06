@@ -1,0 +1,10 @@
+.git
+.gitignore
+.env
+.env.backup
+node_modules
+npm-debug.log
+.idea
+.vscode
+storage/sessions/*
+!storage/sessions/.gitkeep
