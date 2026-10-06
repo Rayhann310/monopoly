@@ -77,28 +77,45 @@ class Player extends Controller {
 
         // === ATURAN PENJARA: Jika pemain saat ini sedang di penjara ===
         if (!empty($player['in_jail'])) {
+            $jailTurns = (int)($player['jail_turns'] ?? 0) + 1;
+
             if ($isDouble) {
                 // Berhasil dapat dadu kembar! Bebas dari penjara dan melangkah
-                $this->model('PlayerModel')->setJail($id, 0);
+                $this->model('PlayerModel')->setJail($id, 0, 0);
                 $player['in_jail'] = 0;
+                $player['jail_turns'] = 0;
                 $oldPos = 10;
                 $newPos = (10 + $dice) % 40;
                 $action['jail_freed'] = true;
-                $action['msg_jail'] = "Dadu Kembar ({$die1} & {$die2})! Bebas dari penjara dan maju {$dice} langkah!";
+                $action['jail_turn_count'] = $jailTurns;
+                $action['msg_jail'] = "Dadu Kembar ({$die1} & {$die2})! Bebas dari penjara dan melangkah {$dice} petak!";
+            } elseif ($jailTurns >= 4) {
+                // Batas 3 putaran terlampaui! Pada putaran/lemparan ke-4 jika tidak kembar, otomatis bebas!
+                $this->model('PlayerModel')->setJail($id, 0, 0);
+                $player['in_jail'] = 0;
+                $player['jail_turns'] = 0;
+                $oldPos = 10;
+                $newPos = (10 + $dice) % 40;
+                $action['jail_auto_freed'] = true;
+                $action['jail_turn_count'] = 4;
+                $action['msg_jail'] = "Putaran ke-4 di penjara: Batas 3 putaran selesai! Anda otomatis BEBAS dari penjara dan melangkah {$dice} petak!";
             } else {
-                // Gagal dapat dadu kembar — tetap di penjara!
+                // Masih dalam batas 3 putaran (percobaan 1, 2, atau 3) dan dadu tidak kembar — tetap tertahan di penjara!
+                $this->model('PlayerModel')->setJail($id, 1, $jailTurns);
                 $this->model('PlayerModel')->updatePosition($id, 10);
                 $this->model('PlayerModel')->markRolled($id);
                 echo json_encode([
-                    'status'   => 'success',
-                    'position' => 10,
-                    'money'    => $newMoney,
-                    'in_jail'  => true,
-                    'action'   => [
-                        'type'    => 'jail_stay',
-                        'die1'    => $die1,
-                        'die2'    => $die2,
-                        'msg'     => "Dadu tidak sama ({$die1} & {$die2})! Kamu masih harus tertahan di penjara. Dadu kembar dibutuhkan untuk keluar."
+                    'status'     => 'success',
+                    'position'   => 10,
+                    'money'      => $newMoney,
+                    'in_jail'    => true,
+                    'jail_turns' => $jailTurns,
+                    'action'     => [
+                        'type'       => 'jail_stay',
+                        'die1'       => $die1,
+                        'die2'       => $die2,
+                        'jail_turns' => $jailTurns,
+                        'msg'        => "Percobaan ke-{$jailTurns}/3 di penjara: Dadu tidak kembar ({$die1} & {$die2})! Anda tetap tertahan di penjara. Dadu kembar dibutuhkan untuk keluar (bebas otomatis di giliran ke-4)."
                     ]
                 ]);
                 return;
@@ -140,10 +157,10 @@ class Player extends Controller {
 
                 case 'go_to_jail':
                     $newPos = 10; // Masuk ke Penjara di petak 10
-                    $this->model('PlayerModel')->setJail($id, 1);
+                    $this->model('PlayerModel')->setJail($id, 1, 0);
                     $action['type']     = 'jail';
                     $action['position'] = 10;
-                    $action['msg']      = "Masuk Penjara! Kamu harus melempar dadu kembar (angka sama) pada giliran berikutnya untuk keluar.";
+                    $action['msg']      = "Masuk Penjara! Anda harus melempar dadu kembar untuk keluar (batas 3 kali percobaan, putaran ke-4 otomatis bebas).";
                     break;
 
                 case 'jail':
@@ -280,11 +297,13 @@ class Player extends Controller {
         $this->model('PlayerModel')->markRolled($id);
 
         echo json_encode([
-            'status'   => 'success',
-            'position' => $newPos,
-            'money'    => $newMoney,
-            'laps'     => (int)($player['laps'] ?? 0),
-            'action'   => $action
+            'status'     => 'success',
+            'position'   => $newPos,
+            'money'      => $newMoney,
+            'laps'       => (int)($player['laps'] ?? 0),
+            'in_jail'    => (bool)($player['in_jail'] ?? false),
+            'jail_turns' => (int)($player['jail_turns'] ?? 0),
+            'action'     => $action
         ]);
     }
 
@@ -312,7 +331,7 @@ class Player extends Controller {
                 break;
             case 'jail':
                 $newPos = 10;
-                $this->model('PlayerModel')->setJail($player['id'], 1);
+                $this->model('PlayerModel')->setJail($player['id'], 1, 0);
                 break;
             case 'free':
                 break;
@@ -475,6 +494,7 @@ class Player extends Controller {
             'is_turn'          => (bool)$player['is_turn'],
             'has_rolled'       => (bool)$player['has_rolled'],
             'in_jail'          => (bool)($player['in_jail'] ?? false),
+            'jail_turns'       => (int)($player['jail_turns'] ?? 0),
             'laps'             => (int)($player['laps'] ?? 0),
             'position'         => (int)$player['position'],
             'money'            => (int)$player['money'],

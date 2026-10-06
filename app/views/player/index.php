@@ -103,11 +103,16 @@
     }
 ?>
 <div id="turn-badge" class="mx-6 mt-3 rounded-2xl px-4 py-3 flex items-center gap-3 shadow-lg <?= $badgeClass ?>">
-<?php if ($inJail): ?>
+<?php if ($inJail): 
+    $jailTurns = (int)($data['player']['jail_turns'] ?? 0);
+?>
     <i class="fa-solid fa-handcuffs text-2xl text-rose-400 animate-pulse"></i>
     <div>
-        <div class="text-rose-400 font-black text-base">TERTAHAN DI PENJARA!</div>
-        <div class="text-rose-300/80 text-xs">Lempar dadu KEMBAR (angka sama) untuk keluar</div>
+        <div class="text-rose-400 font-black text-base flex items-center gap-2">
+            <span>TERTAHAN DI PENJARA!</span>
+            <span class="text-xs bg-rose-500/30 text-rose-300 border border-rose-500/50 px-2 py-0.5 rounded-full font-bold">Percobaan <?= $jailTurns ?>/3</span>
+        </div>
+        <div class="text-rose-300/80 text-xs">Dadu KEMBAR untuk bebas • Putaran ke-4 otomatis bebas</div>
     </div>
 <?php elseif ($isTurn): ?>
     <i class="fa-solid fa-crown text-2xl text-amber-400 animate-pulse"></i>
@@ -478,6 +483,13 @@
                     // Update uang di UI dengan animasi count
                     animateMoney(res.money);
 
+                    let jailBanner = '';
+                    if (act.jail_auto_freed) {
+                        jailBanner = `<div class="p-2.5 mb-3 bg-amber-500/20 border border-amber-500/40 rounded-xl text-amber-300 text-xs font-bold leading-relaxed text-center"><i class="fa-solid fa-lock-open mr-1"></i> ${act.msg_jail}</div>`;
+                    } else if (act.jail_freed) {
+                        jailBanner = `<div class="p-2.5 mb-3 bg-emerald-500/20 border border-emerald-500/40 rounded-xl text-emerald-300 text-xs font-bold leading-relaxed text-center"><i class="fa-solid fa-dice mr-1"></i> ${act.msg_jail}</div>`;
+                    }
+
                     // Show action modal
                     if (act.type === 'jail_stay') {
                         // Tertahan di penjara karena dadu tidak kembar
@@ -489,7 +501,7 @@
                             : '';
                         Swal.fire({
                             title: `<i class="fa-solid fa-flag-checkered text-amber-400 mr-2"></i> Putaran Pertama!`,
-                            html: `${imgHtml}<div class="text-lg font-black text-white mb-1">${act.name}</div><div class="text-slate-300 text-sm leading-relaxed">${act.msg}</div>`,
+                            html: `${jailBanner}${imgHtml}<div class="text-lg font-black text-white mb-1">${act.name}</div><div class="text-slate-300 text-sm leading-relaxed">${act.msg}</div>`,
                             background: '#0f172a', color: '#f1f5f9',
                             confirmButtonColor: '#f59e0b',
                             confirmButtonText: '<i class="fa-solid fa-check mr-1"></i> Mengerti'
@@ -513,7 +525,7 @@
                             : `<div style="height:80px;display:flex;align-items:center;justify-content:center;background:#1e293b;border-radius:12px;margin-bottom:10px"><i class="fa-solid fa-building" style="font-size:2.5rem;color:#475569"></i></div>`;
                         Swal.fire({
                             title: `<i class="fa-solid fa-building mr-1"></i> Beli Properti?`,
-                            html: `${imgHtml}<b>${act.name}</b><br><span style="font-size:1.3rem;font-weight:900;color:#10b981">Rp ${parseInt(act.price).toLocaleString('id-ID')}</span>`,
+                            html: `${jailBanner}${imgHtml}<b>${act.name}</b><br><span style="font-size:1.3rem;font-weight:900;color:#10b981">Rp ${parseInt(act.price).toLocaleString('id-ID')}</span>`,
                             background: '#0f172a', color: '#f1f5f9',
                             showCancelButton: true,
                             confirmButtonText: '<i class="fa-solid fa-handshake mr-1"></i> Beli!',
@@ -620,7 +632,7 @@
                             : `<div style="height:80px;display:flex;align-items:center;justify-content:center;background:#1e293b;border-radius:12px;margin-bottom:10px"><i class="fa-solid fa-building" style="font-size:2.5rem;color:#475569"></i></div>`;
                         Swal.fire({
                             title: `<i class="fa-solid fa-money-bill-wave mr-1 text-orange-500"></i> Bayar Sewa!`,
-                            html: `${imgHtml}
+                            html: `${jailBanner}${imgHtml}
                                    <div style="font-size:1.1rem;font-weight:bold;color:#f1f5f9">${act.name}</div>
                                    <div style="color:#94a3b8;font-size:0.9rem;margin-bottom:10px">${act.level_name} milik <b>${act.owner}</b></div>
                                    <div style="font-size:1.4rem;font-weight:900;color:#ef4444">- Rp ${parseInt(act.amount).toLocaleString('id-ID')}</div>`,
@@ -634,6 +646,10 @@
                         showModal('<i class="fa-solid fa-handcuffs mr-1 text-rose-500"></i> DITANGKAP!', act.msg || 'Masuk penjara!', 'error', '#ef4444');
                     } else if (act.pass_go) {
                         showModal('<i class="fa-solid fa-star mr-1"></i> Melewati Start!', `Terima bonus <b class="text-yellow-400">Rp ${parseInt(act.pass_go_bonus).toLocaleString('id-ID')}</b>!`, 'success', '#eab308');
+                    } else if (act.jail_auto_freed) {
+                        showModal('<i class="fa-solid fa-lock-open text-amber-400 mr-1"></i> Bebas Otomatis dari Penjara!', act.msg_jail, 'info', '#f59e0b');
+                    } else if (act.jail_freed) {
+                        showModal('<i class="fa-solid fa-dice text-emerald-400 mr-1"></i> Dadu Kembar! Bebas dari Penjara', act.msg_jail, 'success', '#10b981');
                     } else {
                         showModal(title, text, 'info', color);
                     }
@@ -741,8 +757,9 @@
                     const badge = document.getElementById('turn-badge');
                     if (badge) {
                         if (status.in_jail) {
+                            const jt = parseInt(status.jail_turns || 0);
                             badge.className = 'mx-6 mt-3 rounded-2xl px-4 py-3 flex items-center gap-3 shadow-lg bg-rose-950/70 border border-rose-500/50 shadow-rose-950/50';
-                            badge.innerHTML = '<i class="fa-solid fa-handcuffs text-2xl text-rose-400 animate-pulse"></i><div><div class="text-rose-400 font-black text-base">TERTAHAN DI PENJARA!</div><div class="text-rose-300/80 text-xs">Lempar dadu KEMBAR (angka sama) untuk keluar</div></div>';
+                            badge.innerHTML = `<i class="fa-solid fa-handcuffs text-2xl text-rose-400 animate-pulse"></i><div><div class="text-rose-400 font-black text-base flex items-center gap-2"><span>TERTAHAN DI PENJARA!</span><span class="text-xs bg-rose-500/30 text-rose-300 border border-rose-500/50 px-2 py-0.5 rounded-full font-bold">Percobaan ${jt}/3</span></div><div class="text-rose-300/80 text-xs">Dadu KEMBAR untuk bebas • Putaran ke-4 otomatis bebas</div></div>`;
                             if (isTurn && !serverHasRolled) {
                                 rollBtn.disabled = false;
                                 rollBtn.classList.remove('opacity-30');

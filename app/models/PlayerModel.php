@@ -41,9 +41,10 @@ class PlayerModel {
         $this->db->execute();
     }
 
-    public function setJail($id, $inJail) {
-        $this->db->query('UPDATE players SET in_jail = :j WHERE id = :id');
+    public function setJail($id, $inJail, $jailTurns = 0) {
+        $this->db->query('UPDATE players SET in_jail = :j, jail_turns = :jt WHERE id = :id');
         $this->db->bind('j', (int)$inJail);
+        $this->db->bind('jt', (int)$jailTurns);
         $this->db->bind('id', $id);
         $this->db->execute();
     }
