@@ -140,12 +140,12 @@
             flex-direction: column;
         }
         
-        /* Top cells: Color bar at the bottom, so order:3 */
-        .cell-top .name { order: 1; flex-grow: 1; padding: 2px 4px; }
-        .cell-top .price { order: 2; padding: 2px; }
+        /* Top cells: Price at top, Image in middle, Color bar at bottom */
+        .cell-top .price { order: 1; padding: 2px; }
+        .cell-top .name { order: 2; flex-grow: 1; padding: 2px 4px; }
         .cell-top .color-bar, .cell-top .spacer-bar { order: 3; height: 25%; width: 100%; }
 
-        /* Bottom cells: Color bar at the top, so order:1 */
+        /* Bottom cells: Color bar at the top, Image in middle, Price at bottom */
         .cell-bottom .color-bar, .cell-bottom .spacer-bar { order: 1; height: 25%; width: 100%; }
         .cell-bottom .name { order: 2; flex-grow: 1; padding: 2px 4px; }
         .cell-bottom .price { order: 3; padding: 2px; }
@@ -169,14 +169,23 @@
         .cell-left .name-in-color, .cell-right .name-in-color {
             flex-grow: 1;
             writing-mode: vertical-rl;
+            text-orientation: mixed; /* Let browser handle orientation */
+            transform: rotate(180deg); /* Reads bottom-to-top, letters facing center */
             padding: 4px 2px;
-            transform: none; /* No rotation, so it reads top-to-bottom cleanly */
+        }
+        .cell-right .name, .cell-right .name-in-color {
+            transform: none; /* Reads top-to-bottom, letters facing center */
         }
         
-        .cell-left .price, .cell-right .price {
+        .cell-left .price {
             writing-mode: vertical-rl;
+            transform: rotate(180deg);
             padding: 4px 2px;
-            transform: none; /* No rotation */
+        }
+        .cell-right .price {
+            writing-mode: vertical-rl;
+            transform: none;
+            padding: 4px 2px;
         }
 
         /* Container inside left/right to hold name and price side-by-side vertically */
@@ -213,6 +222,16 @@
         .c-pink { background-color: #ec4899; }
         .c-brown { background-color: #8b5cf6; } 
         .c-cyan { background-color: #06b6d4; }
+
+        /* Kesempatan & Dana Umum: auto-orientation so icon appears on the center-facing side */
+        .cell-top .spacer-bar[style], .cell-bottom .spacer-bar[style] {
+            width: 100% !important;
+            height: 25% !important;
+        }
+        .cell-left .spacer-bar[style], .cell-right .spacer-bar[style] {
+            width: 25% !important;
+            height: 100% !important;
+        }
 
         /* Tokens - 3D glossy balls */
         .player-token {

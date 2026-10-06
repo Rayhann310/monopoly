@@ -44,10 +44,14 @@
                         echo '<div class="cell ' . $orientClass . '" id="cell-'.$cellIndex.'">';
                         echo '<div class="cell-content">';
 
+                        // Determine special cell type
+                        $cellType = $cell['type'] ?? '';
+                        $cellName = $cell['name'] ?? '';
+
                         // Color bar / image
                         if ($cell['color'] != 'white') {
                             echo '<div class="color-bar c-'.$cell['color'].' flex items-center justify-center">';
-                            // Title in header, white text
+                            // Title in color bar, white text
                             echo '<div class="name-in-color text-white font-black uppercase text-center leading-none flex items-center justify-center w-full h-full" style="font-size:clamp(0.4rem, 1vmin, 0.7rem);">';
                             echo $cell['name'];
                             echo '</div>';
@@ -60,6 +64,18 @@
                                 echo '<img src="'.BASEURL.'/'.$imgPath.'" style="width:100%;height:100%;object-fit:cover;border-radius:4px;box-shadow:inset 0 0 5px rgba(0,0,0,0.2);">';
                             }
                             echo '</div>';
+                        } elseif ($cellType === 'kesempatan' || stripos($cellName, 'kesempatan') !== false) {
+                            // Kesempatan cell - amber colored like the card in center
+                            echo '<div class="spacer-bar" style="background:linear-gradient(135deg,#f59e0b,#d97706);width:25%;height:100%;display:flex;align-items:center;justify-content:center;">';
+                            echo '<i class="fa-solid fa-question text-white" style="font-size:clamp(0.5rem,1.5vmin,1rem);"></i>';
+                            echo '</div>';
+                            echo '<div class="name" style="color:#92400e;font-weight:900;">' . $cell['name'] . '</div>';
+                        } elseif ($cellType === 'dana_umum' || stripos($cellName, 'dana') !== false || stripos($cellName, 'umum') !== false) {
+                            // Dana Umum cell - emerald colored like the card in center
+                            echo '<div class="spacer-bar" style="background:linear-gradient(135deg,#10b981,#059669);width:25%;height:100%;display:flex;align-items:center;justify-content:center;">';
+                            echo '<i class="fa-solid fa-gem text-white" style="font-size:clamp(0.5rem,1.5vmin,1rem);"></i>';
+                            echo '</div>';
+                            echo '<div class="name" style="color:#064e3b;font-weight:900;">' . $cell['name'] . '</div>';
                         } else {
                             echo '<div class="spacer-bar"></div>';
                             echo '<div class="name">' . $cell['name'] . '</div>';
