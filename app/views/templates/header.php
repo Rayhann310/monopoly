@@ -94,16 +94,23 @@
         }
 
         @media (max-width: 896px) and (orientation: landscape) {
+            .board-area { padding: 4px; }
             .monopoly-board {
-                width: 95vmin;
-                height: 95vmin;
+                width: 96vh;
+                height: 96vh;
+                max-width: 96vh;
+                max-height: 96vh;
+                padding: 4px;
+                gap: 1px;
             }
-            .name { font-size: 1.6vh !important; padding: 1px !important; }
-            .price { font-size: 1.4vh !important; padding: 1px !important; }
-            .title-text { font-size: 6vh !important; }
-            .subtitle-text { font-size: 2vh !important; padding: 0.5vh 1vh !important; margin-bottom: 1vh !important; }
-            .info-badge { font-size: 2.2vh !important; padding: 1vh 2vh !important; margin-top: 1vh !important; }
-            .player-token { width: 4vh !important; height: 4vh !important; }
+            .name { font-size: clamp(0.3rem, 1.5vh, 0.55rem) !important; padding: 1px !important; line-height: 1 !important; }
+            .price { font-size: clamp(0.28rem, 1.3vh, 0.5rem) !important; padding: 1px !important; }
+            .name-in-color { font-size: clamp(0.28rem, 1.3vh, 0.5rem) !important; }
+            .cell-corner .name { font-size: clamp(0.35rem, 1.6vh, 0.6rem) !important; }
+            .title-text { font-size: clamp(1rem, 5.5vh, 3rem) !important; }
+            .subtitle-text { font-size: clamp(0.4rem, 1.8vh, 0.8rem) !important; padding: 0.3em 0.6em !important; margin-bottom: 0.4rem !important; }
+            .info-badge { font-size: clamp(0.5rem, 2vh, 0.9rem) !important; padding: 0.4em 1em !important; margin-top: 0.5rem !important; }
+            .player-token { width: clamp(10px, 3.5vh, 18px) !important; height: clamp(10px, 3.5vh, 18px) !important; }
         }
 
         /* === CELLS === */
