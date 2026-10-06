@@ -427,20 +427,33 @@ function renderProperties(properties) {
         ownerBar.className = barClass;
         cell.appendChild(ownerBar);
         
-        // Tampilkan rumah (houses)
-        if (parseInt(prop.houses) > 0) {
-            const houseContainer = document.createElement('div');
-            houseContainer.className = 'house-container flex absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 gap-1 z-20';
-            for (let i = 0; i < parseInt(prop.houses); i++) {
-                const isHotel = i === 4; // Misalnya house ke-5 jadi hotel
+        // Tampilkan Tanda Tanah/Rumah
+        let houseClass = 'house-container flex absolute gap-0.5 z-40 items-center justify-center ';
+        // Letakkan di atas color-bar (color bar ukurannya 25% dari cell)
+        if (cell.classList.contains('cell-bottom')) houseClass += 'top-1 left-0 right-0 flex-row';
+        else if (cell.classList.contains('cell-top')) houseClass += 'bottom-1 left-0 right-0 flex-row';
+        else if (cell.classList.contains('cell-left')) houseClass += 'right-1 top-0 bottom-0 flex-col';
+        else if (cell.classList.contains('cell-right')) houseClass += 'left-1 top-0 bottom-0 flex-col';
+        else houseClass += 'top-1 left-0 right-0 flex-row';
+
+        const houseContainer = document.createElement('div');
+        houseContainer.className = houseClass;
+        
+        let level = parseInt(prop.houses);
+        if (level === 0) {
+            // Icon Tanah (belum ada bangunan, tapi sudah dimiliki)
+            houseContainer.innerHTML = `<i class="fa-solid fa-map-location-dot text-white text-[10px] drop-shadow-md bg-slate-900/60 rounded px-1.5 py-0.5 border border-white/20"></i>`;
+        } else {
+            for (let i = 0; i < level; i++) {
+                const isHotel = i === 4;
                 const icon = isHotel ? 'fa-hotel' : 'fa-house';
                 const color = isHotel ? 'text-red-500' : 'text-emerald-500';
-                const size = isHotel ? 'text-lg' : 'text-sm';
-                houseContainer.innerHTML += `<i class="fa-solid ${icon} ${color} ${size} drop-shadow-md"></i>`;
-                if (isHotel) break; // Jika hotel, 1 icon aja
+                const size = isHotel ? 'text-sm' : 'text-[10px]';
+                houseContainer.innerHTML += `<i class="fa-solid ${icon} ${color} ${size} drop-shadow-md bg-white/90 rounded p-0.5 border border-slate-300"></i>`;
+                if (isHotel) break;
             }
-            cell.appendChild(houseContainer);
         }
+        cell.appendChild(houseContainer);
     });
 }
 

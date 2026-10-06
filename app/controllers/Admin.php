@@ -136,7 +136,9 @@ class Admin extends Controller {
             if (isset($_FILES['image']) && $_FILES['image']['error'] == 0) {
                 $ext = pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION);
                 $filename = time() . '_' . rand(1000,9999) . '.' . $ext;
-                move_uploaded_file($_FILES['image']['tmp_name'], 'public/img/cards/' . $filename);
+                $uploadDir = 'assets/static/cards/';
+                if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
+                move_uploaded_file($_FILES['image']['tmp_name'], $uploadDir . $filename);
                 $image_url = $filename;
             }
 
@@ -221,7 +223,7 @@ class Admin extends Controller {
         $db = new Database;
         $imageUrl = null;
         if (isset($_FILES['image']) && $_FILES['image']['error'] === 0) {
-            $uploadDir = 'public/img/cities/';
+            $uploadDir = 'assets/static/cities/';
             if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
             $ext = strtolower(pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION));
             $allowed = ['jpg','jpeg','png','gif','webp'];

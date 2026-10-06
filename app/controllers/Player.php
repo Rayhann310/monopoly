@@ -132,7 +132,7 @@ class Player extends Controller {
                     $owner = $this->model('PropertyModel')->getOwner($sessionId, $newPos);
                     $cellImage = $cell['image_url'] ?? null;
                     if ($cellImage && strpos($cellImage, '/') === false) {
-                        $cellImage = 'public/img/cities/' . $cellImage;
+                        $cellImage = 'assets/static/cities/' . $cellImage;
                     }
                     if (!$owner) {
                         $action['type']  = 'buy';
