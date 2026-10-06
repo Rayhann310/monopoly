@@ -615,34 +615,30 @@ class Player extends Controller {
         }
 
         $db = new Database();
-        
-        // Cek siapa Pejabat Negara
-        $pejabatId = null;
-        $db->query("SELECT p.id FROM players p WHERE p.session_id = :sid AND p.position = (SELECT cell_index FROM board_properties WHERE type='pejabat' LIMIT 1) LIMIT 1");
-        $db->bind('sid', $player['session_id']);
-        $row = $db->single();
-        if ($row) $pejabatId = $row['id'];
-        
+
+        // Cek Pejabat Negara via sessions.pejabat_id
+        $pejabatId = $this->model('SessionModel')->getPejabat($player['session_id']);
+
         if ($pejabatId && $pejabatId != $id) {
             // Suap mengalir ke Pejabat Negara
             $db->query("UPDATE players SET money = money - :cost, in_jail = 0, jail_turns = 0 WHERE id = :id AND in_jail = 1");
             $db->bind('cost', $bribeCost);
             $db->bind('id', $id);
             $db->execute();
-            
+
             $db->query("UPDATE players SET money = money + :cost WHERE id = :pid");
             $db->bind('cost', $bribeCost);
             $db->bind('pid', $pejabatId);
             $db->execute();
-            
+
             $logMsg = "Menyuap Pejabat Negara Rp " . number_format($bribeCost, 0, ',', '.') . " untuk bebas penjara!";
         } else {
-            // Suap mengalir ke pot parkir bebas jika aktif, kalau tidak hangus (ke Bank)
+            // Suap hangus ke Bank atau pot parkir bebas
             $db->query("UPDATE players SET money = money - :cost, in_jail = 0, jail_turns = 0 WHERE id = :id AND in_jail = 1");
             $db->bind('cost', $bribeCost);
             $db->bind('id', $id);
             $db->execute();
-            
+
             $freeParkingOn = (int)$this->model('SettingsModel')->get('free_parking_enabled', 1);
             if ($freeParkingOn) {
                 $db->query("UPDATE sessions SET free_parking_pot = free_parking_pot + :cost WHERE id = :sid");
@@ -650,7 +646,7 @@ class Player extends Controller {
                 $db->bind('sid', $player['session_id']);
                 $db->execute();
             }
-            $logMsg = "Membayar denda Bank Rp " . number_format($bribeCost, 0, ',', '.') . " untuk bebas penjara!";
+            $logMsg = "Membayar suap Bank Rp " . number_format($bribeCost, 0, ',', '.') . " untuk bebas penjara!";
         }
 
         // Log action
@@ -660,10 +656,12 @@ class Player extends Controller {
         $db->bind('act', $logMsg);
         $db->execute();
 
+        // Ambil uang terbaru dari DB
+        $updatedPlayer = $this->model('PlayerModel')->getPlayerById($id);
         echo json_encode([
             'status' => 'success',
-            'money' => (int)$player['money'] - $bribeCost,
-            'msg' => 'Berhasil menyuap! Silakan melempar dadu sekarang.'
+            'money'  => (int)($updatedPlayer['money'] ?? ((int)$player['money'] - $bribeCost)),
+            'msg'    => 'Bebas dari penjara! Silakan melempar dadu sekarang.'
         ]);
     }
 

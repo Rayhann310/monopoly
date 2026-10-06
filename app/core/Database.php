@@ -107,7 +107,7 @@ class Database {
             status ENUM('pending', 'accepted', 'rejected') DEFAULT 'pending',
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )");
-        // Default settings
+        // Default settings — INSERT IGNORE so existing values are preserved, but missing rows are added
         $defaults = [
             ['starting_money',       '15000', 'Uang Awal Pemain (Rp)', 'number'],
             ['pass_go_bonus',        '2000',  'Bonus Melewati Start (Rp)', 'number'],
@@ -118,10 +118,10 @@ class Database {
             ['name_dana_umum',       'DANA UMUM', 'Nama Kartu Dana Umum', 'text'],
             ['name_kesempatan',      'KESEMPATAN', 'Nama Kartu Kesempatan', 'text'],
             ['max_property_level',   '4',   'Maksimal Tingkat Properti (Rumah/Hotel)', 'number'],
-            ['house_price',          '150', 'Harga Beli Rumah/Tingkat Baru (Rp)', 'number'],
+            ['house_price',          '1000', 'Harga Beli Rumah/Tingkat Baru (Rp) - fallback jika tidak diatur per properti', 'number'],
             ['free_parking_enabled', '1',   'Aktifkan Pot Parkir Bebas (pajak masuk pot)', 'boolean'],
             ['free_parking_seed',    '0',   'Dana Awal Pot Parkir Bebas (Rp)', 'number'],
-            ['jail_bribe_cost',      '50000', 'Biaya Suap Penjara (Rp)', 'number'],
+            ['jail_bribe_cost',      '2000', 'Biaya Suap Penjara (Rp)', 'number'],
         ];
         foreach ($defaults as $d) {
             $this->dbh->exec("INSERT IGNORE INTO game_settings (setting_key, setting_value, label, type) VALUES ('{$d[0]}','{$d[1]}','{$d[2]}','{$d[3]}')");
