@@ -108,8 +108,10 @@
                         <label class="text-slate-400 text-sm font-bold uppercase mb-2 block">Jenis Efek</label>
                         <select name="effect_type" id="card-effect" class="w-full bg-slate-800 border border-white/10 rounded-xl px-4 py-3 text-white font-bold focus:outline-none focus:border-blue-500">
                             <option value="none">Tidak Ada</option>
-                            <option value="money">Uang (+ / -)</option>
-                            <option value="move">Pindah Posisi</option>
+                            <option value="money_bank">Uang Bank (+/-)</option>
+                            <option value="money_players">Uang Semua Pemain (+/-)</option>
+                            <option value="move_pos">Pindah Lokasi Spesifik</option>
+                            <option value="move_steps">Maju / Mundur Langkah (+/-)</option>
                             <option value="jail">Masuk Penjara</option>
                             <option value="free">Bebas Penjara</option>
                         </select>
@@ -119,6 +121,12 @@
                         <input type="number" name="effect_value" id="card-value" value="0" placeholder="contoh: 2000 atau -1500"
                             class="w-full bg-slate-800 border border-white/10 rounded-xl px-4 py-3 text-white font-bold focus:outline-none focus:border-blue-500">
                     </div>
+                </div>
+                <div class="mb-4">
+                    <label class="text-slate-400 text-sm font-bold uppercase mb-2 block">Uang Jika Melewati Start (Opsional)</label>
+                    <input type="number" name="pass_start_money" id="card-pass-start" value="0" placeholder="Misal: 2000 (jika melewati start dapat uang)"
+                        class="w-full bg-slate-800 border border-white/10 rounded-xl px-4 py-3 text-white font-bold focus:outline-none focus:border-blue-500">
+                    <p class="text-xs text-slate-500 mt-1">Hanya berlaku untuk efek Pindah Lokasi. Isi 2000 untuk tambah, -2000 untuk potong, atau 0 abaikan.</p>
                 </div>
                 <div class="mb-6 flex items-center gap-3">
                     <input type="checkbox" name="is_active" id="card-active" value="1" checked class="w-5 h-5 accent-blue-500">
@@ -149,6 +157,7 @@ function editCard(card) {
     document.getElementById('card-text').value = card.text;
     document.getElementById('card-effect').value = card.effect_type;
     document.getElementById('card-value').value = card.effect_value;
+    document.getElementById('card-pass-start').value = card.pass_start_money || 0;
     document.getElementById('card-active').checked = card.is_active == 1;
     document.getElementById('add-modal').classList.remove('hidden');
     document.getElementById('add-modal').classList.add('flex');

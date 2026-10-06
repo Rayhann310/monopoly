@@ -117,37 +117,49 @@ class Database {
             id INT AUTO_INCREMENT PRIMARY KEY,
             type ENUM('kesempatan','dana_umum') NOT NULL,
             text TEXT NOT NULL,
-            effect_type ENUM('money','move','jail','free','none') DEFAULT 'none',
+            effect_type VARCHAR(50) DEFAULT 'none',
             effect_value INT DEFAULT 0,
+            pass_start_money INT DEFAULT 0,
             is_active TINYINT(1) DEFAULT 1,
             image_url VARCHAR(255) NULL
         )");
         
-        try {
-            $this->dbh->query("SELECT image_url FROM cards LIMIT 1");
-        } catch (PDOException $e) {
-            $this->dbh->exec("ALTER TABLE cards ADD COLUMN image_url VARCHAR(255) NULL");
+        // Self healing database for cards table updates
+        try { $this->dbh->query("SELECT image_url FROM cards LIMIT 1"); } 
+        catch (PDOException $e) { $this->dbh->exec("ALTER TABLE cards ADD COLUMN image_url VARCHAR(255) NULL"); }
+        
+        try { $this->dbh->query("SELECT pass_start_money FROM cards LIMIT 1"); } 
+        catch (PDOException $e) { 
+            $this->dbh->exec("ALTER TABLE cards ADD COLUMN pass_start_money INT DEFAULT 0 AFTER effect_value"); 
+            $this->dbh->exec("ALTER TABLE cards MODIFY COLUMN effect_type VARCHAR(50) DEFAULT 'none'");
+            // Migrate old data
+            $this->dbh->exec("UPDATE cards SET effect_type = 'money_bank' WHERE effect_type = 'money' AND text NOT LIKE '%setiap pemain%'");
+            $this->dbh->exec("UPDATE cards SET effect_type = 'money_players' WHERE effect_type = 'money' AND text LIKE '%setiap pemain%'");
+            $this->dbh->exec("UPDATE cards SET effect_type = 'move_pos' WHERE effect_type = 'move' AND effect_value >= 0");
+            $this->dbh->exec("UPDATE cards SET effect_type = 'move_steps' WHERE effect_type = 'move' AND effect_value < 0");
+            $this->dbh->exec("UPDATE cards SET pass_start_money = 2000 WHERE effect_type = 'move_pos' AND text LIKE '%melewati Start%'");
         }
+
         $cardCount = $this->dbh->query("SELECT COUNT(*) FROM cards")->fetchColumn();
         if ($cardCount == 0) {
-            $this->dbh->exec("INSERT INTO cards (type, text, effect_type, effect_value) VALUES
-                ('kesempatan','Maju ke Jakarta. Jika melewati Start, terima Rp 2.000.','move',39),
-                ('kesempatan','Bank membayar dividen kepada Anda. Terima Rp 500.','money',500),
-                ('kesempatan','Kena denda parkir ilegal. Bayar Rp 1.500.','money',-1500),
-                ('kesempatan','Pergi ke penjara! Jangan melewati Start, jangan menerima Rp 2.000.','jail',10),
-                ('kesempatan','Anda terpilih menjadi Ketua RT. Bayar setiap pemain Rp 500.','money',-500),
-                ('kesempatan','Maju ke Bandung. Jika melewati Start, terima Rp 2.000.','move',24),
-                ('kesempatan','Perbaikan rumah. Bayar Rp 2.500 per rumah yang dimiliki.','money',-2500),
-                ('kesempatan','Anda mendapat hadiah ulang tahun dari setiap pemain Rp 500.','money',500),
-                ('kesempatan','Maju mundur 3 langkah.','move',-3),
-                ('kesempatan','Bebas dari penjara. Simpan kartu ini sampai dibutuhkan.','free',0),
-                ('dana_umum','Terima warisan dari kakek. Terima Rp 5.000.','money',5000),
-                ('dana_umum','Pajak penghasilan. Bayar Rp 2.000.','money',-2000),
-                ('dana_umum','Dana pensiun cair! Terima Rp 1.000.','money',1000),
-                ('dana_umum','Pergi ke penjara! Jangan melewati Start.','jail',10),
-                ('dana_umum','Biaya rumah sakit. Bayar Rp 1.500.','money',-1500),
-                ('dana_umum','Anda menang lomba kecantikan! Terima Rp 1.000.','money',1000),
-                ('dana_umum','Subsidi pemerintah cair. Terima Rp 2.000.','money',2000),
+            $this->dbh->exec("INSERT INTO cards (type, text, effect_type, effect_value, pass_start_money) VALUES
+                ('kesempatan','Maju ke Jakarta. Jika melewati Start, terima Rp 2.000.','move_pos',39,2000),
+                ('kesempatan','Bank membayar dividen kepada Anda. Terima Rp 500.','money_bank',500,0),
+                ('kesempatan','Kena denda parkir ilegal. Bayar Rp 1.500.','money_bank',-1500,0),
+                ('kesempatan','Pergi ke penjara! Jangan melewati Start, jangan menerima Rp 2.000.','jail',10,0),
+                ('kesempatan','Anda terpilih menjadi Ketua RT. Bayar setiap pemain Rp 500.','money_players',-500,0),
+                ('kesempatan','Maju ke Bandung. Jika melewati Start, terima Rp 2.000.','move_pos',24,2000),
+                ('kesempatan','Perbaikan rumah. Bayar Rp 2.500 per rumah yang dimiliki.','money_bank',-2500,0),
+                ('kesempatan','Anda mendapat hadiah ulang tahun dari setiap pemain Rp 500.','money_players',500,0),
+                ('kesempatan','Maju mundur 3 langkah.','move_steps',-3,0),
+                ('kesempatan','Bebas dari penjara. Simpan kartu ini sampai dibutuhkan.','free',0,0),
+                ('dana_umum','Terima warisan dari kakek. Terima Rp 5.000.','money_bank',5000,0),
+                ('dana_umum','Pajak penghasilan. Bayar Rp 2.000.','money_bank',-2000,0),
+                ('dana_umum','Dana pensiun cair! Terima Rp 1.000.','money_bank',1000,0),
+                ('dana_umum','Pergi ke penjara! Jangan melewati Start.','jail',10,0),
+                ('dana_umum','Biaya rumah sakit. Bayar Rp 1.500.','money_bank',-1500,0),
+                ('dana_umum','Anda menang lomba kecantikan! Terima Rp 1.000.','money_bank',1000,0),
+                ('dana_umum','Subsidi pemerintah cair. Terima Rp 2.000.','money_bank',2000,0),
                 ('dana_umum','Bebas dari penjara. Simpan kartu ini sampai dibutuhkan.','free',0)
             ");
         }

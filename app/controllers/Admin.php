@@ -130,6 +130,7 @@ class Admin extends Controller {
             $type = $_POST['type'] ?? 'kesempatan';
             $effectType = $_POST['effect_type'] ?? 'none';
             $effectValue = (int)($_POST['effect_value'] ?? 0);
+            $passStartMoney = (int)($_POST['pass_start_money'] ?? 0);
             $isActive = isset($_POST['is_active']) ? 1 : 0;
 
             $image_url = '';
@@ -144,19 +145,19 @@ class Admin extends Controller {
 
             if ($id > 0) {
                 if ($image_url) {
-                    $db->query("UPDATE cards SET text=:text, type=:type, effect_type=:et, effect_value=:ev, is_active=:ia, image_url=:img WHERE id=:id");
+                    $db->query("UPDATE cards SET text=:text, type=:type, effect_type=:et, effect_value=:ev, pass_start_money=:psm, is_active=:ia, image_url=:img WHERE id=:id");
                     $db->bind('img', $image_url);
                 } else {
-                    $db->query("UPDATE cards SET text=:text, type=:type, effect_type=:et, effect_value=:ev, is_active=:ia WHERE id=:id");
+                    $db->query("UPDATE cards SET text=:text, type=:type, effect_type=:et, effect_value=:ev, pass_start_money=:psm, is_active=:ia WHERE id=:id");
                 }
 
                 $db->bind('id', $id);
             } else {
-                $db->query("INSERT INTO cards (text, type, effect_type, effect_value, is_active, image_url) VALUES (:text,:type,:et,:ev,:ia,:img)");
+                $db->query("INSERT INTO cards (text, type, effect_type, effect_value, pass_start_money, is_active, image_url) VALUES (:text,:type,:et,:ev,:psm,:ia,:img)");
                 $db->bind('img', $image_url);
             }
             $db->bind('text', $text); $db->bind('type', $type);
-            $db->bind('et', $effectType); $db->bind('ev', $effectValue); $db->bind('ia', $isActive);
+            $db->bind('et', $effectType); $db->bind('ev', $effectValue); $db->bind('psm', $passStartMoney); $db->bind('ia', $isActive);
             $db->execute();
         }
         header('Location: ' . BASEURL . '/admin/cards'); exit;

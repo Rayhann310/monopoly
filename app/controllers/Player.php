@@ -310,10 +310,12 @@ class Player extends Controller {
     private function applyCardEffect($card, $player, $currentMoney, $currentPos) {
         $type  = $card['effect_type'];
         $value = (int)$card['effect_value'];
+        $passStartMoney = (int)($card['pass_start_money'] ?? 0);
         $newMoney = $currentMoney;
         $newPos   = $currentPos;
 
         switch ($type) {
+            case 'money_bank':
             case 'money':
                 if (stripos($card['text'], 'per rumah') !== false) {
                     $props = $this->model('PropertyModel')->getPlayerProperties($player['session_id'], $player['id']);
@@ -326,8 +328,36 @@ class Player extends Controller {
                     $newMoney += $value;
                 }
                 break;
+            case 'money_players':
+                $others = $this->model('PlayerModel')->getPlayersBySession($player['session_id']);
+                $otherPlayersCount = 0;
+                foreach ($others as $op) {
+                    if ($op['id'] != $player['id']) {
+                        $otherPlayersCount++;
+                        $this->model('PlayerModel')->addMoney($op['id'], -$value);
+                    }
+                }
+                $newMoney += ($value * $otherPlayersCount);
+                break;
+            case 'move_pos':
+                $newPos = $value >= 0 ? $value : 0;
+                // Check if passed start (assuming moving forward, so newPos < currentPos implies passed start)
+                if ($newPos < $currentPos && $passStartMoney != 0) {
+                    $newMoney += $passStartMoney;
+                }
+                break;
+            case 'move_steps':
+                $newPos = ($currentPos + $value + 40) % 40;
+                if ($value > 0 && $newPos < $currentPos && $passStartMoney != 0) {
+                    $newMoney += $passStartMoney;
+                }
+                break;
             case 'move':
+                // Legacy support
                 $newPos = $value >= 0 ? $value : max(0, ($currentPos + $value + 40) % 40);
+                if ($value >= 0 && $newPos < $currentPos && $passStartMoney != 0) {
+                    $newMoney += $passStartMoney;
+                }
                 break;
             case 'jail':
                 $newPos = 10;
