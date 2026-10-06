@@ -187,6 +187,11 @@ class Player extends Controller {
                         $action = $this->applyCardEffect($card, $player, $newMoney, $newPos);
                         $newMoney = $action['new_money'];
                         $newPos   = $action['new_position'];
+                        // Override type to ensure card is always 'card' (not jail override from applyCardEffect)
+                        $action['type'] = 'card';
+                        $action['card_type']  = 'kesempatan';
+                        $action['card_text']  = $card['text'];
+                        $action['card_image'] = $card['image_url'] ?? null;
                         $this->model('SessionModel')->setActiveCard($sessionId, json_encode([
                             'type'        => 'kesempatan',
                             'player_name' => $player['name'],
@@ -201,6 +206,10 @@ class Player extends Controller {
                         $action = $this->applyCardEffect($card, $player, $newMoney, $newPos);
                         $newMoney = $action['new_money'];
                         $newPos   = $action['new_position'];
+                        $action['type'] = 'card';
+                        $action['card_type']  = 'dana_umum';
+                        $action['card_text']  = $card['text'];
+                        $action['card_image'] = $card['image_url'] ?? null;
                         $this->model('SessionModel')->setActiveCard($sessionId, json_encode([
                             'type'        => 'dana_umum',
                             'player_name' => $player['name'],
@@ -238,16 +247,14 @@ class Player extends Controller {
                         // Milik sendiri — Buka opsi upgrade sesuai tingkat properti
                         $currentLevel = (int)$owner['houses'];
                         if ($cell['type'] === 'property' && $currentLevel < $maxPropLevel) {
+                            $lvl = $currentLevel + 1;
                             $options = [];
-                            for ($lvl = $currentLevel + 1; $lvl <= $maxPropLevel; $lvl++) {
-                                $cumCost = 0;
-                                for ($step = $currentLevel + 1; $step <= $lvl; $step++) {
-                                    $stepKey = "level{$step}_price";
-                                    $stepPrice = isset($cell[$stepKey]) && $cell[$stepKey] > 0
-                                        ? (int)$cell[$stepKey]
-                                        : $housePrice;
-                                    $cumCost += $stepPrice;
-                                }
+                            if ($lvl <= $maxPropLevel) {
+                                $stepKey = "level{$lvl}_price";
+                                $stepPrice = isset($cell[$stepKey]) && $cell[$stepKey] > 0
+                                    ? (int)$cell[$stepKey]
+                                    : $housePrice;
+                                $cumCost = $stepPrice; // Only 1 level allowed per upgrade
 
                                 $lvlName = $cell["level{$lvl}_name"] ?? ($lvl === 5 ? 'Hotel / Apartemen' : "Rumah {$lvl}");
                                 $lvlRent = isset($cell["level{$lvl}_rent"]) && $cell["level{$lvl}_rent"] > 0
@@ -547,11 +554,23 @@ class Player extends Controller {
         $activeCard = ($session && !empty($session['active_card'])) ? json_decode($session['active_card'], true) : null;
 
         $settings = $this->model('SettingsModel');
+
+        // Fetch pending trade offers
+        $db = new Database();
+        $db->query("SELECT t.*, p.name as from_name, b.name as cell_name, b.image_url 
+                    FROM trade_offers t 
+                    JOIN players p ON t.from_player_id = p.id
+                    JOIN board_properties b ON t.cell_index = b.cell_index
+                    WHERE t.session_id = :sid AND t.to_player_id = :pid AND t.status = 'pending'");
+        $db->bind('sid', $player['session_id']);
+        $db->bind('pid', $id);
+        $pendingOffers = $db->resultSet();
         echo json_encode([
             'is_turn'          => (bool)$player['is_turn'],
             'has_rolled'       => (bool)$player['has_rolled'],
             'in_jail'          => (bool)($player['in_jail'] ?? false),
             'jail_turns'       => (int)($player['jail_turns'] ?? 0),
+            'free_jail_cards'  => (int)($player['free_jail_cards'] ?? 0),
             'laps'             => (int)($player['laps'] ?? 0),
             'position'         => (int)$player['position'],
             'money'            => (int)$player['money'],
@@ -560,6 +579,88 @@ class Player extends Controller {
             'name_dana_umum'   => $settings->get('name_dana_umum', 'Dana Umum'),
             'name_kesempatan'  => $settings->get('name_kesempatan', 'Kesempatan'),
             'allow_trade'      => (bool)$settings->get('allow_trade', 1),
+            'jail_bribe_cost'  => (int)$settings->get('jail_bribe_cost', 5000),
+            'pending_offers'   => $pendingOffers,
+        ]);
+    }
+
+    public function apiBribeJail() {
+        header('Content-Type: application/json');
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            echo json_encode(['status' => 'error', 'msg' => 'Method not allowed']); return;
+        }
+
+        $id = (int)($_POST['player_id'] ?? 0);
+        $player = $this->model('PlayerModel')->getPlayerById($id);
+
+        if (!$player) {
+            echo json_encode(['status' => 'error', 'msg' => 'Pemain tidak ditemukan']); return;
+        }
+        if (!$player['is_turn']) {
+            echo json_encode(['status' => 'error', 'msg' => 'Bukan giliran kamu!']); return;
+        }
+        if (empty($player['in_jail'])) {
+            echo json_encode(['status' => 'error', 'msg' => 'Kamu tidak sedang di penjara!']); return;
+        }
+        if ($player['has_rolled']) {
+            echo json_encode(['status' => 'error', 'msg' => 'Sudah melempar dadu, selesaikan aksi saat ini!']); return;
+        }
+
+        $bribeCost = (int)$this->model('SettingsModel')->get('jail_bribe_cost', 5000);
+        if ((int)$player['money'] < $bribeCost) {
+            echo json_encode(['status' => 'error', 'msg' => 'Uang tidak cukup untuk membayar suap!']); return;
+        }
+
+        $db = new Database();
+        
+        // Cek siapa Pejabat Negara
+        $pejabatId = null;
+        $db->query("SELECT p.id FROM players p WHERE p.session_id = :sid AND p.position = (SELECT cell_index FROM board_properties WHERE type='pejabat' LIMIT 1) LIMIT 1");
+        $db->bind('sid', $player['session_id']);
+        $row = $db->single();
+        if ($row) $pejabatId = $row['id'];
+        
+        if ($pejabatId && $pejabatId != $id) {
+            // Suap mengalir ke Pejabat Negara
+            $db->query("UPDATE players SET money = money - :cost, in_jail = 0, jail_turns = 0 WHERE id = :id AND in_jail = 1");
+            $db->bind('cost', $bribeCost);
+            $db->bind('id', $id);
+            $db->execute();
+            
+            $db->query("UPDATE players SET money = money + :cost WHERE id = :pid");
+            $db->bind('cost', $bribeCost);
+            $db->bind('pid', $pejabatId);
+            $db->execute();
+            
+            $logMsg = "Menyuap Pejabat Negara Rp " . number_format($bribeCost, 0, ',', '.') . " untuk bebas penjara!";
+        } else {
+            // Suap mengalir ke pot parkir bebas jika aktif, kalau tidak hangus (ke Bank)
+            $db->query("UPDATE players SET money = money - :cost, in_jail = 0, jail_turns = 0 WHERE id = :id AND in_jail = 1");
+            $db->bind('cost', $bribeCost);
+            $db->bind('id', $id);
+            $db->execute();
+            
+            $freeParkingOn = (int)$this->model('SettingsModel')->get('free_parking_enabled', 1);
+            if ($freeParkingOn) {
+                $db->query("UPDATE sessions SET free_parking_pot = free_parking_pot + :cost WHERE id = :sid");
+                $db->bind('cost', $bribeCost);
+                $db->bind('sid', $player['session_id']);
+                $db->execute();
+            }
+            $logMsg = "Membayar denda Bank Rp " . number_format($bribeCost, 0, ',', '.') . " untuk bebas penjara!";
+        }
+
+        // Log action
+        $db->query("INSERT INTO game_log (session_id, player_id, action) VALUES (:sid, :pid, :act)");
+        $db->bind('sid', $player['session_id']);
+        $db->bind('pid', $id);
+        $db->bind('act', $logMsg);
+        $db->execute();
+
+        echo json_encode([
+            'status' => 'success',
+            'money' => (int)$player['money'] - $bribeCost,
+            'msg' => 'Berhasil menyuap! Silakan melempar dadu sekarang.'
         ]);
     }
 
@@ -618,5 +719,171 @@ class Player extends Controller {
         } else {
             echo json_encode(['status' => 'error', 'msg' => 'Gagal menggunakan kartu!']);
         }
+    }
+
+    public function apiGetOtherProperties($id = null) {
+        header('Content-Type: application/json');
+        if (!$id) return;
+        $player = $this->model('PlayerModel')->getPlayerById($id);
+        $db = new Database();
+        $db->query("SELECT p.*, pl.name as owner_name, pl.color as owner_color, b.name as cell_name, b.color_group, b.image_url, b.price
+                    FROM properties p
+                    JOIN players pl ON p.owner_id = pl.id
+                    JOIN board_properties b ON p.cell_index = b.cell_index
+                    WHERE p.session_id = :sid AND p.owner_id != :pid");
+        $db->bind('sid', $player['session_id']);
+        $db->bind('pid', $id);
+        echo json_encode(['status' => 'success', 'data' => $db->resultSet()]);
+    }
+
+    public function apiOfferTrade() {
+        header('Content-Type: application/json');
+        $fromId = (int)($_POST['from_player_id'] ?? 0);
+        $toId = (int)($_POST['to_player_id'] ?? 0);
+        $cellIndex = (int)($_POST['cell_index'] ?? 0);
+        $amount = (int)($_POST['amount'] ?? 0);
+        
+        $player = $this->model('PlayerModel')->getPlayerById($fromId);
+        if ($player['money'] < $amount) {
+            echo json_encode(['status' => 'error', 'msg' => 'Uang tidak cukup untuk penawaran ini!']); return;
+        }
+
+        $db = new Database();
+        $db->query("INSERT INTO trade_offers (session_id, from_player_id, to_player_id, cell_index, offer_amount) VALUES (:sid, :from, :to, :cell, :amt)");
+        $db->bind('sid', $player['session_id']);
+        $db->bind('from', $fromId);
+        $db->bind('to', $toId);
+        $db->bind('cell', $cellIndex);
+        $db->bind('amt', $amount);
+        $db->execute();
+        
+        // Log action
+        $db->query("SELECT name FROM board_properties WHERE cell_index = :ci");
+        $db->bind('ci', $cellIndex);
+        $propName = $db->single()['name'] ?? 'Properti';
+        
+        $db->query("INSERT INTO game_log (session_id, player_id, action) VALUES (:sid, :pid, :act)");
+        $db->bind('sid', $player['session_id']);
+        $db->bind('pid', $fromId);
+        $db->bind('act', "Mengajukan penawaran Rp " . number_format($amount,0,',','.') . " untuk $propName.");
+        $db->execute();
+
+        echo json_encode(['status' => 'success', 'msg' => 'Penawaran berhasil dikirim!']);
+    }
+
+    public function apiAcceptTrade() {
+        header('Content-Type: application/json');
+        $offerId = (int)($_POST['offer_id'] ?? 0);
+        
+        $db = new Database();
+        $db->query("SELECT * FROM trade_offers WHERE id = :id AND status = 'pending'");
+        $db->bind('id', $offerId);
+        $offer = $db->single();
+        if (!$offer) {
+            echo json_encode(['status' => 'error', 'msg' => 'Penawaran tidak valid atau sudah diproses.']); return;
+        }
+
+        $fromId = $offer['from_player_id'];
+        $toId = $offer['to_player_id']; 
+        $amt = $offer['offer_amount'];
+        $cell = $offer['cell_index'];
+        
+        $buyer = $this->model('PlayerModel')->getPlayerById($fromId);
+        if ($buyer['money'] < $amt) {
+            $db->query("UPDATE trade_offers SET status = 'rejected' WHERE id = :id");
+            $db->bind('id', $offerId);
+            $db->execute();
+            echo json_encode(['status' => 'error', 'msg' => 'Pembeli tidak lagi memiliki uang yang cukup. Penawaran dibatalkan.']); return;
+        }
+
+        $db->query("UPDATE trade_offers SET status = 'accepted' WHERE id = :id");
+        $db->bind('id', $offerId);
+        $db->execute();
+        
+        $db->query("UPDATE properties SET owner_id = :new_owner WHERE session_id = :sid AND cell_index = :cell");
+        $db->bind('new_owner', $fromId);
+        $db->bind('sid', $offer['session_id']);
+        $db->bind('cell', $cell);
+        $db->execute();
+        
+        $db->query("UPDATE players SET money = money - :amt WHERE id = :id");
+        $db->bind('amt', $amt);
+        $db->bind('id', $fromId);
+        $db->execute();
+        
+        $db->query("UPDATE players SET money = money + :amt WHERE id = :id");
+        $db->bind('amt', $amt);
+        $db->bind('id', $toId);
+        $db->execute();
+
+        $db->query("SELECT name FROM board_properties WHERE cell_index = :ci");
+        $db->bind('ci', $cell);
+        $propName = $db->single()['name'] ?? 'Properti';
+        
+        $db->query("INSERT INTO game_log (session_id, player_id, action) VALUES (:sid, :pid, :act)");
+        $db->bind('sid', $offer['session_id']);
+        $db->bind('pid', $toId);
+        $db->bind('act', "Menerima tawaran Rp " . number_format($amt,0,',','.') . " untuk $propName dari " . $buyer['name'] . ".");
+        $db->execute();
+
+        echo json_encode(['status' => 'success', 'msg' => 'Penawaran diterima! Properti telah berpindah tangan.']);
+    }
+
+    public function apiRejectTrade() {
+        header('Content-Type: application/json');
+        $offerId = (int)($_POST['offer_id'] ?? 0);
+        $db = new Database();
+        $db->query("UPDATE trade_offers SET status = 'rejected' WHERE id = :id");
+        $db->bind('id', $offerId);
+        $db->execute();
+        echo json_encode(['status' => 'success']);
+    }
+
+    public function apiSellToBank() {
+        header('Content-Type: application/json');
+        $playerId = (int)($_POST['player_id'] ?? 0);
+        $cellIndex = (int)($_POST['cell_index'] ?? 0);
+        $price = (int)($_POST['price'] ?? 0);
+
+        $player = $this->model('PlayerModel')->getPlayerById($playerId);
+        if (!$player) {
+            echo json_encode(['status' => 'error', 'msg' => 'Pemain tidak valid.']); return;
+        }
+
+        $db = new Database();
+        
+        // Verify ownership
+        $db->query("SELECT * FROM properties WHERE session_id = :sid AND owner_id = :pid AND cell_index = :cell");
+        $db->bind('sid', $player['session_id']);
+        $db->bind('pid', $playerId);
+        $db->bind('cell', $cellIndex);
+        $prop = $db->single();
+
+        if (!$prop) {
+            echo json_encode(['status' => 'error', 'msg' => 'Properti ini bukan milikmu.']); return;
+        }
+
+        // Sell
+        $db->query("DELETE FROM properties WHERE id = :id");
+        $db->bind('id', $prop['id']);
+        $db->execute();
+
+        $db->query("UPDATE players SET money = money + :price WHERE id = :pid");
+        $db->bind('price', $price);
+        $db->bind('pid', $playerId);
+        $db->execute();
+
+        // Log action
+        $db->query("SELECT name FROM board_properties WHERE cell_index = :ci");
+        $db->bind('ci', $cellIndex);
+        $propName = $db->single()['name'] ?? 'Properti';
+        
+        $db->query("INSERT INTO game_log (session_id, player_id, action) VALUES (:sid, :pid, :act)");
+        $db->bind('sid', $player['session_id']);
+        $db->bind('pid', $playerId);
+        $db->bind('act', "Menjual $propName ke Bank seharga Rp " . number_format($price, 0, ',', '.') . ".");
+        $db->execute();
+
+        echo json_encode(['status' => 'success', 'msg' => 'Properti berhasil dijual ke Bank.']);
     }
 }

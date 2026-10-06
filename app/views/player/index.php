@@ -9,6 +9,9 @@
 ?>
 
 <style>
+body { height: 100dvh; overflow: hidden; display: flex; flex-direction: column; background-color: #020617; } /* bg-slate-950 */
+#player-container { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
 @keyframes shake {
     0% { transform: translate(1px, 1px) rotate(0deg); }
     10% { transform: translate(-1px, -2px) rotate(-1deg); }
@@ -56,8 +59,9 @@
 .prop-modal-inner { animation: slideUp 0.28s cubic-bezier(.34,1.56,.64,1); }
 </style>
 
+<div id="player-container">
 <!-- Top Action Bar -->
-<div class="px-5 pt-4 pb-1 flex items-center justify-between">
+<div class="px-5 pt-4 pb-1 flex items-center justify-between shrink-0">
     <div class="flex items-center gap-2">
         <div class="w-8 h-8 rounded-full bg-slate-800 border border-white/10 flex items-center justify-center shadow-lg">
             <i class="fa-solid fa-user text-slate-400 text-xs"></i>
@@ -189,10 +193,18 @@
         
         <?php 
         $freeCards = (int)($data['player']['free_jail_cards'] ?? 0);
-        if ($freeCards > 0 && $isTurn && empty($data['player']['has_rolled'])): ?>
-            <button onclick="useJailCard()" class="mt-2 w-full bg-emerald-500 hover:bg-emerald-600 border border-emerald-400 text-white font-bold py-2 px-3 rounded-lg text-xs transition flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(16,185,129,0.3)]">
-                <i class="fa-solid fa-ticket-simple"></i> Pakai Kartu Bebas Penjara (Sisa: <?= $freeCards ?>)
-            </button>
+        $bribeCost = (int)($data['settings']['jail_bribe_cost']['setting_value'] ?? 5000);
+        if ($isTurn && empty($data['player']['has_rolled'])): ?>
+            <div class="flex gap-2 mt-2 w-full">
+            <?php if ($freeCards > 0): ?>
+                <button onclick="useJailCard()" class="flex-1 bg-emerald-500 hover:bg-emerald-600 border border-emerald-400 text-white font-bold py-2 px-2 rounded-lg text-[10px] transition leading-tight shadow-[0_0_15px_rgba(16,185,129,0.3)]">
+                    <i class="fa-solid fa-ticket-simple mr-1"></i> Kartu (<?= $freeCards ?>)
+                </button>
+            <?php endif; ?>
+                <button onclick="bribeJail()" class="flex-1 bg-amber-500 hover:bg-amber-600 border border-amber-400 text-white font-bold py-2 px-2 rounded-lg text-[10px] transition leading-tight shadow-[0_0_15px_rgba(245,158,11,0.3)]">
+                    <i class="fa-solid fa-money-bill-wave mr-1"></i> Suap (Rp <?= number_format($bribeCost, 0, ',', '.') ?>)
+                </button>
+            </div>
         <?php endif; ?>
     </div>
 <?php elseif ($isTurn): ?>
@@ -221,12 +233,13 @@
     <!-- Roll Button -->
     <button id="mobile-roll-btn"
         <?= !$data['player']['is_turn'] ? 'disabled' : '' ?>
-        class="w-full max-w-sm py-4 bg-gradient-to-r <?= $bgGrad ?> text-white rounded-2xl font-black text-xl shadow-[0_10px_30px_rgba(0,0,0,0.5)] active:scale-95 transition-transform border border-white/30 disabled:opacity-30 disabled:cursor-not-allowed disabled:active:scale-100">
-        <i class="fa-solid fa-hand-sparkles mr-2"></i> LEMPAR DADU
+        class="w-full max-w-sm py-4 bg-gradient-to-br <?= $bgGrad ?> text-white rounded-[2rem] font-black text-2xl tracking-wide shadow-[0_10px_40px_rgba(0,0,0,0.6)] active:scale-90 transition-all border border-white/20 disabled:opacity-30 disabled:cursor-not-allowed disabled:active:scale-100 relative overflow-hidden">
+        <div class="absolute inset-0 bg-white/20 transform -translate-x-full rounded-[2rem]"></div>
+        <i class="fa-solid fa-dice mr-2 drop-shadow-md"></i> LEMPAR DADU
     </button>
 
     <!-- End Turn Button (muncul setelah roll) -->
-    <button id="end-turn-btn" class="hidden w-full max-w-sm py-4 bg-emerald-500 hover:bg-emerald-600 text-white rounded-2xl font-black text-xl shadow-[0_10px_30px_rgba(0,0,0,0.5)] active:scale-95 transition-transform border border-emerald-400/30">
+    <button id="end-turn-btn" class="hidden w-full max-w-sm py-4 bg-emerald-500 hover:bg-emerald-600 text-white rounded-[2rem] font-black text-xl tracking-wide shadow-[0_10px_30px_rgba(16,185,129,0.4)] active:scale-90 transition-all border border-emerald-400/30">
         <i class="fa-solid fa-check mr-2"></i> SELESAI GILIRAN
     </button>
 </div>
@@ -243,17 +256,21 @@
             <div>
                 <h3 class="font-black text-white text-sm leading-none">Aset Properti</h3>
                 <span class="text-[9px] text-slate-500 font-bold uppercase tracking-wider">
-                    <?= count($data['properties']) ?> kota dimiliki
+                    <span id="prop-count-badge"><?= count($data['properties']) ?></span> kota dimiliki
                 </span>
             </div>
         </div>
-        <?php if (!empty($data['properties'])): ?>
-        <div class="flex items-center gap-1 text-slate-500 text-[10px] font-bold bg-slate-800/60 px-2 py-1 rounded-lg border border-white/5">
-            <i class="fa-solid fa-hand-point-left text-[9px]"></i> Geser
+        <div class="flex items-center gap-2">
+            <button onclick="openTradeModal()" class="flex items-center gap-1 text-white text-[10px] font-bold bg-indigo-500 hover:bg-indigo-600 px-3 py-1.5 rounded-lg border border-indigo-400/50 shadow-[0_0_15px_rgba(99,102,241,0.3)] transition-all">
+                <i class="fa-solid fa-handshake"></i> Bursa
+            </button>
+            <div class="flex items-center gap-1 text-slate-500 text-[10px] font-bold bg-slate-800/60 px-2 py-1.5 rounded-lg border border-white/5" id="prop-swipe-hint" style="<?= empty($data['properties']) ? 'display:none;' : '' ?>">
+                <i class="fa-solid fa-hand-point-left text-[9px]"></i> Geser
+            </div>
         </div>
-        <?php endif; ?>
     </div>
 
+    <div id="properties-slider-container">
     <!-- Cards Slider -->
     <div class="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory scrollbar-none" style="-webkit-overflow-scrolling:touch; scrollbar-width:none;">
 
@@ -394,12 +411,13 @@
         <!-- Spacer at end -->
         <div class="shrink-0 w-1"></div>
     </div>
+    </div> <!-- /#properties-slider-container -->
 </div>
 
 <style>
 .scrollbar-none::-webkit-scrollbar { display: none; }
 </style>
-
+</div> <!-- /#player-container -->
 
 <script>
     function showRulebook() {
@@ -1053,21 +1071,33 @@
                     if (status.properties) {
                         const newHash = JSON.stringify(status.properties);
                         if (newHash !== currentPropsHash) {
-                            location.reload();
-                            return;
+                            currentPropsHash = newHash;
+                            fetch(window.location.href)
+                                .then(r => r.text())
+                                .then(html => {
+                                    const doc = new DOMParser().parseFromString(html, 'text/html');
+                                    const newProps = doc.getElementById('properties-slider-container');
+                                    if (newProps) {
+                                        document.getElementById('properties-slider-container').innerHTML = newProps.innerHTML;
+                                        document.getElementById('prop-count-badge').textContent = doc.getElementById('prop-count-badge').textContent;
+                                        const hint = document.getElementById('prop-swipe-hint');
+                                        if (status.properties.length > 0) hint.style.display = 'flex';
+                                        else hint.style.display = 'none';
+                                    }
+                                });
                         }
                     }
 
-                    // Show card popup to non-rolling players (spectators)
-                    if (!isTurn && status.active_card) {
+                    // Show card popup to ALL players (active roller + spectators via polling)
+                    if (status.active_card) {
                         const cardText = status.active_card.text;
                         if (cardText !== lastShownCardText) {
                             lastShownCardText = cardText;
-                            showCardAnimation(
-                                status.active_card.type === 'kesempatan' ? 'Kesempatan' : 'Dana Umum',
-                                cardText,
-                                null
-                            );
+                            const cType = status.active_card.type;
+                            const cLabel = (cType === 'kesempatan') 
+                                ? (SETTINGS.name_kesempatan || 'Kesempatan') 
+                                : (SETTINGS.name_dana_umum || 'Dana Umum');
+                            showCardAnimation(cLabel, cardText, null);
                         }
                     } else if (!status.active_card) {
                         lastShownCardText = null;
@@ -1082,7 +1112,43 @@
                         rollBtn.classList.remove('hidden'); // KEMBALIKAN TOMBOL
                         rollBtn.style.pointerEvents = 'auto'; // KEMBALIKAN POINTER EVENTS
                         endTurnBtn.classList.add('hidden');
-                        showModal('<i class="fa-solid fa-dice mr-1"></i> Giliran Kamu!', 'Sekarang giliranmu! Lempar dadu.', 'success', '#22c55e');
+                        if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+                        // showModal removed as per request for faster gameplay
+                    }
+
+                    // Process pending offers
+                    if (status.pending_offers && status.pending_offers.length > 0) {
+                        const offer = status.pending_offers[0];
+                        if (!window.activeOfferId || window.activeOfferId !== offer.id) {
+                            window.activeOfferId = offer.id;
+                            let imgHtml = offer.image_url ? `<img src="${BASEURL}/${offer.image_url.includes('/') ? '' : 'assets_static/cities/'}${offer.image_url}" style="width:100%;height:100px;object-fit:cover;border-radius:12px;margin-bottom:10px">` : `<div style="height:80px;display:flex;align-items:center;justify-content:center;background:#1e293b;border-radius:12px;margin-bottom:10px"><i class="fa-solid fa-city" style="font-size:2.5rem;color:#475569"></i></div>`;
+                            Swal.fire({
+                                title: 'Penawaran Masuk!',
+                                html: `${imgHtml}
+                                    <div class="text-sm text-slate-300"><b>${offer.from_name}</b> ingin membeli properti <b>${offer.cell_name}</b> milikmu seharga:</div>
+                                    <div class="text-3xl font-black text-amber-400 my-2">Rp ${parseInt(offer.offer_amount).toLocaleString('id-ID')}</div>`,
+                                background: '#0f172a',
+                                color: '#f8fafc',
+                                showCancelButton: true,
+                                confirmButtonText: 'Terima',
+                                confirmButtonColor: '#10b981',
+                                cancelButtonText: 'Tolak',
+                                cancelButtonColor: '#ef4444',
+                                allowOutsideClick: false
+                            }).then(res => {
+                                if (res.isConfirmed) {
+                                    acceptTrade(offer.id);
+                                } else {
+                                    rejectTrade(offer.id);
+                                }
+                                window.activeOfferId = null;
+                            });
+                        }
+                    } else {
+                        if (window.activeOfferId && Swal.isVisible()) {
+                            Swal.close();
+                            window.activeOfferId = null;
+                        }
                     }
 
                     // Update badge status
@@ -1091,11 +1157,18 @@
                         if (status.in_jail) {
                             const jt = parseInt(status.jail_turns || 0);
                             badge.className = 'mx-6 mt-3 rounded-2xl px-4 py-3 flex items-center gap-3 shadow-lg bg-rose-950/70 border border-rose-500/50 shadow-rose-950/50';
-                            badge.innerHTML = `<i class="fa-solid fa-handcuffs text-2xl text-rose-400 animate-pulse"></i><div><div class="text-rose-400 font-black text-base flex items-center gap-2"><span>TERTAHAN DI PENJARA!</span><span class="text-xs bg-rose-500/30 text-rose-300 border border-rose-500/50 px-2 py-0.5 rounded-full font-bold">Percobaan ${jt}/3</span></div><div class="text-rose-300/80 text-xs">Dadu KEMBAR untuk bebas • Putaran ke-4 otomatis bebas</div></div>`;
+                            let actionBtns = '';
                             if (isTurn && !serverHasRolled) {
+                                actionBtns += '<div class="flex gap-2 mt-2 w-full">';
+                                if (status.free_jail_cards > 0) {
+                                    actionBtns += `<button onclick="useJailCard()" class="flex-1 bg-emerald-500 border border-emerald-400 text-white font-bold py-2 px-2 rounded-lg text-[10px] transition leading-tight shadow-[0_0_15px_rgba(16,185,129,0.3)]"><i class="fa-solid fa-ticket-simple mr-1"></i> Kartu (${status.free_jail_cards})</button>`;
+                                }
+                                actionBtns += `<button onclick="bribeJail()" class="flex-1 bg-amber-500 border border-amber-400 text-white font-bold py-2 px-2 rounded-lg text-[10px] transition leading-tight shadow-[0_0_15px_rgba(245,158,11,0.3)]"><i class="fa-solid fa-money-bill-wave mr-1"></i> Suap (Rp ${parseInt(status.jail_bribe_cost||5000).toLocaleString('id-ID')})</button>`;
+                                actionBtns += '</div>';
                                 rollBtn.disabled = false;
                                 rollBtn.classList.remove('opacity-30');
                             }
+                            badge.innerHTML = `<i class="fa-solid fa-handcuffs text-2xl text-rose-400 animate-pulse"></i><div class="flex-1 w-full"><div class="text-rose-400 font-black text-base flex flex-wrap items-center gap-2"><span>TERTAHAN DI PENJARA!</span><span class="text-xs bg-rose-500/30 text-rose-300 border border-rose-500/50 px-2 py-0.5 rounded-full font-bold">Percobaan ${jt}/3</span></div><div class="text-rose-300/80 text-xs mt-0.5">Dadu KEMBAR untuk bebas • Putaran ke-4 otomatis bebas</div>${actionBtns}</div>`;
                         } else if (isTurn) {
                             badge.className = 'mx-6 mt-3 rounded-2xl px-4 py-3 flex items-center gap-3 shadow-lg bg-emerald-500/20 border border-emerald-500/40 shadow-emerald-950/50';
                             badge.innerHTML = '<i class="fa-solid fa-crown text-2xl text-amber-400 animate-pulse"></i><div><div class="text-emerald-400 font-black text-base">GILIRAN KAMU!</div><div class="text-emerald-400/60 text-xs">Lempar dadu sekarang</div></div>';
@@ -1186,11 +1259,17 @@
                 <div id="pm-houses-icons" class="flex gap-1 flex-wrap"></div>
             </div>
 
-            <!-- Close Button -->
-            <button onclick="closePropModal()"
-                class="w-full py-3.5 bg-slate-700 hover:bg-slate-600 text-white font-black rounded-2xl transition active:scale-95">
-                <i class="fa-solid fa-xmark mr-2"></i>Tutup
-            </button>
+            <!-- Actions -->
+            <div class="flex gap-2 mt-4">
+                <button onclick="closePropModal()"
+                    class="flex-1 py-3 bg-slate-700 hover:bg-slate-600 text-white font-black rounded-2xl transition active:scale-95 text-sm">
+                    <i class="fa-solid fa-xmark mr-1"></i>Tutup
+                </button>
+                <button id="pm-sell-btn"
+                    class="flex-1 py-3 bg-rose-500 hover:bg-rose-600 text-white font-black rounded-2xl transition active:scale-95 text-sm shadow-[0_0_15px_rgba(225,29,72,0.4)]">
+                    <i class="fa-solid fa-building-circle-arrow-right mr-1"></i>Jual Bank
+                </button>
+            </div>
         </div>
     </div>
 </div>
@@ -1285,6 +1364,12 @@ function showPropertyDetail(prop) {
         document.getElementById('pm-houses-wrap').classList.add('hidden');
     }
 
+    // Sell to Bank logic
+    const sellBtn = document.getElementById('pm-sell-btn');
+    const sellPrice = Math.floor((parseInt(prop.price) + (parseInt(prop.house_price) * parseInt(prop.houses))) / 2);
+    sellBtn.onclick = () => sellToBank(prop.cell_index, prop.name, sellPrice);
+    sellBtn.innerHTML = `<i class="fa-solid fa-building-circle-arrow-right mr-1"></i>Jual (Rp ${sellPrice.toLocaleString('id-ID')})`;
+
     // Show
     modal.classList.remove('hidden');
     modal.classList.add('flex');
@@ -1294,6 +1379,37 @@ function closePropModal() {
     const modal = document.getElementById('prop-detail-modal');
     modal.classList.add('hidden');
     modal.classList.remove('flex');
+}
+
+async function sellToBank(cellIndex, propName, sellPrice) {
+    const { isConfirmed } = await Swal.fire({
+        title: 'Jual Properti?',
+        html: `Anda akan menjual <b>${propName}</b> ke Bank seharga <b>Rp ${sellPrice.toLocaleString('id-ID')}</b>.<br><br><span class="text-xs text-rose-400">Properti ini akan kembali menjadi milik Bank dan bisa dibeli oleh siapa saja yang mendarat di atasnya.</span>`,
+        icon: 'warning',
+        background: '#0f172a', color: '#f8fafc',
+        showCancelButton: true,
+        confirmButtonText: 'Ya, Jual',
+        cancelButtonText: 'Batal',
+        confirmButtonColor: '#ef4444',
+    });
+
+    if (isConfirmed) {
+        closePropModal();
+        Swal.fire({ title: 'Menjual Properti...', background: '#0f172a', color: '#f8fafc', showConfirmButton: false });
+        try {
+            const r = await fetch(BASEURL + '/player/apiSellToBank', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `player_id=${player.id}&cell_index=${cellIndex}&price=${sellPrice}`
+            });
+            const res = await r.json();
+            if (res.status === 'success') {
+                Swal.fire({icon: 'success', title: 'Terjual!', text: res.msg, timer: 1500, background: '#0f172a', color: '#f8fafc'});
+            } else {
+                Swal.fire({icon: 'error', title: 'Gagal', text: res.msg, background: '#0f172a', color: '#f8fafc'});
+            }
+        } catch(e) {}
+    }
 }
 
 async function useJailCard() {
@@ -1318,15 +1434,152 @@ async function useJailCard() {
                 color: '#f8fafc',
                 confirmButtonText: 'Lempar Dadu!',
                 confirmButtonColor: '#10b981',
-            }).then(() => location.reload());
+            });
         } else {
             Swal.fire({ icon: 'error', title: 'Gagal', text: data.msg, background: '#0f172a', color: '#f8fafc' });
             if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-ticket-simple"></i> Pakai Kartu Bebas Penjara'; }
         }
     } catch(e) {
         Swal.fire({ icon: 'error', title: 'Error', text: 'Gagal menghubungi server', background: '#0f172a', color: '#f8fafc' });
-        if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-ticket-simple"></i> Pakai Kartu Bebas Penjara'; }
+        if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-ticket-simple mr-1"></i> Kartu (Sisa)'; }
     }
+}
+
+async function bribeJail() {
+    const playerId = <?= (int)$data['player']['id'] ?>;
+    const btn = document.querySelector('button[onclick="bribeJail()"]');
+    if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Memproses...'; }
+
+    try {
+        const res = await fetch('<?= BASEURL ?>/player/apiBribeJail', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: 'player_id=' + playerId
+        });
+        const data = await res.json();
+
+        if (data.status === 'success') {
+            animateMoney(data.money);
+            Swal.fire({
+                icon: 'success',
+                title: 'Berhasil Menyuap!',
+                text: data.msg,
+                background: '#0f172a',
+                color: '#f8fafc',
+                confirmButtonText: 'Lempar Dadu!',
+                confirmButtonColor: '#10b981',
+            });
+        } else {
+            Swal.fire({ icon: 'error', title: 'Gagal', text: data.msg, background: '#0f172a', color: '#f8fafc' });
+            if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-money-bill-wave mr-1"></i> Suap'; }
+        }
+    } catch(e) {
+        Swal.fire({ icon: 'error', title: 'Error', text: 'Gagal menghubungi server', background: '#0f172a', color: '#f8fafc' });
+        if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-money-bill-wave mr-1"></i> Suap'; }
+    }
+async function openTradeModal() {
+    if (!isTurn) {
+        showModal('Belum Giliran', 'Kamu hanya bisa mengajukan penawaran saat giliranmu.', 'error');
+        return;
+    }
+    Swal.fire({
+        title: '<i class="fa-solid fa-circle-notch fa-spin"></i> Memuat Bursa...',
+        background: '#0f172a', color: '#f8fafc', showConfirmButton: false, allowOutsideClick: false
+    });
+    
+    try {
+        const r = await fetch(BASEURL + '/player/apiGetOtherProperties/' + player.id);
+        const res = await r.json();
+        if (res.status === 'success') {
+            if (res.data.length === 0) {
+                Swal.fire({icon: 'info', title: 'Bursa Kosong', text: 'Belum ada properti milik pemain lain.', background: '#0f172a', color: '#f8fafc'});
+                return;
+            }
+            let html = '<div class="flex flex-col gap-3 max-h-72 overflow-y-auto text-left">';
+            res.data.forEach(p => {
+                const img = p.image_url ? `<img src="${BASEURL}/${p.image_url.includes('/') ? '' : 'assets_static/cities/'}${p.image_url}" class="w-12 h-12 rounded object-cover">` : `<div class="w-12 h-12 rounded bg-slate-800 flex items-center justify-center"><i class="fa-solid fa-city text-slate-500"></i></div>`;
+                html += `<div class="flex items-center gap-3 p-3 bg-slate-800/50 rounded-xl border border-white/5 cursor-pointer hover:bg-slate-700 transition" onclick="submitTradeOffer(${p.cell_index}, ${p.owner_id}, '${p.cell_name}', ${p.price})">
+                            ${img}
+                            <div class="flex-1">
+                                <div class="font-bold text-white text-sm">${p.cell_name}</div>
+                                <div class="text-xs text-slate-400">Pemilik: <span style="color:${p.owner_color}">${p.owner_name}</span></div>
+                            </div>
+                            <div class="text-xs font-bold text-emerald-400 text-right">
+                                Nilai Awal<br>Rp ${parseInt(p.price).toLocaleString('id-ID')}
+                            </div>
+                        </div>`;
+            });
+            html += '</div>';
+            Swal.fire({
+                title: 'Bursa Properti',
+                html: html,
+                background: '#0f172a', color: '#f8fafc',
+                showCloseButton: true, showConfirmButton: false
+            });
+        }
+    } catch(e) {
+        Swal.fire({icon: 'error', title: 'Error', text: 'Gagal memuat bursa properti.', background: '#0f172a', color: '#f8fafc'});
+    }
+}
+
+async function submitTradeOffer(cellIndex, toPlayerId, propName, basePrice) {
+    const { value: amount } = await Swal.fire({
+        title: `Tawar ${propName}`,
+        input: 'number',
+        inputLabel: 'Masukkan Harga Penawaran (Rp)',
+        inputValue: basePrice * 2,
+        showCancelButton: true,
+        confirmButtonText: 'Kirim Tawaran',
+        cancelButtonText: 'Batal',
+        background: '#0f172a', color: '#f8fafc',
+        inputValidator: (val) => {
+            if (!val || parseInt(val) <= 0) return 'Masukkan jumlah yang valid!';
+            if (parseInt(val) > currentDisplayedMoney) return 'Uangmu tidak cukup!';
+        }
+    });
+
+    if (amount) {
+        Swal.fire({ title: 'Mengirim Penawaran...', background: '#0f172a', color: '#f8fafc', showConfirmButton: false });
+        try {
+            const r = await fetch(BASEURL + '/player/apiOfferTrade', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `from_player_id=${player.id}&to_player_id=${toPlayerId}&cell_index=${cellIndex}&amount=${amount}`
+            });
+            const res = await r.json();
+            if (res.status === 'success') {
+                Swal.fire({icon: 'success', title: 'Terkirim!', text: res.msg, timer: 1500, background: '#0f172a', color: '#f8fafc'});
+            } else {
+                Swal.fire({icon: 'error', title: 'Gagal', text: res.msg, background: '#0f172a', color: '#f8fafc'});
+            }
+        } catch(e) {}
+    }
+}
+
+async function acceptTrade(offerId) {
+    try {
+        const r = await fetch(BASEURL + '/player/apiAcceptTrade', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: `offer_id=${offerId}`
+        });
+        const res = await r.json();
+        if (res.status === 'success') {
+            Swal.fire({icon: 'success', title: 'Berhasil!', text: res.msg, timer: 2000, background: '#0f172a', color: '#f8fafc'});
+        } else {
+            Swal.fire({icon: 'error', title: 'Gagal', text: res.msg, background: '#0f172a', color: '#f8fafc'});
+        }
+    } catch(e) {}
+}
+
+async function rejectTrade(offerId) {
+    try {
+        await fetch(BASEURL + '/player/apiRejectTrade', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: `offer_id=${offerId}`
+        });
+    } catch(e) {}
 }
 </script>
 

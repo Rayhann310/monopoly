@@ -95,6 +95,18 @@ class Database {
             label VARCHAR(200) NOT NULL,
             type ENUM('number','text','boolean') DEFAULT 'text'
         )");
+
+        // === TABEL PENAWARAN (TRADE OFFERS) ===
+        $this->dbh->exec("CREATE TABLE IF NOT EXISTS trade_offers (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            session_id INT,
+            from_player_id INT,
+            to_player_id INT,
+            cell_index INT,
+            offer_amount INT,
+            status ENUM('pending', 'accepted', 'rejected') DEFAULT 'pending',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )");
         // Default settings
         $defaults = [
             ['starting_money',       '15000', 'Uang Awal Pemain (Rp)', 'number'],
@@ -109,6 +121,7 @@ class Database {
             ['house_price',          '150', 'Harga Beli Rumah/Tingkat Baru (Rp)', 'number'],
             ['free_parking_enabled', '1',   'Aktifkan Pot Parkir Bebas (pajak masuk pot)', 'boolean'],
             ['free_parking_seed',    '0',   'Dana Awal Pot Parkir Bebas (Rp)', 'number'],
+            ['jail_bribe_cost',      '50000', 'Biaya Suap Penjara (Rp)', 'number'],
         ];
         foreach ($defaults as $d) {
             $this->dbh->exec("INSERT IGNORE INTO game_settings (setting_key, setting_value, label, type) VALUES ('{$d[0]}','{$d[1]}','{$d[2]}','{$d[3]}')");
@@ -152,69 +165,9 @@ class Database {
         // Ensure unique key exists
         try { $this->dbh->exec("ALTER TABLE cards ADD UNIQUE KEY uq_card_hash (text_hash)"); } catch(Exception $e) {}
 
-        // Seed kartu — INSERT IGNORE: tidak pernah duplikat, tidak menimpa kartu custom
-        $seedCards = [
-            // ===== 25 KESEMPATAN =====
-            ['kesempatan','Kontenmu viral di media sosial! Dapat sponsorship dadakan. Terima Rp 75.000.','money_bank',75000,0],
-            ['kesempatan','Kena razia tilang di jalan tol. Bayar denda Rp 15.000.','money_bank',-15000,0],
-            ['kesempatan','Liburan ke Bali! Maju ke Denpasar. Jika melewati Start terima Rp 2.000.','move_pos',21,2000],
-            ['kesempatan','Tertangkap korupsi anggaran RT. Langsung masuk penjara!','jail',10,0],
-            ['kesempatan','Menang undian berhadiah dari minimarket. Terima Rp 50.000.','money_bank',50000,0],
-            ['kesempatan','Usaha warmie bangkrut. Bayar utang supplier Rp 30.000.','money_bank',-30000,0],
-            ['kesempatan','Terpilih jadi ketua OSIS. Traktir semua pemain masing-masing Rp 10.000.','money_players',-10000,0],
-            ['kesempatan','Dapat transfer salah dari orang asing. Terima Rp 25.000 dari setiap pemain.','money_players',25000,0],
-            ['kesempatan','Google Maps error, nyasar 3 langkah ke belakang.','move_steps',-3,0],
-            ['kesempatan','Bebas dari penjara. Simpan kartu ini sampai kamu butuhkan.','free',0,0],
-            ['kesempatan','Saham perusahaanmu naik drastis. Terima dividen Rp 100.000.','money_bank',100000,0],
-            ['kesempatan','Kena PHK mendadak. Bayar pesangon ke bank Rp 40.000.','money_bank',-40000,0],
-            ['kesempatan','Menang lomba startup tingkat nasional. Terima hadiah Rp 200.000.','money_bank',200000,0],
-            ['kesempatan','Pipa bocor di rumahmu. Biaya perbaikan Rp 20.000.','money_bank',-20000,0],
-            ['kesempatan','Teman lamamu bayar utang lama. Terima Rp 60.000.','money_bank',60000,0],
-            ['kesempatan','Denda tilang CCTV. Bayar Rp 12.000.','money_bank',-12000,0],
-            ['kesempatan','Jual barang bekas di marketplace, laris manis. Terima Rp 35.000.','money_bank',35000,0],
-            ['kesempatan','Kena sanksi pajak karena lapor telat. Bayar Rp 45.000.','money_bank',-45000,0],
-            ['kesempatan','Maju ke Jakarta! Jika melewati Start terima Rp 2.000.','move_pos',1,2000],
-            ['kesempatan','Bisnis dropship-mu untung bulan ini. Terima Rp 80.000.','money_bank',80000,0],
-            ['kesempatan','Bayar iuran arisan yang sudah menunggak. Bayar Rp 18.000.','money_bank',-18000,0],
-            ['kesempatan','Dapat bonus kinerja dari perusahaan. Terima Rp 150.000.','money_bank',150000,0],
-            ['kesempatan','Ketahuan parkir sembarangan. Bayar Rp 8.000.','money_bank',-8000,0],
-            ['kesempatan','Investasi reksa dana-mu cair dengan untung. Terima Rp 120.000.','money_bank',120000,0],
-            ['kesempatan','Kena tipu jual beli online. Rugi Rp 55.000.','money_bank',-55000,0],
+        // Kartu dikelola sepenuhnya melalui halaman Admin - tidak ada seed default
 
-            // ===== 25 DANA UMUM =====
-            ['dana_umum','THR akhir tahun cair dari pemerintah. Terima Rp 200.000.','money_bank',200000,0],
-            ['dana_umum','Biaya rawat inap rumah sakit. Bayar Rp 75.000.','money_bank',-75000,0],
-            ['dana_umum','Ulang tahunmu! Semua pemain kasih hadiah masing-masing Rp 15.000.','money_players',15000,0],
-            ['dana_umum','Ketahuan nyontek saat ujian dadu. Langsung masuk penjara!','jail',10,0],
-            ['dana_umum','Subsidi listrik dari pemerintah cair. Terima Rp 50.000.','money_bank',50000,0],
-            ['dana_umum','Bayar pajak bumi dan bangunan tahunan. Denda Rp 60.000.','money_bank',-60000,0],
-            ['dana_umum','Juara lomba 17-an tingkat kelurahan. Hadiah Rp 30.000.','money_bank',30000,0],
-            ['dana_umum','Beasiswa pendidikan cair. Terima Rp 100.000.','money_bank',100000,0],
-            ['dana_umum','TV rusak, beli baru. Bayar Rp 40.000.','money_bank',-40000,0],
-            ['dana_umum','Bebas dari penjara. Simpan kartu ini sampai kamu butuhkan.','free',0,0],
-            ['dana_umum','Warisan dari kakek jauh akhirnya cair. Terima Rp 300.000.','money_bank',300000,0],
-            ['dana_umum','Tagihan listrik dan air bulan ini membengkak. Bayar Rp 25.000.','money_bank',-25000,0],
-            ['dana_umum','Tabunganmu berbunga lebih dari biasanya. Terima Rp 45.000.','money_bank',45000,0],
-            ['dana_umum','Biaya servis motor tahunan. Bayar Rp 18.000.','money_bank',-18000,0],
-            ['dana_umum','Dana bantuan sosial dari kelurahan turun. Terima Rp 80.000.','money_bank',80000,0],
-            ['dana_umum','Kena denda keterlambatan bayar cicilan. Bayar Rp 35.000.','money_bank',-35000,0],
-            ['dana_umum','Panen investasi emas yang sudah lama ditanam. Terima Rp 175.000.','money_bank',175000,0],
-            ['dana_umum','Kecelakaan kecil di parkiran. Bayar ganti rugi Rp 50.000.','money_bank',-50000,0],
-            ['dana_umum','Traktir semua pemain makan, bayar masing-masing Rp 20.000.','money_players',-20000,0],
-            ['dana_umum','Royalti dari konten lama yang masih ditonton. Terima Rp 65.000.','money_bank',65000,0],
-            ['dana_umum','Biaya notaris urus sertifikat properti. Bayar Rp 30.000.','money_bank',-30000,0],
-            ['dana_umum','Dana hibah RT untuk warga berprestasi. Terima Rp 90.000.','money_bank',90000,0],
-            ['dana_umum','Bayar biaya kondangan yang menumpuk. Bayar Rp 22.000.','money_bank',-22000,0],
-            ['dana_umum','Asuransi jiwa cair lebih cepat dari perkiraan. Terima Rp 250.000.','money_bank',250000,0],
-            ['dana_umum','Renovasi genteng bocor sebelum musim hujan. Bayar Rp 55.000.','money_bank',-55000,0],
-        ];
-        $stmtCard = $this->dbh->prepare(
-            "INSERT IGNORE INTO cards (type, text, effect_type, effect_value, pass_start_money, text_hash)
-             VALUES (?, ?, ?, ?, ?, MD5(CONCAT(?, '|', ?)))"
-        );
-        foreach ($seedCards as $c) {
-            $stmtCard->execute([$c[0], $c[1], $c[2], $c[3], $c[4], $c[0], $c[1]]);
-        }
+
 
 
         // === TABEL SESI ===
