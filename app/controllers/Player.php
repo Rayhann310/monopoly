@@ -726,17 +726,29 @@ class Player extends Controller {
 
     public function apiGetOtherProperties($id = null) {
         header('Content-Type: application/json');
-        if (!$id) return;
+        if (!$id) { echo json_encode(['status' => 'error', 'msg' => 'ID pemain tidak valid']); return; }
         $player = $this->model('PlayerModel')->getPlayerById($id);
+        if (!$player) { echo json_encode(['status' => 'error', 'msg' => 'Pemain tidak ditemukan']); return; }
+
         $db = new Database();
-        $db->query("SELECT p.*, pl.name as owner_name, pl.color as owner_color, b.name as cell_name, b.color_group, b.image_url, b.price
-                    FROM properties p
-                    JOIN players pl ON p.owner_id = pl.id
-                    JOIN board_properties b ON p.cell_index = b.cell_index
-                    WHERE p.session_id = :sid AND p.owner_id != :pid");
-        $db->bind('sid', $player['session_id']);
-        $db->bind('pid', $id);
-        echo json_encode(['status' => 'success', 'data' => $db->resultSet()]);
+        try {
+            $db->query("SELECT p.cell_index, p.owner_id, p.houses,
+                               pl.name AS owner_name, pl.color AS owner_color,
+                               COALESCE(b.name, 'Properti') AS cell_name,
+                               COALESCE(b.price, 0) AS price,
+                               b.image_url
+                        FROM properties p
+                        JOIN players pl ON p.owner_id = pl.id
+                        LEFT JOIN board_properties b ON p.cell_index = b.cell_index
+                        WHERE p.session_id = :sid AND p.owner_id != :pid
+                        ORDER BY p.cell_index");
+            $db->bind('sid', $player['session_id']);
+            $db->bind('pid', $id);
+            $rows = $db->resultSet();
+            echo json_encode(['status' => 'success', 'data' => $rows ?: []]);
+        } catch (Exception $e) {
+            echo json_encode(['status' => 'error', 'msg' => 'Gagal mengambil data: ' . $e->getMessage()]);
+        }
     }
 
     public function apiOfferTrade() {

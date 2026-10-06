@@ -1578,34 +1578,44 @@ async function openTradeModal() {
         const r = await fetch(BASEURL + '/player/apiGetOtherProperties/' + player.id);
         const res = await r.json();
         if (res.status === 'success') {
-            if (res.data.length === 0) {
-                Swal.fire({icon: 'info', title: 'Bursa Kosong', text: 'Belum ada properti milik pemain lain.', background: '#0f172a', color: '#f8fafc'});
+            if (!res.data || res.data.length === 0) {
+                Swal.fire({icon: 'info', title: 'Bursa Kosong', text: 'Belum ada properti milik pemain lain yang bisa dibeli.', background: '#0f172a', color: '#f8fafc'});
                 return;
             }
-            let html = '<div class="flex flex-col gap-3 max-h-72 overflow-y-auto text-left">';
+            let html = '<div class="flex flex-col gap-3 max-h-72 overflow-y-auto pr-1 text-left">';
             res.data.forEach(p => {
-                const img = p.image_url ? `<img src="${BASEURL}/${p.image_url.includes('/') ? '' : 'assets_static/cities/'}${p.image_url}" class="w-12 h-12 rounded object-cover">` : `<div class="w-12 h-12 rounded bg-slate-800 flex items-center justify-center"><i class="fa-solid fa-city text-slate-500"></i></div>`;
-                html += `<div class="flex items-center gap-3 p-3 bg-slate-800/50 rounded-xl border border-white/5 cursor-pointer hover:bg-slate-700 transition" onclick="submitTradeOffer(${p.cell_index}, ${p.owner_id}, '${p.cell_name}', ${p.price})">
+                const imgSrc = p.image_url
+                    ? `${BASEURL}/${p.image_url.includes('/') ? '' : 'assets_static/cities/'}${p.image_url}`
+                    : null;
+                const img = imgSrc
+                    ? `<img src="${imgSrc}" class="w-12 h-12 rounded-lg object-cover flex-shrink-0">`
+                    : `<div class="w-12 h-12 rounded-lg bg-slate-700 flex items-center justify-center flex-shrink-0"><i class="fa-solid fa-city text-slate-400"></i></div>`;
+                const safeOwner = p.owner_color ? `style="color:${p.owner_color}"` : '';
+                html += `<div class="flex items-center gap-3 p-3 bg-slate-800/60 rounded-xl border border-white/8 cursor-pointer hover:bg-slate-700 transition-all active:scale-95"
+                              onclick="submitTradeOffer(${p.cell_index}, ${p.owner_id}, '${(p.cell_name||'').replace(/'/g,"\\'")}', ${p.price||0})">
                             ${img}
-                            <div class="flex-1">
-                                <div class="font-bold text-white text-sm">${p.cell_name}</div>
-                                <div class="text-xs text-slate-400">Pemilik: <span style="color:${p.owner_color}">${p.owner_name}</span></div>
+                            <div class="flex-1 min-w-0">
+                                <div class="font-bold text-white text-sm truncate">${p.cell_name || 'Properti'}</div>
+                                <div class="text-xs text-slate-400">Pemilik: <span ${safeOwner} class="font-semibold">${p.owner_name || '-'}</span></div>
                             </div>
-                            <div class="text-xs font-bold text-emerald-400 text-right">
-                                Nilai Awal<br>Rp ${parseInt(p.price).toLocaleString('id-ID')}
+                            <div class="text-xs font-bold text-emerald-400 text-right flex-shrink-0">
+                                Harga<br>Rp ${parseInt(p.price||0).toLocaleString('id-ID')}
                             </div>
                         </div>`;
             });
             html += '</div>';
             Swal.fire({
-                title: 'Bursa Properti',
+                title: '<i class="fa-solid fa-store text-indigo-400 mr-2"></i> Bursa Properti',
                 html: html,
                 background: '#0f172a', color: '#f8fafc',
-                showCloseButton: true, showConfirmButton: false
+                showCloseButton: true, showConfirmButton: false,
+                customClass: { popup: 'rounded-2xl border border-white/10 shadow-2xl' }
             });
+        } else {
+            Swal.fire({icon: 'error', title: 'Gagal', text: res.msg || 'Gagal memuat bursa properti.', background: '#0f172a', color: '#f8fafc'});
         }
     } catch(e) {
-        Swal.fire({icon: 'error', title: 'Error', text: 'Gagal memuat bursa properti.', background: '#0f172a', color: '#f8fafc'});
+        Swal.fire({icon: 'error', title: 'Error Koneksi', text: 'Tidak dapat terhubung ke server. Coba lagi.', background: '#0f172a', color: '#f8fafc'});
     }
 }
 
