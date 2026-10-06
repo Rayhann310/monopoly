@@ -288,11 +288,10 @@
             text-align: center;
             z-index: 20;
             position: relative;
-            transform: scale(1.5);
         }
 
         .title-text { 
-            font-size: clamp(1.8rem, 5vmin, 4.5rem); 
+            font-size: clamp(1.2rem, 3.5vmin, 3rem); 
             font-weight: 900;
             background: linear-gradient(135deg, #92400e 0%, #d97706 40%, #f59e0b 60%, #b45309 100%);
             -webkit-background-clip: text;
