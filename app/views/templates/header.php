@@ -86,26 +86,25 @@
             border-radius: 20px;
             position: relative;
             
-            background: #fff7e0;
-            border: 5px solid #f59e0b;
+            background: #b45309;
+            border: 4px solid #f59e0b;
             box-shadow: 
-                0 0 0 3px #fbbf24,
-                0 0 0 8px #f59e0b,
-                0 0 0 12px #d97706,
-                -1px 1px 0 12px #b45309,
-                -2px 2px 0 12px #b45309,
-                -3px 3px 0 12px #b45309,
-                -4px 4px 0 12px #b45309,
-                -5px 5px 0 12px #b45309,
-                -6px 6px 0 12px #92400e,
-                -7px 7px 0 12px #92400e,
-                -8px 8px 0 12px #92400e,
-                -9px 9px 0 12px #92400e,
-                -10px 10px 0 12px #92400e,
-                -20px 20px 40px 10px rgba(0,0,0,0.7);
+                0 0 0 2px #d97706,
+                -1px 1px 0 2px #b45309,
+                -2px 2px 0 2px #b45309,
+                -3px 3px 0 2px #92400e,
+                -4px 4px 0 2px #92400e,
+                -5px 5px 0 2px #92400e,
+                -6px 6px 0 2px #78350f,
+                -7px 7px 0 2px #78350f,
+                -8px 8px 0 2px #78350f,
+                -9px 9px 0 2px #451a03,
+                -10px 10px 0 2px #451a03,
+                -11px 11px 0 2px #451a03,
+                -15px 15px 30px 10px rgba(0,0,0,0.8);
                 
             transform-style: preserve-3d;
-            transform: rotateX(55deg) rotateZ(45deg);
+            transform: rotateX(50deg) rotateZ(45deg);
         }
 
         @media (max-width: 768px) {
@@ -131,15 +130,27 @@
             background-color: #fffef5;
             overflow: hidden;
             border-radius: 4px;
-            box-shadow: inset 1px 1px 0 rgba(255,255,255,0.8), inset -1px -1px 0 rgba(0,0,0,0.15), inset 0 0 0 2px rgba(0,0,0,0.05); /* Bevel effect */
+            box-shadow: 
+                inset 1px 1px 0 rgba(255,255,255,0.8), 
+                inset -1px -1px 0 rgba(0,0,0,0.15), 
+                0 0 0 1px rgba(0,0,0,0.1),
+                -1px 1px 0 0 #d97706,
+                -2px 2px 0 0 #b45309,
+                -3px 3px 0 0 #92400e;
             transition: transform 0.2s, filter 0.2s, box-shadow 0.2s;
-            transform: translateZ(5px); /* Pop out slightly from the board */
+            transform: translateZ(10px); /* Raised to form a wall */
             transform-style: preserve-3d;
         }
         .cell:hover {
             filter: brightness(1.1);
-            box-shadow: inset 0 0 0 2px rgba(251,191,36,1), 0 10px 20px rgba(0,0,0,0.3);
-            transform: translateZ(15px) scale(1.02); /* Pop out more on hover */
+            transform: translateZ(20px) scale(1.05); /* Pop out more on hover */
+            box-shadow: 
+                inset 0 0 0 2px rgba(251,191,36,1), 
+                -1px 1px 0 0 #d97706,
+                -2px 2px 0 0 #b45309,
+                -3px 3px 0 0 #92400e,
+                -4px 4px 0 0 #78350f,
+                -10px 10px 20px rgba(0,0,0,0.5);
             z-index: 30;
         }
 
@@ -270,7 +281,7 @@
                 inset 1px 1px 5px rgba(255,255,255,0.8);
             border: 2px solid rgba(255,255,255,1);
             transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-            transform: rotateZ(-45deg) rotateX(-55deg) translateZ(20px); /* Counter-rotate and elevate */
+            transform: rotateZ(-45deg) rotateX(-50deg) translateZ(20px); /* Counter-rotate and elevate */
             transform-style: preserve-3d;
         }
         
@@ -284,24 +295,28 @@
             grid-column: 2 / 11;
             grid-row: 2 / 11;
             background: 
-                radial-gradient(ellipse at 50% 40%, #fffde7 0%, #fef9c3 35%, #fde68a 70%, #fbbf24 100%);
+                radial-gradient(ellipse at 50% 40%, #0284c7 0%, #0369a1 40%, #075985 80%, #082f49 100%);
             display: flex;
             align-items: center;
             justify-content: center;
             flex-direction: column;
             border-radius: 12px;
             box-shadow: 
-                inset 0 0 40px rgba(251,191,36,0.3),
-                inset 0 0 80px rgba(245,158,11,0.15);
+                inset 0 10px 30px rgba(0,0,0,0.5),
+                inset 0 -10px 30px rgba(0,0,0,0.3),
+                inset 10px 0 30px rgba(0,0,0,0.5),
+                inset -10px 0 30px rgba(0,0,0,0.3);
             position: relative;
             overflow: hidden;
+            transform: translateZ(0px); /* Lower than cells */
+            transform-style: preserve-3d;
         }
         /* Decorative dots pattern */
         .center-space::before {
             content: '';
             position: absolute;
             inset: 0;
-            background-image: radial-gradient(circle, rgba(251,191,36,0.4) 1px, transparent 1px);
+            background-image: radial-gradient(circle, rgba(255,255,255,0.15) 1px, transparent 1px);
             background-size: 18px 18px;
             opacity: 0.5;
         }
@@ -313,7 +328,7 @@
             text-align: center;
             z-index: 20;
             position: relative;
-            transform: rotateZ(-45deg) rotateX(-55deg) scale(1.5) translateZ(40px);
+            transform: rotateZ(-45deg) rotateX(-50deg) scale(1.5) translateZ(40px);
             transform-style: preserve-3d;
         }
 
