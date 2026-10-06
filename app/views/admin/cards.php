@@ -81,72 +81,154 @@
     </div>
 
     <!-- Add/Edit Card Modal -->
-    <div id="add-modal" class="hidden fixed inset-0 bg-black/90 z-50 items-center justify-center p-4">
-        <div class="bg-slate-900 border border-white/10 rounded-2xl p-8 w-full max-w-lg">
-            <h2 class="text-2xl font-black mb-6" id="modal-title"><i class="fa-solid fa-plus-circle text-blue-400 mr-2"></i>Tambah Kartu</h2>
-            <form id="card-form" method="POST" action="<?= BASEURL ?>/admin/saveCard" enctype="multipart/form-data">
-                <input type="hidden" name="id" id="card-id" value="0">
-                <div class="mb-4">
-                    <label class="text-slate-400 text-sm font-bold uppercase mb-2 block">Tipe Kartu</label>
-                    <select name="type" id="card-type" class="w-full bg-slate-800 border border-white/10 rounded-xl px-4 py-3 text-white font-bold focus:outline-none focus:border-blue-500">
-                        <option value="kesempatan">Kesempatan</option>
-                        <option value="dana_umum">Dana Umum</option>
-                    </select>
-                </div>
-                <div class="mb-4">
-                    <label class="block text-slate-400 font-bold mb-2 text-sm uppercase tracking-wider">Gambar Kartu (Opsional)</label>
-                    <input type="file" name="image" id="card_image" accept="image/*" class="w-full bg-slate-800 border border-white/10 rounded-xl px-4 py-3 text-slate-400 focus:outline-none focus:border-blue-500">
-                    <p class="text-xs text-slate-500 mt-1">Format: JPG/PNG. Kosongkan jika tidak ingin mengubah.</p>
-                </div>
-                <div class="mb-4">
-                    <label class="text-slate-400 text-sm font-bold uppercase mb-2 block">Teks Kartu</label>
-                    <textarea name="text" id="card-text" required rows="3" placeholder="Isi instruksi kartu..."
-                        class="w-full bg-slate-800 border border-white/10 rounded-xl px-4 py-3 text-white font-bold focus:outline-none focus:border-blue-500 resize-none"></textarea>
-                </div>
-                <div class="grid grid-cols-2 gap-4 mb-4">
-                    <div>
-                        <label class="text-slate-400 text-sm font-bold uppercase mb-2 block">Jenis Efek</label>
-                        <select name="effect_type" id="card-effect" class="w-full bg-slate-800 border border-white/10 rounded-xl px-4 py-3 text-white font-bold focus:outline-none focus:border-blue-500">
-                            <option value="none">Tidak Ada</option>
-                            <option value="money_bank">Uang Bank (+/-)</option>
-                            <option value="money_players">Uang Semua Pemain (+/-)</option>
-                            <option value="move_pos">Pindah Lokasi Spesifik</option>
-                            <option value="move_steps">Maju / Mundur Langkah (+/-)</option>
-                            <option value="jail">Masuk Penjara</option>
-                            <option value="free">Bebas Penjara</option>
-                        </select>
+    <div id="add-modal" class="hidden fixed inset-0 z-50 items-center justify-center p-3 backdrop-blur-md" style="background:rgba(0,0,0,0.85)">
+        <div class="bg-gradient-to-br from-slate-900 via-slate-900 to-slate-800 border border-white/10 rounded-3xl w-full max-w-2xl shadow-[0_30px_80px_rgba(0,0,0,0.9)] overflow-hidden max-h-[96svh] flex flex-col">
+            
+            <!-- Modal Header -->
+            <div class="relative px-7 pt-6 pb-4 border-b border-white/10 flex items-center justify-between shrink-0">
+                <div class="flex items-center gap-3">
+                    <div id="modal-icon-wrap" class="w-11 h-11 rounded-2xl bg-blue-500/20 border border-blue-500/30 flex items-center justify-center">
+                        <i id="modal-icon" class="fa-solid fa-plus-circle text-blue-400 text-lg"></i>
                     </div>
                     <div>
-                        <label class="text-slate-400 text-sm font-bold uppercase mb-2 block" id="label-nilai">Nilai</label>
-                        <input type="hidden" name="effect_value" id="real-card-value" value="0">
-                        <input type="number" id="card-value-num" value="0" placeholder="contoh: 2000 atau -1500"
-                            class="w-full bg-slate-800 border border-white/10 rounded-xl px-4 py-3 text-white font-bold focus:outline-none focus:border-blue-500">
-                        <select id="card-value-select" class="w-full bg-slate-800 border border-white/10 rounded-xl px-4 py-3 text-white font-bold focus:outline-none focus:border-blue-500 hidden">
-                            <?php foreach ($data['board'] as $index => $cell): ?>
-                                <option value="<?= $index ?>"><?= $index ?> - <?= htmlspecialchars($cell['name']) ?></option>
-                            <?php endforeach; ?>
-                        </select>
+                        <h2 class="text-xl font-black text-white" id="modal-title">Tambah Kartu</h2>
+                        <p class="text-xs text-slate-500 mt-0.5">Isi detail kartu di bawah ini</p>
                     </div>
                 </div>
-                <div class="mb-4">
-                    <label class="text-slate-400 text-sm font-bold uppercase mb-2 block">Uang Jika Melewati Start (Opsional)</label>
-                    <input type="number" name="pass_start_money" id="card-pass-start" value="0" placeholder="Misal: 2000 (jika melewati start dapat uang)"
-                        class="w-full bg-slate-800 border border-white/10 rounded-xl px-4 py-3 text-white font-bold focus:outline-none focus:border-blue-500">
-                    <p class="text-xs text-slate-500 mt-1">Hanya berlaku untuk efek Pindah Lokasi. Isi 2000 untuk tambah, -2000 untuk potong, atau 0 abaikan.</p>
-                </div>
-                <div class="mb-6 flex items-center gap-3">
-                    <input type="checkbox" name="is_active" id="card-active" value="1" checked class="w-5 h-5 accent-blue-500">
-                    <label for="card-active" class="text-white font-bold">Kartu Aktif</label>
-                </div>
-                <div class="flex gap-3">
-                    <button type="submit" class="flex-1 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-black rounded-xl">
-                        <i class="fa-solid fa-save mr-2"></i> Simpan
-                    </button>
-                    <button type="button" onclick="closeModal()" class="px-6 py-3 bg-slate-700 text-slate-300 font-bold rounded-xl">Batal</button>
-                </div>
-            </form>
+                <button type="button" onclick="closeModal()" class="w-9 h-9 rounded-xl bg-white/5 hover:bg-white/15 text-slate-400 hover:text-white transition flex items-center justify-center">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <!-- Modal Body -->
+            <div class="overflow-y-auto flex-1">
+                <form id="card-form" method="POST" action="<?= BASEURL ?>/admin/saveCard" enctype="multipart/form-data">
+                    <input type="hidden" name="id" id="card-id" value="0">
+                    <div class="px-7 py-5 space-y-5">
+
+                        <!-- Tipe + Aktif -->
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="text-slate-400 text-xs font-bold uppercase tracking-widest mb-2 block">
+                                    <i class="fa-solid fa-layer-group mr-1 text-blue-400"></i> Tipe Kartu
+                                </label>
+                                <select name="type" id="card-type" onchange="updateModalTheme()" class="w-full bg-slate-800/80 border border-white/10 rounded-xl px-4 py-3 text-white font-bold focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400/30 transition">
+                                    <option value="kesempatan">🎯 Kesempatan</option>
+                                    <option value="dana_umum">💎 Dana Umum</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="text-slate-400 text-xs font-bold uppercase tracking-widest mb-2 block">
+                                    <i class="fa-solid fa-toggle-on mr-1 text-emerald-400"></i> Status
+                                </label>
+                                <label class="w-full h-[50px] bg-slate-800/80 border border-white/10 rounded-xl px-4 flex items-center gap-3 cursor-pointer hover:bg-slate-700/50 transition">
+                                    <input type="checkbox" name="is_active" id="card-active" value="1" checked class="w-5 h-5 accent-emerald-500 cursor-pointer">
+                                    <span class="text-white font-bold text-sm">Kartu Aktif</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Teks Kartu -->
+                        <div>
+                            <label class="text-slate-400 text-xs font-bold uppercase tracking-widest mb-2 block">
+                                <i class="fa-solid fa-align-left mr-1 text-amber-400"></i> Teks Kartu
+                            </label>
+                            <textarea name="text" id="card-text" required rows="3" placeholder="Isi instruksi yang tampil di kartu..."
+                                class="w-full bg-slate-800/80 border border-white/10 rounded-xl px-4 py-3 text-white font-semibold text-sm focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400/30 resize-none transition placeholder:text-slate-600 leading-relaxed"></textarea>
+                        </div>
+
+                        <!-- Jenis Efek -->
+                        <div>
+                            <label class="text-slate-400 text-xs font-bold uppercase tracking-widest mb-2 block">
+                                <i class="fa-solid fa-wand-magic-sparkles mr-1 text-purple-400"></i> Jenis Efek
+                            </label>
+                            <div class="grid grid-cols-3 sm:grid-cols-4 gap-2" id="effect-grid">
+                                <button type="button" data-val="none"         class="effect-chip selected" onclick="selectEffect('none')"><i class="fa-solid fa-ban"></i><span>Tidak Ada</span></button>
+                                <button type="button" data-val="money_bank"   class="effect-chip" onclick="selectEffect('money_bank')"><i class="fa-solid fa-building-columns"></i><span>Uang Bank</span></button>
+                                <button type="button" data-val="money_players" class="effect-chip" onclick="selectEffect('money_players')"><i class="fa-solid fa-users"></i><span>Uang Semua Pemain</span></button>
+                                <button type="button" data-val="move_pos"     class="effect-chip" onclick="selectEffect('move_pos')"><i class="fa-solid fa-map-pin"></i><span>Pindah ke Kota</span></button>
+                                <button type="button" data-val="move_steps"   class="effect-chip" onclick="selectEffect('move_steps')"><i class="fa-solid fa-shoe-prints"></i><span>Maju/Mundur</span></button>
+                                <button type="button" data-val="jail"         class="effect-chip" onclick="selectEffect('jail')"><i class="fa-solid fa-handcuffs"></i><span>Masuk Penjara</span></button>
+                                <button type="button" data-val="free"         class="effect-chip" onclick="selectEffect('free')"><i class="fa-solid fa-ticket-simple"></i><span>Bebas Penjara</span></button>
+                            </div>
+                            <input type="hidden" name="effect_type" id="card-effect" value="none">
+                        </div>
+
+                        <!-- Nilai / Kota (conditional) -->
+                        <div id="nilai-wrap">
+                            <label class="text-slate-400 text-xs font-bold uppercase tracking-widest mb-2 block" id="label-nilai">
+                                <i class="fa-solid fa-coins mr-1 text-amber-400"></i> <span id="label-nilai-text">Nilai (Rp)</span>
+                            </label>
+                            <input type="hidden" name="effect_value" id="real-card-value" value="0">
+                            <input type="number" id="card-value-num" value="0" placeholder="contoh: 2000 atau -1500"
+                                class="w-full bg-slate-800/80 border border-white/10 rounded-xl px-4 py-3 text-white font-bold focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400/30 transition">
+                            <select id="card-value-select" class="w-full bg-slate-800/80 border border-white/10 rounded-xl px-4 py-3 text-white font-bold focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400/30 transition hidden">
+                                <?php foreach ($data['board'] as $index => $cell): ?>
+                                    <option value="<?= $index ?>"><?= $index ?> — <?= htmlspecialchars($cell['name']) ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                            <p id="nilai-hint" class="text-xs text-slate-500 mt-1.5">Gunakan angka positif untuk tambah, negatif untuk kurang.</p>
+                        </div>
+
+                        <!-- Bonus Melewati Start (conditional) -->
+                        <div id="pass-start-wrap" class="hidden">
+                            <label class="text-slate-400 text-xs font-bold uppercase tracking-widest mb-2 block">
+                                <i class="fa-solid fa-flag-checkered mr-1 text-emerald-400"></i> Bonus Melewati Start (Opsional)
+                            </label>
+                            <input type="number" name="pass_start_money" id="card-pass-start" value="0" placeholder="Misal: 2000 (isi 0 untuk tidak ada bonus)"
+                                class="w-full bg-slate-800/80 border border-white/10 rounded-xl px-4 py-3 text-white font-bold focus:outline-none focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400/30 transition">
+                            <p class="text-xs text-slate-500 mt-1.5">Pemain mendapat bonus ini jika pindah lokasi melewati petak Start.</p>
+                        </div>
+
+                        <!-- Gambar -->
+                        <div>
+                            <label class="block text-slate-400 text-xs font-bold uppercase tracking-widest mb-2">
+                                <i class="fa-solid fa-image mr-1 text-rose-400"></i> Gambar Kartu <span class="text-slate-600 normal-case font-normal">(opsional)</span>
+                            </label>
+                            <input type="file" name="image" id="card_image" accept="image/*" 
+                                class="w-full text-sm text-slate-400 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-blue-500/20 file:text-blue-400 file:font-bold file:cursor-pointer hover:file:bg-blue-500/30 transition bg-slate-800/80 border border-white/10 rounded-xl px-3 py-2">
+                            <p class="text-xs text-slate-600 mt-1.5">Format JPG/PNG. Kosongkan untuk tidak mengubah gambar.</p>
+                        </div>
+
+                    </div>
+
+                    <!-- Modal Footer -->
+                    <div class="px-7 py-5 border-t border-white/10 flex gap-3 shrink-0 bg-slate-900/60">
+                        <button type="button" onclick="closeModal()" class="px-6 py-3 bg-slate-700/80 hover:bg-slate-700 text-slate-300 font-bold rounded-xl transition">
+                            <i class="fa-solid fa-xmark mr-1"></i> Batal
+                        </button>
+                        <button type="submit" class="flex-1 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-400 hover:to-indigo-500 text-white font-black rounded-xl transition shadow-lg shadow-blue-900/40 flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-floppy-disk"></i> Simpan Kartu
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
+
+    <style>
+    .effect-chip {
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        gap: 5px; padding: 10px 6px; border-radius: 12px; font-size: 10px; font-weight: 700;
+        border: 1.5px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.04);
+        color: #94a3b8; cursor: pointer; text-align: center; transition: all 0.18s;
+        min-height: 64px; line-height: 1.2;
+    }
+    .effect-chip i { font-size: 16px; }
+    .effect-chip:hover { background: rgba(255,255,255,0.1); color: #fff; border-color: rgba(255,255,255,0.2); }
+    .effect-chip.selected { background: rgba(59,130,246,0.2); border-color: rgba(59,130,246,0.6); color: #60a5fa; box-shadow: 0 0 12px rgba(59,130,246,0.2); }
+    .effect-chip[data-val="jail"].selected { background: rgba(239,68,68,0.2); border-color: rgba(239,68,68,0.6); color: #f87171; box-shadow: 0 0 12px rgba(239,68,68,0.2); }
+    .effect-chip[data-val="free"].selected { background: rgba(16,185,129,0.2); border-color: rgba(16,185,129,0.6); color: #34d399; box-shadow: 0 0 12px rgba(16,185,129,0.2); }
+    .effect-chip[data-val="money_bank"].selected,
+    .effect-chip[data-val="money_players"].selected { background: rgba(245,158,11,0.2); border-color: rgba(245,158,11,0.6); color: #fbbf24; box-shadow: 0 0 12px rgba(245,158,11,0.2); }
+    .effect-chip[data-val="move_pos"].selected,
+    .effect-chip[data-val="move_steps"].selected { background: rgba(139,92,246,0.2); border-color: rgba(139,92,246,0.6); color: #a78bfa; box-shadow: 0 0 12px rgba(139,92,246,0.2); }
+    #add-modal { animation: fadeInModal 0.18s ease; }
+    #add-modal > div { animation: scaleInModal 0.22s cubic-bezier(.34,1.56,.64,1); }
+    @keyframes fadeInModal { from { opacity:0 } to { opacity:1 } }
+    @keyframes scaleInModal { from { transform:scale(0.93); opacity:0 } to { transform:scale(1); opacity:1 } }
+    </style>
+
 
 <script>
 function filterCards(type) {
@@ -156,74 +238,117 @@ function filterCards(type) {
         c.style.display = (type === 'all' || c.dataset.type === type) ? 'block' : 'none';
     });
 }
+
+function selectEffect(val) {
+    document.getElementById('card-effect').value = val;
+    document.querySelectorAll('.effect-chip').forEach(c => c.classList.remove('selected'));
+    const chip = document.querySelector(`.effect-chip[data-val="${val}"]`);
+    if (chip) chip.classList.add('selected');
+    toggleEffectInput();
+}
+
+function toggleEffectInput() {
+    const type       = document.getElementById('card-effect').value;
+    const numInput   = document.getElementById('card-value-num');
+    const selInput   = document.getElementById('card-value-select');
+    const realInput  = document.getElementById('real-card-value');
+    const nilaiWrap  = document.getElementById('nilai-wrap');
+    const passWrap   = document.getElementById('pass-start-wrap');
+    const hint       = document.getElementById('nilai-hint');
+    const labelText  = document.getElementById('label-nilai-text');
+
+    const noValueTypes = ['none', 'jail', 'free'];
+    const moveTypes    = ['move_pos', 'move_steps'];
+
+    nilaiWrap.style.display = noValueTypes.includes(type) ? 'none' : '';
+    passWrap.classList.toggle('hidden', !moveTypes.includes(type));
+
+    if (type === 'move_pos') {
+        numInput.classList.add('hidden');
+        selInput.classList.remove('hidden');
+        if (!selInput.value) selInput.selectedIndex = 0;
+        realInput.value = selInput.value;
+        if (labelText) labelText.textContent = 'Tujuan Kota';
+        if (hint) hint.textContent = 'Pilih petak tujuan perpindahan.';
+    } else {
+        numInput.classList.remove('hidden');
+        selInput.classList.add('hidden');
+        realInput.value = numInput.value;
+        if (type === 'move_steps') {
+            if (labelText) labelText.textContent = 'Jumlah Langkah';
+            if (hint) hint.textContent = 'Positif = maju, negatif = mundur langkah.';
+        } else {
+            if (labelText) labelText.textContent = 'Nilai (Rp)';
+            if (hint) hint.textContent = 'Positif = dapat uang, negatif = bayar uang.';
+        }
+    }
+}
+
+function updateModalTheme() {
+    const type = document.getElementById('card-type').value;
+    const wrap = document.getElementById('modal-icon-wrap');
+    const icon = document.getElementById('modal-icon');
+    if (!wrap || !icon) return;
+    if (type === 'kesempatan') {
+        wrap.className = 'w-11 h-11 rounded-2xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center';
+        icon.className = 'fa-solid fa-question text-amber-400 text-lg';
+    } else {
+        wrap.className = 'w-11 h-11 rounded-2xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center';
+        icon.className = 'fa-solid fa-gem text-emerald-400 text-lg';
+    }
+}
+
 function editCard(card) {
-    document.getElementById('modal-title').innerHTML = '<i class="fa-solid fa-pen text-blue-400 mr-2"></i>Edit Kartu';
-    document.getElementById('card-id').value = card.id;
+    document.getElementById('modal-title').textContent = 'Edit Kartu';
+    document.getElementById('card-id').value   = card.id;
     document.getElementById('card-type').value = card.type;
     document.getElementById('card-text').value = card.text;
-    document.getElementById('card-effect').value = card.effect_type;
-    
+    updateModalTheme();
+    selectEffect(card.effect_type || 'none');
+
     document.getElementById('real-card-value').value = card.effect_value;
     if (card.effect_type === 'move_pos') {
         document.getElementById('card-value-select').value = card.effect_value;
     } else {
         document.getElementById('card-value-num').value = card.effect_value;
     }
-    toggleEffectInput();
-    
     document.getElementById('card-pass-start').value = card.pass_start_money || 0;
-    document.getElementById('card-active').checked = card.is_active == 1;
+    document.getElementById('card-active').checked   = card.is_active == 1;
     document.getElementById('add-modal').classList.remove('hidden');
     document.getElementById('add-modal').classList.add('flex');
 }
 
 function openAddModal() {
     document.getElementById('card-form').reset();
-    document.getElementById('modal-title').innerHTML = '<i class="fa-solid fa-plus-circle text-blue-400 mr-2"></i>Tambah Kartu';
+    document.getElementById('modal-title').textContent = 'Tambah Kartu';
     document.getElementById('card-id').value = 0;
-    toggleEffectInput();
+    const wrap = document.getElementById('modal-icon-wrap');
+    const icon = document.getElementById('modal-icon');
+    if (wrap) wrap.className = 'w-11 h-11 rounded-2xl bg-blue-500/20 border border-blue-500/30 flex items-center justify-center';
+    if (icon) icon.className = 'fa-solid fa-plus-circle text-blue-400 text-lg';
+    selectEffect('none');
     document.getElementById('add-modal').classList.remove('hidden');
     document.getElementById('add-modal').classList.add('flex');
 }
 
-function toggleEffectInput() {
-    const type = document.getElementById('card-effect').value;
-    const numInput = document.getElementById('card-value-num');
-    const selInput = document.getElementById('card-value-select');
-    const realInput = document.getElementById('real-card-value');
-    
-    if (type === 'move_pos') {
-        numInput.classList.add('hidden');
-        selInput.classList.remove('hidden');
-        if (!selInput.value) selInput.selectedIndex = 0;
-        realInput.value = selInput.value;
-    } else {
-        numInput.classList.remove('hidden');
-        selInput.classList.add('hidden');
-        realInput.value = numInput.value;
-    }
-}
-
-// Add event listeners when modal is ready
-document.addEventListener('DOMContentLoaded', () => {
-    const effectDropdown = document.getElementById('card-effect');
-    if (effectDropdown) {
-        effectDropdown.addEventListener('change', toggleEffectInput);
-    }
-    
-    document.getElementById('card-value-num')?.addEventListener('input', e => {
-        document.getElementById('real-card-value').value = e.target.value;
-    });
-
-    document.getElementById('card-value-select')?.addEventListener('change', e => {
-        document.getElementById('real-card-value').value = e.target.value;
-    });
-});
 function closeModal() {
     document.getElementById('add-modal').classList.add('hidden');
     document.getElementById('add-modal').classList.remove('flex');
     document.getElementById('card-id').value = 0;
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('card-value-num')?.addEventListener('input', e => {
+        document.getElementById('real-card-value').value = e.target.value;
+    });
+    document.getElementById('card-value-select')?.addEventListener('change', e => {
+        document.getElementById('real-card-value').value = e.target.value;
+    });
+    // Close modal on backdrop click
+    document.getElementById('add-modal')?.addEventListener('click', e => {
+        if (e.target === e.currentTarget) closeModal();
+    });
+});
 </script>
 </body>
 </html>
