@@ -45,6 +45,8 @@ class BoardModel {
 
     public function getBoard() {
         $db = new Database();
+        
+        // Fetch custom names & prices for cities
         $db->query("SELECT * FROM board_properties");
         $customs = $db->resultSet();
         $customMap = [];
@@ -52,9 +54,23 @@ class BoardModel {
             $customMap[(int)$c['cell_index']] = $c;
         }
 
+        // Fetch dynamic game settings for Tax, Luxury Tax, and Start Bonus
+        $db->query("SELECT setting_key, setting_value FROM game_settings WHERE setting_key IN ('tax_amount', 'luxury_tax', 'pass_go_bonus')");
+        $sets = $db->resultSet();
+        $gameSettings = [
+            'tax_amount' => 2000,
+            'luxury_tax' => 7500,
+            'pass_go_bonus' => 2000
+        ];
+        foreach ($sets as $s) {
+            $gameSettings[$s['setting_key']] = (int)$s['setting_value'];
+        }
+
         $board = $this->board;
         foreach ($board as $idx => &$cell) {
             $cell['index'] = $idx;
+            
+            // Override with custom city props if available
             if (isset($customMap[$idx])) {
                 $c = $customMap[$idx];
                 if (!empty($c['name']))      $cell['name']      = $c['name'];
@@ -67,7 +83,19 @@ class BoardModel {
                     if (!empty($c["level{$lvl}_rent"]))  $cell["level{$lvl}_rent"]  = (int)$c["level{$lvl}_rent"];
                 }
             }
+
+            // Apply dynamic settings for Taxes and Start
+            if ($cell['type'] === 'tax') {
+                if ($idx == 38) { // Pajak Mewah
+                    $cell['price'] = $gameSettings['luxury_tax'];
+                } else { // Pajak Biasa
+                    $cell['price'] = $gameSettings['tax_amount'];
+                }
+            } else if ($cell['type'] === 'start') {
+                $cell['price'] = $gameSettings['pass_go_bonus'];
+            }
         }
         return $board;
     }
 }
+

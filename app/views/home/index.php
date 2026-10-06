@@ -82,7 +82,8 @@
                         }
 
                         if (isset($cell['price'])) {
-                            echo '<div class="price z-10">Rp ' . number_format($cell['price'], 0, ',', '.') . '</div>';
+                            $prefix = ($cellType === 'start') ? '+' : '';
+                            echo '<div class="price z-10">' . $prefix . 'Rp ' . number_format($cell['price'], 0, ',', '.') . '</div>';
                         } else {
                             echo '<div class="price z-10"></div>';
                         }
