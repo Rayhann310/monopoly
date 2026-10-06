@@ -23,6 +23,37 @@
     100% { transform: translate(1px, -2px) rotate(-1deg); }
 }
 .shake { animation: shake 0.3s; animation-iteration-count: infinite; }
+
+/* Property card click effect */
+.property-card {
+    cursor: pointer;
+    user-select: none;
+    transition: transform 0.18s cubic-bezier(.34,1.56,.64,1), box-shadow 0.18s;
+    position: relative;
+    overflow: hidden;
+}
+.property-card:active { transform: scale(0.93); }
+.property-card::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(circle at var(--rx,50%) var(--ry,50%), rgba(255,255,255,0.22) 0%, transparent 65%);
+    opacity: 0;
+    transition: opacity 0.3s;
+    pointer-events: none;
+    border-radius: inherit;
+}
+.property-card:active::after { opacity: 1; }
+
+/* Tap hint pulse on card */
+@keyframes tapHint { 0%,100%{opacity:.6} 50%{opacity:1} }
+.tap-hint { animation: tapHint 2s ease-in-out infinite; }
+
+/* Modal slide-up */
+@keyframes slideUp {
+    from { transform: translateY(100%); opacity: 0; }
+    to   { transform: translateY(0);    opacity: 1; }
+}
+.prop-modal-inner { animation: slideUp 0.28s cubic-bezier(.34,1.56,.64,1); }
 </style>
 
 <!-- Credit Card Container -->
@@ -175,14 +206,49 @@
                 }
                 if (!$boardCell) continue;
                 $color = $boardCell['color_group'] ?? 'slate';
+                $houses = (int)$prop['houses'];
+                $imgPath = '';
+                if (!empty($boardCell['image_url'])) {
+                    $imgPath = (strpos($boardCell['image_url'], '/') === false)
+                        ? BASEURL . '/assets_static/cities/' . $boardCell['image_url']
+                        : BASEURL . '/' . $boardCell['image_url'];
+                }
+                // Build JSON for JS
+                $propData = json_encode([
+                    'cell_index'  => (int)$prop['cell_index'],
+                    'name'        => $boardCell['name'] ?? '',
+                    'color'       => $color,
+                    'price'       => (int)($boardCell['price'] ?? 0),
+                    'house_price' => (int)($boardCell['house_price'] ?? 0),
+                    'houses'      => $houses,
+                    'image'       => $imgPath,
+                    'level1_name' => $boardCell['level1_name'] ?? 'Rumah 1',
+                    'level2_name' => $boardCell['level2_name'] ?? 'Rumah 2',
+                    'level3_name' => $boardCell['level3_name'] ?? 'Rumah 3',
+                    'level4_name' => $boardCell['level4_name'] ?? 'Rumah 4',
+                    'level5_name' => $boardCell['level5_name'] ?? 'Hotel/Apartemen',
+                    'level0_rent' => (int)(($boardCell['price'] ?? 0) * 0.1),
+                    'level1_rent' => (int)($boardCell['level1_rent'] ?? 0),
+                    'level2_rent' => (int)($boardCell['level2_rent'] ?? 0),
+                    'level3_rent' => (int)($boardCell['level3_rent'] ?? 0),
+                    'level4_rent' => (int)($boardCell['level4_rent'] ?? 0),
+                    'level5_rent' => (int)($boardCell['level5_rent'] ?? 0),
+                    'type'        => $boardCell['type'] ?? 'property',
+                ]);
             ?>
-            <div class="property-card border-t-4 border-t-<?= $color ?>-500 flex flex-col justify-between">
+            <div class="property-card border-t-4 border-t-<?= $color ?>-500 flex flex-col justify-between"
+                 onclick="showPropertyDetail(<?= htmlspecialchars($propData, ENT_QUOTES) ?>)"
+                 title="Klik untuk detail">
+                <?php if ($imgPath): ?>
+                <div class="w-full h-14 overflow-hidden rounded-lg mb-2 bg-slate-800">
+                    <img src="<?= $imgPath ?>" class="w-full h-full object-cover" loading="lazy">
+                </div>
+                <?php endif; ?>
                 <div>
-                    <div class="text-[0.65rem] font-bold text-slate-400 uppercase tracking-wider mb-1">Kota</div>
-                    <div class="font-black text-white text-sm leading-tight mb-2"><?= $boardCell['name'] ?></div>
-                    <div class="flex gap-1">
+                    <div class="text-[0.65rem] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Kota</div>
+                    <div class="font-black text-white text-sm leading-tight mb-1.5"><?= $boardCell['name'] ?></div>
+                    <div class="flex gap-1 flex-wrap">
                         <?php 
-                        $houses = (int)$prop['houses'];
                         if ($houses > 0): 
                             for ($i = 0; $i < $houses; $i++): 
                                 $isHotel = ($i === 4);
@@ -193,9 +259,14 @@
                             endfor; 
                         else:
                         ?>
-                            <span class="text-xs text-slate-500 italic">Belum ada rumah</span>
+                            <span class="text-xs text-slate-500 italic">Tanah Kosong</span>
                         <?php endif; ?>
                     </div>
+                </div>
+                <!-- Tap hint -->
+                <div class="mt-1.5 flex items-center gap-1 tap-hint">
+                    <i class="fa-solid fa-hand-pointer text-[9px] text-slate-500"></i>
+                    <span class="text-[9px] text-slate-500 font-bold">Lihat Detail</span>
                 </div>
             </div>
             <?php endforeach; ?>
@@ -795,4 +866,173 @@
             class="px-8 py-3 bg-blue-500 text-white font-bold rounded-xl w-full">Oke</button>
     </div>
 </div>
+
+<!-- ===== PROPERTY DETAIL MODAL ===== -->
+<div id="prop-detail-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-[1000] items-end justify-center"
+     onclick="if(event.target===this)closePropModal()">
+    <div class="prop-modal-inner w-full max-w-sm bg-slate-900 border border-white/10 rounded-t-3xl shadow-2xl overflow-hidden pb-safe">
+
+        <!-- Drag Handle -->
+        <div class="flex justify-center pt-3 pb-1">
+            <div class="w-10 h-1 rounded-full bg-white/20"></div>
+        </div>
+
+        <!-- Header: Image -->
+        <div id="pm-img-wrap" class="w-full h-40 bg-slate-800 relative overflow-hidden">
+            <img id="pm-img" src="" class="w-full h-full object-cover" style="display:none">
+            <div id="pm-img-placeholder" class="absolute inset-0 flex items-center justify-center">
+                <i class="fa-solid fa-city text-5xl text-slate-600"></i>
+            </div>
+            <!-- Color Overlay Bar -->
+            <div id="pm-color-bar" class="absolute bottom-0 left-0 right-0 h-1.5"></div>
+        </div>
+
+        <!-- Body -->
+        <div class="px-5 pt-4 pb-6">
+
+            <!-- Name + Level Badge -->
+            <div class="flex items-start justify-between gap-3 mb-3">
+                <div>
+                    <div class="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-0.5">Aset Properti</div>
+                    <div id="pm-name" class="text-xl font-black text-white leading-tight"></div>
+                </div>
+                <div id="pm-level-badge" class="shrink-0 px-3 py-1 rounded-full text-xs font-black border text-center mt-1"></div>
+            </div>
+
+            <!-- Harga Beli + Harga Upgrade -->
+            <div class="grid grid-cols-2 gap-2 mb-4">
+                <div class="bg-slate-800/70 rounded-xl p-3 border border-white/5">
+                    <div class="text-[10px] text-slate-500 uppercase tracking-wider font-bold mb-1">Harga Beli</div>
+                    <div id="pm-price" class="text-sm font-black text-amber-400"></div>
+                </div>
+                <div class="bg-slate-800/70 rounded-xl p-3 border border-white/5">
+                    <div class="text-[10px] text-slate-500 uppercase tracking-wider font-bold mb-1">Harga Upgrade</div>
+                    <div id="pm-house-price" class="text-sm font-black text-blue-400"></div>
+                </div>
+            </div>
+
+            <!-- Sewa Tiap Tingkat -->
+            <div class="bg-slate-800/50 rounded-2xl border border-white/5 overflow-hidden mb-4">
+                <div class="px-3 py-2 border-b border-white/5">
+                    <span class="text-[10px] uppercase tracking-wider text-slate-500 font-bold">Tabel Sewa per Tingkat</span>
+                </div>
+                <div id="pm-rent-table" class="divide-y divide-white/5"></div>
+            </div>
+
+            <!-- Houses visual -->
+            <div id="pm-houses-wrap" class="flex gap-1.5 items-center flex-wrap mb-4 hidden">
+                <span class="text-[10px] text-slate-500 uppercase tracking-wider font-bold mr-1">Kondisi:</span>
+                <div id="pm-houses-icons" class="flex gap-1 flex-wrap"></div>
+            </div>
+
+            <!-- Close Button -->
+            <button onclick="closePropModal()"
+                class="w-full py-3.5 bg-slate-700 hover:bg-slate-600 text-white font-black rounded-2xl transition active:scale-95">
+                <i class="fa-solid fa-xmark mr-2"></i>Tutup
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+const COLOR_HEX = {
+    red:'#ef4444', blue:'#3b82f6', green:'#10b981', yellow:'#eab308',
+    purple:'#a855f7', orange:'#f97316', pink:'#ec4899', teal:'#14b8a6',
+    brown:'#a16207', cyan:'#06b6d4', slate:'#64748b', indigo:'#6366f1'
+};
+
+function showPropertyDetail(prop) {
+    const modal = document.getElementById('prop-detail-modal');
+    const accentColor = COLOR_HEX[prop.color] || '#64748b';
+
+    // Image
+    const img = document.getElementById('pm-img');
+    const ph  = document.getElementById('pm-img-placeholder');
+    if (prop.image) {
+        img.src = prop.image;
+        img.style.display = 'block';
+        ph.style.display = 'none';
+    } else {
+        img.style.display = 'none';
+        ph.style.display = 'flex';
+    }
+    document.getElementById('pm-color-bar').style.background = accentColor;
+
+    // Name
+    document.getElementById('pm-name').textContent = prop.name;
+
+    // Level badge
+    const levelBadge = document.getElementById('pm-level-badge');
+    const levelNames = [prop.level1_name, prop.level2_name, prop.level3_name, prop.level4_name, prop.level5_name];
+    const currentLevelName = prop.houses > 0 ? (levelNames[prop.houses - 1] || 'Level ' + prop.houses) : 'Tanah Kosong';
+    levelBadge.textContent = currentLevelName;
+    if (prop.houses === 0) {
+        levelBadge.className = 'shrink-0 px-3 py-1 rounded-full text-xs font-black border text-center mt-1 bg-slate-700 text-slate-300 border-slate-500';
+    } else if (prop.houses >= 5) {
+        levelBadge.className = 'shrink-0 px-3 py-1 rounded-full text-xs font-black border text-center mt-1 bg-red-500/20 text-red-400 border-red-500/50';
+    } else {
+        levelBadge.className = 'shrink-0 px-3 py-1 rounded-full text-xs font-black border text-center mt-1 bg-emerald-500/20 text-emerald-400 border-emerald-500/50';
+    }
+
+    // Prices
+    document.getElementById('pm-price').textContent = prop.price ? 'Rp ' + parseInt(prop.price).toLocaleString('id-ID') : '-';
+    document.getElementById('pm-house-price').textContent = prop.house_price ? 'Rp ' + parseInt(prop.house_price).toLocaleString('id-ID') + ' /lvl' : '-';
+
+    // Rent table
+    const rentTable = document.getElementById('pm-rent-table');
+    rentTable.innerHTML = '';
+    const levels = [
+        { label: 'Tanah Kosong', rent: prop.level0_rent, icon: 'fa-land-mine-on', houses: 0 },
+        { label: prop.level1_name || 'Rumah 1',  rent: prop.level1_rent, icon: 'fa-house', houses: 1 },
+        { label: prop.level2_name || 'Rumah 2',  rent: prop.level2_rent, icon: 'fa-house', houses: 2 },
+        { label: prop.level3_name || 'Rumah 3',  rent: prop.level3_rent, icon: 'fa-house', houses: 3 },
+        { label: prop.level4_name || 'Rumah 4',  rent: prop.level4_rent, icon: 'fa-house', houses: 4 },
+        { label: prop.level5_name || 'Hotel',    rent: prop.level5_rent, icon: 'fa-hotel',  houses: 5 },
+    ];
+    levels.forEach(lvl => {
+        if (!lvl.rent && lvl.houses > 0) return;
+        const isCurrent = (lvl.houses === prop.houses);
+        const div = document.createElement('div');
+        div.className = 'flex items-center justify-between px-3 py-2' + (isCurrent ? ' bg-white/10' : '');
+        const iconColor = lvl.houses === 5 ? 'text-red-400' : (lvl.houses > 0 ? 'text-emerald-400' : 'text-slate-500');
+        const rentColor = isCurrent ? 'text-amber-300 font-black' : 'text-slate-300 font-bold';
+        div.innerHTML = `
+            <div class="flex items-center gap-2">
+                <i class="fa-solid ${lvl.icon} text-xs ${iconColor}"></i>
+                <span class="text-xs text-slate-300">${lvl.label}</span>
+                ${isCurrent ? '<span class="text-[9px] bg-amber-500/20 text-amber-400 border border-amber-500/30 px-1.5 rounded-full font-black">AKTIF</span>' : ''}
+            </div>
+            <span class="text-xs ${rentColor}">Rp ${parseInt(lvl.rent||0).toLocaleString('id-ID')}</span>
+        `;
+        rentTable.appendChild(div);
+    });
+
+    // Houses icons
+    if (prop.houses > 0) {
+        const housesWrap = document.getElementById('pm-houses-wrap');
+        housesWrap.classList.remove('hidden');
+        const iconsDiv = document.getElementById('pm-houses-icons');
+        iconsDiv.innerHTML = '';
+        for (let i = 0; i < prop.houses; i++) {
+            const isHotel = i === 4;
+            const ic = document.createElement('i');
+            ic.className = `fa-solid ${isHotel ? 'fa-hotel text-red-400' : 'fa-house text-emerald-400'} text-sm`;
+            iconsDiv.appendChild(ic);
+            if (isHotel) break;
+        }
+    } else {
+        document.getElementById('pm-houses-wrap').classList.add('hidden');
+    }
+
+    // Show
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+}
+
+function closePropModal() {
+    const modal = document.getElementById('prop-detail-modal');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+}
+</script>
 
