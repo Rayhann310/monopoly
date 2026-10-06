@@ -115,11 +115,11 @@
                         echo '    <div class="w-[clamp(35px,8vmin,90px)] h-[clamp(55px,13vmin,130px)] bg-amber-700 rounded-xl absolute top-2 right-2 -z-20 transform rotate-3"></div>';
                         echo '</div>';
 
-                        // Konten tengah: MONOPOLY + EDISI INDONESIA + Giliran (di atas, tidak menutupi kartu)
-                        echo '<div class="center-content-wrapper absolute top-[10%] left-1/2 -translate-x-1/2 z-20 w-full flex flex-col items-center">';
+                        // Konten tengah: MONOPOLY + EDISI INDONESIA + Giliran (di tengah, di antara kartu)
+                        echo '<div class="center-content-wrapper absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 w-full flex flex-col items-center">';
                         echo '<h1 class="title-text font-black">MONOPOLY</h1>';
                         echo '<h2 class="subtitle-text font-bold">EDISI INDONESIA</h2>';
-                        echo '<p id="center-turn-info" class="info-badge font-bold"></p>';
+                        echo '<p id="center-turn-info" class="info-badge font-bold mt-2"></p>';
                         echo '</div>';
                         echo '</div>';
                     }
