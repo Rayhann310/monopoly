@@ -1,13 +1,13 @@
     <div class="board-area">
         <div class="monopoly-board">
             <?php 
-            // Load city images from DB
-            $cityImages = [];
+            // Load all board_properties from DB (price, image, levels)
+            $boardProps = [];
             try {
                 $imgDb = new Database;
-                $imgDb->query("SELECT cell_index, image_url FROM board_properties");
+                $imgDb->query("SELECT * FROM board_properties");
                 foreach ($imgDb->resultSet() as $r) {
-                    $cityImages[(int)$r['cell_index']] = $r['image_url'];
+                    $boardProps[(int)$r['cell_index']] = $r;
                 }
             } catch (Exception $e) { }
 
@@ -48,30 +48,60 @@
                         $cellType = $cell['type'] ?? '';
                         $cellName = $cell['name'] ?? '';
 
-                        // Color bar / image
+                        // Merge DB price over default if exists
+                        $dbProp = $boardProps[$cellIndex] ?? null;
+                        $displayPrice = $dbProp && isset($dbProp['price']) && $dbProp['price'] > 0
+                            ? (int)$dbProp['price'] : ($cell['price'] ?? null);
+                        $cellImg = $dbProp['image_url'] ?? null;
+
+                        // Color bar / image for COLORED cells (property)
                         if ($cell['color'] != 'white') {
                             echo '<div class="color-bar c-'.$cell['color'].' flex items-center justify-center">';
-                            // Title in color bar, white text
                             echo '<div class="name-in-color text-white font-black uppercase text-center leading-none flex items-center justify-center w-full h-full" style="font-size:clamp(0.4rem, 1vmin, 0.7rem);">';
                             echo $cell['name'];
                             echo '</div>';
                             echo '</div>';
-
                             echo '<div class="name flex items-center justify-center w-full h-full p-1 relative">';
-                            if (isset($cityImages[$cellIndex]) && !empty($cityImages[$cellIndex])) {
-                                $imgPath = $cityImages[$cellIndex];
+                            if (!empty($cellImg)) {
+                                $imgPath = $cellImg;
                                 if (strpos($imgPath, '/') === false) $imgPath = 'assets_static/cities/' . $imgPath;
                                 echo '<img src="'.BASEURL.'/'.$imgPath.'" style="width:100%;height:100%;object-fit:cover;border-radius:4px;box-shadow:inset 0 0 5px rgba(0,0,0,0.2);">';
                             }
                             echo '</div>';
+                        } elseif ($cellType === 'station') {
+                            // Station cells
+                            echo '<div class="spacer-bar" style="background:linear-gradient(135deg,#1e293b,#0f172a);width:30%;height:100%;display:flex;align-items:center;justify-content:center;">';
+                            echo '<i class="fa-solid fa-train text-white" style="font-size:clamp(0.5rem,1.5vmin,1rem);"></i>';
+                            echo '</div>';
+                            echo '<div class="name flex items-center justify-center w-full h-full p-1 relative" style="font-weight:900;">';
+                            if (!empty($cellImg)) {
+                                $imgPath = $cellImg;
+                                if (strpos($imgPath, '/') === false) $imgPath = 'assets_static/cities/' . $imgPath;
+                                echo '<img src="'.BASEURL.'/'.$imgPath.'" style="width:100%;height:100%;object-fit:cover;border-radius:4px;">';
+                            } else {
+                                echo $cell['name'];
+                            }
+                            echo '</div>';
+                        } elseif ($cellType === 'utility') {
+                            // Utility cells (PLN, PDAM)
+                            echo '<div class="spacer-bar" style="background:linear-gradient(135deg,#064e3b,#065f46);width:30%;height:100%;display:flex;align-items:center;justify-content:center;">';
+                            echo '<i class="fa-solid fa-bolt text-amber-300" style="font-size:clamp(0.5rem,1.5vmin,1rem);"></i>';
+                            echo '</div>';
+                            echo '<div class="name flex items-center justify-center w-full h-full p-1 relative" style="font-weight:900;">';
+                            if (!empty($cellImg)) {
+                                $imgPath = $cellImg;
+                                if (strpos($imgPath, '/') === false) $imgPath = 'assets_static/cities/' . $imgPath;
+                                echo '<img src="'.BASEURL.'/'.$imgPath.'" style="width:100%;height:100%;object-fit:cover;border-radius:4px;">';
+                            } else {
+                                echo $cell['name'];
+                            }
+                            echo '</div>';
                         } elseif ($cellType === 'kesempatan' || stripos($cellName, 'kesempatan') !== false) {
-                            // Kesempatan cell - amber colored like the card in center
                             echo '<div class="spacer-bar" style="background:linear-gradient(135deg,#f59e0b,#d97706);width:25%;height:100%;display:flex;align-items:center;justify-content:center;">';
                             echo '<i class="fa-solid fa-question text-white" style="font-size:clamp(0.5rem,1.5vmin,1rem);"></i>';
                             echo '</div>';
                             echo '<div class="name" style="color:#92400e;font-weight:900;">' . $cell['name'] . '</div>';
-                        } elseif ($cellType === 'dana_umum' || stripos($cellName, 'dana') !== false || stripos($cellName, 'umum') !== false) {
-                            // Dana Umum cell - emerald colored like the card in center
+                        } elseif ($cellType === 'community_chest' || stripos($cellName, 'dana') !== false || stripos($cellName, 'umum') !== false) {
                             echo '<div class="spacer-bar" style="background:linear-gradient(135deg,#10b981,#059669);width:25%;height:100%;display:flex;align-items:center;justify-content:center;">';
                             echo '<i class="fa-solid fa-gem text-white" style="font-size:clamp(0.5rem,1.5vmin,1rem);"></i>';
                             echo '</div>';
@@ -81,9 +111,9 @@
                             echo '<div class="name">' . $cell['name'] . '</div>';
                         }
 
-                        if (isset($cell['price'])) {
+                        if ($displayPrice !== null) {
                             $prefix = ($cellType === 'start') ? '+' : '';
-                            echo '<div class="price z-10">' . $prefix . 'Rp ' . number_format($cell['price'], 0, ',', '.') . '</div>';
+                            echo '<div class="price z-10">' . $prefix . 'Rp ' . number_format($displayPrice, 0, ',', '.') . '</div>';
                         } else {
                             echo '<div class="price z-10"></div>';
                         }
