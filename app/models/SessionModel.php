@@ -79,4 +79,17 @@ class SessionModel {
         $this->db->execute();
         return $pot;
     }
+
+    public function getPejabat($sessionId) {
+        $this->db->query("SELECT p.id, p.name FROM sessions s JOIN players p ON s.pejabat_id = p.id WHERE s.id = :id");
+        $this->db->bind('id', $sessionId);
+        return $this->db->single();
+    }
+
+    public function setPejabat($sessionId, $playerId) {
+        $this->db->query("UPDATE sessions SET pejabat_id = :pid WHERE id = :id");
+        $this->db->bind('pid', $playerId);
+        $this->db->bind('id', $sessionId);
+        $this->db->execute();
+    }
 }

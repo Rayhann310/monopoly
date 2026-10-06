@@ -179,6 +179,7 @@ class Database {
         try { $this->dbh->exec("ALTER TABLE sessions ADD COLUMN host_token VARCHAR(64) NOT NULL DEFAULT ''"); } catch(Exception $e) {}
         try { $this->dbh->exec("ALTER TABLE sessions ADD COLUMN active_card TEXT NULL DEFAULT NULL"); } catch(Exception $e) {}
         try { $this->dbh->exec("ALTER TABLE sessions ADD COLUMN free_parking_pot INT DEFAULT 0"); } catch(Exception $e) {}
+        try { $this->dbh->exec("ALTER TABLE sessions ADD COLUMN pejabat_id INT NULL DEFAULT NULL"); } catch(Exception $e) {}
 
         // === TABEL PEMAIN ===
         $this->dbh->exec("CREATE TABLE IF NOT EXISTS players (

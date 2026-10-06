@@ -21,7 +21,7 @@ class BoardModel {
         ['name' => 'Dana Umum', 'type' => 'community_chest', 'color' => 'white'],
         ['name' => 'Manado', 'price' => 160, 'type' => 'property', 'color' => 'yellow'],
         ['name' => 'Kendari', 'price' => 140, 'type' => 'property', 'color' => 'yellow'],
-        ['name' => 'Parkir Bebas', 'type' => 'free_parking', 'color' => 'white'],
+        ['name' => 'Pejabat Negara', 'type' => 'pejabat_negara', 'color' => 'white'],
         ['name' => 'Denpasar', 'price' => 120, 'type' => 'property', 'color' => 'orange'],
         ['name' => 'Kesempatan', 'type' => 'chance', 'color' => 'white'],
         ['name' => 'Mataram', 'price' => 100, 'type' => 'property', 'color' => 'orange'],

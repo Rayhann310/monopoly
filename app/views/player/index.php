@@ -124,28 +124,25 @@
             </div>
         </div>
 
-        <!-- Parking Pot Indicator -->
-        <?php 
-        $parkingPot = 0;
-        // Fetch from session
-        if (!empty($data['player']['session_id'])) {
-            $db = new Database();
-            $db->query("SELECT COALESCE(free_parking_pot,0) as pot FROM sessions WHERE id = :sid");
-            $db->bind('sid', $data['player']['session_id']);
-            $row = $db->single();
-            $parkingPot = $row ? (int)$row['pot'] : 0;
-        }
-        ?>
-        <div id="parking-pot-bar" class="relative z-10 mt-2 flex items-center gap-2 bg-black/25 rounded-xl px-3 py-1.5 border border-emerald-500/20 <?= $parkingPot > 0 ? '' : 'opacity-50' ?>" style="transition: opacity 0.5s">
-            <span class="text-lg">🅿️</span>
+        <!-- Pejabat Negara Indicator -->
+        <div id="pejabat-bar" class="relative z-10 mt-2 flex items-center gap-2 bg-black/25 rounded-xl px-3 py-1.5 border <?= (!empty($data['pejabat']) && $data['pejabat']['id'] == $data['player']['id']) ? 'border-amber-500/50 bg-amber-500/10' : 'border-white/10' ?> transition-all duration-500">
+            <span class="text-lg">👑</span>
             <div class="flex-1">
-                <div class="text-[9px] font-bold uppercase tracking-wider text-emerald-400/70">Pot Parkir Bebas</div>
-                <div id="parking-pot-val" class="text-sm font-black font-mono text-emerald-300">
-                    <?= $parkingPot > 0 ? 'Rp ' . number_format($parkingPot, 0, ',', '.') : 'Kosong' ?>
+                <div class="text-[9px] font-bold uppercase tracking-wider text-amber-400/70">Status Pejabat Negara</div>
+                <div id="pejabat-val" class="text-sm font-black text-amber-300">
+                    <?php 
+                    if (!empty($data['pejabat'])) {
+                        echo ($data['pejabat']['id'] == $data['player']['id']) ? 'ANDA MENJABAT' : htmlspecialchars($data['pejabat']['name']);
+                    } else {
+                        echo 'KOSONG';
+                    }
+                    ?>
                 </div>
             </div>
-            <?php if ($parkingPot > 0): ?>
-            <div class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></div>
+            <?php if (!empty($data['pejabat']) && $data['pejabat']['id'] == $data['player']['id']): ?>
+            <div id="pejabat-pulse" class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></div>
+            <?php else: ?>
+            <div id="pejabat-pulse" class="w-2 h-2 rounded-full bg-transparent"></div>
             <?php endif; ?>
         </div>
 
@@ -418,9 +415,9 @@
 
                 <div style="margin-bottom: 20px;">
                     <div style="font-weight: 900; color: #f8fafc; font-size: 1.1rem; display: flex; align-items: center; gap: 8px; margin-bottom: 5px;">
-                        <i class="fa-solid fa-parking text-emerald-400"></i> Jackpot Parkir Bebas
+                        <i class="fa-solid fa-crown text-amber-400"></i> Pejabat Negara
                     </div>
-                    Setiap pemain yang membayar <b style="color: #fb7185">Pajak (Biasa/Mewah)</b>, uangnya tidak hilang! Uang pajak tersebut akan ditampung di <b>Pot Parkir Bebas</b>. Jika kamu mendarat di petak Parkir Bebas, kamu berhak mengambil <b style="color: #34d399">SELURUH POT</b> tersebut!
+                    Pemain yang mendarat tepat di petak <b style="color: #fcd34d">Pejabat Negara</b> akan menjabat sebagai Pejabat Negara. Selama menjabat, <b>semua uang pajak</b> (Pajak Biasa & Mewah) dari semua pemain akan otomatis masuk ke <b style="color: #fcd34d">rekening Pejabat</b>! Posisi ini bisa <b style="color: #fb7185">direbut</b> jika pemain lain mendarat di petak yang sama.
                 </div>
 
                 <div style="margin-bottom: 20px;">
@@ -560,16 +557,25 @@
             moneyAnimFrame = requestAnimationFrame(step);
         }
 
-        function updateParkingPotDisplay(pot) {
-            const el = document.getElementById('parking-pot-val');
-            const bar = document.getElementById('parking-pot-bar');
+        function updatePejabatDisplay(pejabat) {
+            const el = document.getElementById('pejabat-val');
+            const bar = document.getElementById('pejabat-bar');
+            const pulse = document.getElementById('pejabat-pulse');
             if (!el) return;
-            if (pot > 0) {
-                el.textContent = 'Rp ' + parseInt(pot).toLocaleString('id-ID');
-                if (bar) { bar.style.opacity = '1'; }
+            if (pejabat) {
+                if (pejabat.id == player.id) {
+                    el.textContent = 'ANDA MENJABAT';
+                    if (bar) { bar.classList.add('border-amber-500/50', 'bg-amber-500/10'); bar.classList.remove('border-white/10'); }
+                    if (pulse) { pulse.classList.remove('bg-transparent'); pulse.classList.add('bg-amber-400', 'animate-pulse'); }
+                } else {
+                    el.textContent = pejabat.name;
+                    if (bar) { bar.classList.remove('border-amber-500/50', 'bg-amber-500/10'); bar.classList.add('border-white/10'); }
+                    if (pulse) { pulse.classList.add('bg-transparent'); pulse.classList.remove('bg-amber-400', 'animate-pulse'); }
+                }
             } else {
-                el.textContent = 'Kosong';
-                if (bar) { bar.style.opacity = '0.5'; }
+                el.textContent = 'KOSONG';
+                if (bar) { bar.classList.remove('border-amber-500/50', 'bg-amber-500/10'); bar.classList.add('border-white/10'); }
+                if (pulse) { pulse.classList.add('bg-transparent'); pulse.classList.remove('bg-amber-400', 'animate-pulse'); }
             }
         }
 
@@ -759,37 +765,28 @@
                         jailBanner = `<div class="p-2.5 mb-3 bg-emerald-500/20 border border-emerald-500/40 rounded-xl text-emerald-300 text-xs font-bold leading-relaxed text-center"><i class="fa-solid fa-dice mr-1"></i> ${act.msg_jail}</div>`;
                     }
 
-                    // Update parking pot display globally
-                    if (res.parking_pot !== undefined) {
-                        updateParkingPotDisplay(res.parking_pot);
+                    // Update pejabat display globally
+                    if (res.pejabat !== undefined) {
+                        updatePejabatDisplay(res.pejabat);
                     }
 
                     // Show action modal
                     if (act.type === 'jail_stay') {
                         // Tertahan di penjara karena dadu tidak kembar
                         showModal('<i class="fa-solid fa-handcuffs text-rose-500 mr-1"></i> Tertahan di Penjara!', act.msg, 'warning', '#ef4444');
-                    } else if (act.type === 'free_parking_win') {
+                    } else if (act.type === 'become_pejabat') {
                         Swal.fire({
-                            title: `<span style="font-size:2rem">🅿️</span> PARKIR BEBAS!`,
-                            html: `<div style="background:linear-gradient(135deg,#065f46,#064e3b);border-radius:16px;padding:20px;margin:10px 0;border:2px solid #10b981;">
-                                <div style="font-size:2.5rem;font-weight:900;color:#34d399;font-family:monospace;">
-                                    +Rp ${parseInt(act.amount).toLocaleString('id-ID')}
+                            title: `<span style="font-size:2rem">👑</span> PEJABAT NEGARA!`,
+                            html: `<div style="background:linear-gradient(135deg,#78350f,#451a03);border-radius:16px;padding:20px;margin:10px 0;border:2px solid #f59e0b;">
+                                <div style="font-size:1.5rem;font-weight:900;color:#fcd34d;font-family:monospace;line-height:1.2;">
+                                    KAMU SEKARANG ADALAH PEJABAT NEGARA!
                                 </div>
-                                <div style="color:#6ee7b7;font-size:0.85rem;margin-top:6px;">Pot Parkir Bebas berhasil kamu ambil!</div>
+                                <div style="color:#fde68a;font-size:0.95rem;margin-top:12px;">Semua uang Pajak (Pajak Biasa & Mewah) yang dibayarkan oleh pemain mana pun akan langsung masuk ke <b style="color:#fff">rekeningmu</b>!</div>
                             </div>
-                            <div style="color:#94a3b8;font-size:0.8rem;margin-top:8px;">Pot kini direset. Pajak berikutnya mulai mengisi pot lagi.</div>`,
+                            <div style="color:#94a3b8;font-size:0.8rem;margin-top:8px;">Posisi ini bisa direbut jika ada pemain lain yang mendarat di petak ini.</div>`,
                             background: '#0f172a', color: '#f1f5f9',
-                            confirmButtonText: '<i class="fa-solid fa-coins mr-1"></i> Sip, Terima kasih!',
-                            confirmButtonColor: '#10b981',
-                        });
-                    } else if (act.type === 'free_parking_empty') {
-                        Swal.fire({
-                            title: `<span style="font-size:2rem">🅿️</span> Parkir Bebas`,
-                            html: `<div style="color:#64748b;font-size:1.2rem;margin:15px 0;">Pot Parkir Bebas masih <b style="color:#f1f5f9">kosong</b>.</div>
-                            <div style="color:#94a3b8;font-size:0.85rem;">Nikmati istirahat — ketika pemain lain kena pajak, pot akan terisi!</div>`,
-                            background: '#0f172a', color: '#f1f5f9',
-                            confirmButtonText: '<i class="fa-solid fa-parking mr-1"></i> Oke!',
-                            confirmButtonColor: '#3b82f6',
+                            confirmButtonText: '<i class="fa-solid fa-crown mr-1"></i> Siap Bertugas!',
+                            confirmButtonColor: '#f59e0b',
                         });
                     } else if (act.type === 'first_lap_info') {
                         // Informasi putaran pertama belum boleh beli properti

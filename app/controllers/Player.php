@@ -10,6 +10,7 @@ class Player extends Controller {
         
         $data['properties'] = $this->model('PropertyModel')->getPlayerProperties($data['player']['session_id'], $id);
         $data['settings'] = $this->model('SettingsModel')->getAll();
+        $data['pejabat'] = $this->model('SessionModel')->getPejabat($data['player']['session_id']);
 
         $this->view('templates/header_player', $data);
         $this->view('player/index', $data);
@@ -152,15 +153,18 @@ class Player extends Controller {
                 case 'tax':
                     $deduct = ($newPos == 38) ? $luxuryTax : $taxAmount;
                     $newMoney -= $deduct;
-                    // Masukkan pajak ke pot Parkir Bebas jika fitur aktif
-                    if ($freeParkingOn) {
-                        $this->model('SessionModel')->addToParkingPot($sessionId, $deduct);
-                    }
-                    $pot = $this->model('SessionModel')->getParkingPot($sessionId);
+                    
                     $action['type']        = 'tax';
                     $action['amount']      = -$deduct;
-                    $action['parking_pot'] = $pot;
-                    $action['msg']         = "Kena " . ($newPos == 38 ? 'Pajak Mewah' : 'Pajak Biasa') . "! Bayar Rp " . number_format($deduct, 0, ',', '.') . ($freeParkingOn ? " (masuk Pot Parkir Bebas: Rp " . number_format($pot, 0, ',', '.') . ")" : "");
+                    
+                    $pejabat = $this->model('SessionModel')->getPejabat($sessionId);
+                    if ($freeParkingOn && $pejabat) {
+                        // Transfer tax to Pejabat
+                        $this->model('PlayerModel')->addMoney($pejabat['id'], $deduct);
+                        $action['msg'] = "Kena " . ($newPos == 38 ? 'Pajak Mewah' : 'Pajak Biasa') . "! Membayar Rp " . number_format($deduct, 0, ',', '.') . " ke Pejabat Negara (" . $pejabat['name'] . ").";
+                    } else {
+                        $action['msg'] = "Kena " . ($newPos == 38 ? 'Pajak Mewah' : 'Pajak Biasa') . "! Uang disita negara sebesar Rp " . number_format($deduct, 0, ',', '.');
+                    }
                     break;
 
                 case 'go_to_jail':
@@ -292,23 +296,15 @@ class Player extends Controller {
                     }
                     break;
 
-                case 'free_parking':
+                case 'pejabat_negara':
+                case 'free_parking': // fallback in case old board used
                     if ($freeParkingOn) {
-                        $collected = $this->model('SessionModel')->collectParkingPot($sessionId, $freeParkingSeed);
-                        if ($collected > 0) {
-                            $newMoney += $collected;
-                            $action['type']        = 'free_parking_win';
-                            $action['amount']       = $collected;
-                            $action['parking_pot']  = $freeParkingSeed;
-                            $action['msg']          = "PARKIR BEBAS! Kamu mengambil seluruh Pot sebesar Rp " . number_format($collected, 0, ',', '.');
-                        } else {
-                            $action['type']        = 'free_parking_empty';
-                            $action['parking_pot']  = 0;
-                            $action['msg']          = "Parkir Bebas! Pot sedang kosong. Nikmati istirahatmu!";
-                        }
+                        $this->model('SessionModel')->setPejabat($sessionId, $id);
+                        $action['type']        = 'become_pejabat';
+                        $action['msg']          = "SELAMAT! Kamu sekarang adalah 👑 PEJABAT NEGARA. Semua pemain yang mendarat di petak Pajak akan membayar pajak langsung ke rekeningmu!";
                     } else {
                         $action['type'] = 'safe';
-                        $action['msg']  = "Parkir Bebas. Petak aman — tidak ada efek.";
+                        $action['msg']  = "Petak Pejabat Negara. Fitur dinonaktifkan di pengaturan.";
                     }
                     break;
                 case 'start':
@@ -329,7 +325,7 @@ class Player extends Controller {
             'laps'        => (int)($player['laps'] ?? 0),
             'in_jail'     => (bool)($player['in_jail'] ?? false),
             'jail_turns'  => (int)($player['jail_turns'] ?? 0),
-            'parking_pot' => $this->model('SessionModel')->getParkingPot($sessionId),
+            'pejabat'     => $this->model('SessionModel')->getPejabat($sessionId),
             'action'      => $action
         ]);
     }
