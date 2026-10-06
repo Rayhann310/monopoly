@@ -231,18 +231,21 @@ body { height: 100dvh; overflow: hidden; display: flex; flex-direction: column; 
         <i id="mobile-die2" class="fa-solid fa-dice-one text-6xl text-<?= $data['player']['color'] ?>-500 drop-shadow-[0_0_15px_rgba(255,255,255,0.2)]"></i>
     </div>
 
-    <!-- Roll Button -->
-    <button id="mobile-roll-btn"
-        <?= !$data['player']['is_turn'] ? 'disabled' : '' ?>
-        class="w-full max-w-sm py-4 bg-gradient-to-br <?= $bgGrad ?> text-white rounded-[2rem] font-black text-2xl tracking-wide shadow-[0_10px_40px_rgba(0,0,0,0.6)] active:scale-90 transition-all border border-white/20 disabled:opacity-30 disabled:cursor-not-allowed disabled:active:scale-100 relative overflow-hidden">
-        <div class="absolute inset-0 bg-white/20 transform -translate-x-full rounded-[2rem]"></div>
-        <i class="fa-solid fa-dice mr-2 drop-shadow-md"></i> LEMPAR DADU
-    </button>
+    <!-- Action Buttons Row -->
+    <div class="flex w-full max-w-sm gap-3">
+        <!-- Roll Button -->
+        <button id="mobile-roll-btn"
+            <?= !$data['player']['is_turn'] ? 'disabled' : '' ?>
+            class="flex-1 py-4 bg-gradient-to-br <?= $bgGrad ?> text-white rounded-[1.5rem] font-black text-lg md:text-xl tracking-wide shadow-[0_10px_40px_rgba(0,0,0,0.6)] active:scale-90 transition-all border border-white/20 disabled:opacity-30 disabled:cursor-not-allowed disabled:active:scale-100 relative overflow-hidden flex items-center justify-center">
+            <div class="absolute inset-0 bg-white/20 transform -translate-x-full rounded-[1.5rem]"></div>
+            <i class="fa-solid fa-dice mr-2 drop-shadow-md"></i> <span>LEMPAR</span>
+        </button>
 
-    <!-- End Turn Button (muncul setelah roll) -->
-    <button id="end-turn-btn" class="hidden w-full max-w-sm py-4 bg-emerald-500 hover:bg-emerald-600 text-white rounded-[2rem] font-black text-xl tracking-wide shadow-[0_10px_30px_rgba(16,185,129,0.4)] active:scale-90 transition-all border border-emerald-400/30">
-        <i class="fa-solid fa-check mr-2"></i> SELESAI GILIRAN
-    </button>
+        <!-- End Turn Button -->
+        <button id="end-turn-btn" class="hidden flex-1 py-4 bg-emerald-500 hover:bg-emerald-600 text-white rounded-[1.5rem] font-black text-lg md:text-xl tracking-wide shadow-[0_10px_30px_rgba(16,185,129,0.4)] active:scale-90 transition-all border border-emerald-400/30 flex items-center justify-center">
+            <i class="fa-solid fa-check mr-2"></i> <span>SELESAI</span>
+        </button>
+    </div>
 </div>
 
 <!-- Properties Section - Premium Redesign -->
@@ -1025,7 +1028,7 @@ body { height: 100dvh; overflow: hidden; display: flex; flex-direction: column; 
                     // Tampilkan tombol Selesai Giliran
                     endTurnBtn.classList.remove('hidden');
                     endTurnBtn.disabled = false;
-                    endTurnBtn.innerHTML = '<i class="fa-solid fa-flag-checkered mr-2"></i>Selesai Giliran';
+                    endTurnBtn.innerHTML = '<i class="fa-solid fa-flag-checkered mr-2"></i> <span>SELESAI</span>';
                     setTimeout(() => { endTurnBtn.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 300);
 
                 }).catch(() => { btn.disabled = false; });
@@ -1037,7 +1040,7 @@ body { height: 100dvh; overflow: hidden; display: flex; flex-direction: column; 
         endTurnBtn.addEventListener('click', function() {
             const btn = endTurnBtn; // Simpan referensi — jangan pakai 'this' di dalam .then()
             btn.disabled = true;
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i>Memproses...';
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> <span>...</span>';
 
             fetch(BASEURL + '/player/apiEndTurn', {
                 method: 'POST',
@@ -1047,26 +1050,26 @@ body { height: 100dvh; overflow: hidden; display: flex; flex-direction: column; 
             .then(r => r.json())
             .then(res => {
                 if (res.status === 'success') {
-                    btn.innerHTML = '<i class="fa-solid fa-check mr-2"></i>Selesai!';
+                    btn.innerHTML = '<i class="fa-solid fa-check mr-2"></i> <span>SELESAI!</span>';
                     hasRolled = false;
                     isTurn = false;
                     showModal('<i class="fa-solid fa-check mr-1"></i> Giliran Selesai!', 'Menunggu giliran berikutnya...', 'info', '#3b82f6');
                     setTimeout(() => {
                         btn.classList.add('hidden');
                         btn.disabled = false;
-                        btn.innerHTML = '<i class="fa-solid fa-flag-checkered mr-2"></i>Selesai Giliran';
+                        btn.innerHTML = '<i class="fa-solid fa-flag-checkered mr-2"></i> <span>SELESAI</span>';
                     }, 1200);
                 } else {
                     // Gagal — kembalikan tombol
                     btn.disabled = false;
-                    btn.innerHTML = '<i class="fa-solid fa-flag-checkered mr-2"></i>Selesai Giliran';
+                    btn.innerHTML = '<i class="fa-solid fa-flag-checkered mr-2"></i> <span>SELESAI</span>';
                     showModal('<i class="fa-solid fa-triangle-exclamation mr-1"></i> Gagal', res.msg || 'Coba lagi.', 'warning', '#f59e0b');
                 }
             })
             .catch(() => {
                 // Network error — selalu kembalikan tombol
                 btn.disabled = false;
-                btn.innerHTML = '<i class="fa-solid fa-flag-checkered mr-2"></i>Selesai Giliran';
+                btn.innerHTML = '<i class="fa-solid fa-flag-checkered mr-2"></i> <span>SELESAI</span>';
                 showModal('<i class="fa-solid fa-wifi mr-1"></i> Koneksi Error', 'Periksa jaringan lalu coba lagi.', 'error', '#ef4444');
             });
         });
