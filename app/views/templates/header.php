@@ -92,8 +92,17 @@
                 0 0 0 3px #fbbf24,
                 0 0 0 8px #f59e0b,
                 0 0 0 12px #d97706,
-                -15px 30px 0 12px #92400e, /* Make 3D edge thicker and darker */
-                -25px 45px 60px rgba(0,0,0,0.7); /* Stronger shadow */
+                -1px 1px 0 12px #b45309,
+                -2px 2px 0 12px #b45309,
+                -3px 3px 0 12px #b45309,
+                -4px 4px 0 12px #b45309,
+                -5px 5px 0 12px #b45309,
+                -6px 6px 0 12px #92400e,
+                -7px 7px 0 12px #92400e,
+                -8px 8px 0 12px #92400e,
+                -9px 9px 0 12px #92400e,
+                -10px 10px 0 12px #92400e,
+                -20px 20px 40px 10px rgba(0,0,0,0.7);
                 
             transform-style: preserve-3d;
             transform: rotateX(55deg) rotateZ(45deg);
@@ -362,14 +371,15 @@
     <p class="text-lg opacity-80">Game ini hanya dapat dimainkan dalam mode Landscape.</p>
 </div>
 
-<!-- Floating Hamburger to toggle Navbar -->
-<button onclick="document.getElementById('main-nav').classList.toggle('-translate-y-full')" class="absolute top-3 right-4 z-[60] w-12 h-12 bg-white/20 hover:bg-white/30 backdrop-blur-md border-2 border-white/40 rounded-xl flex items-center justify-center text-white transition shadow-[0_4px_15px_rgba(0,0,0,0.2)]">
+<!-- Floating Hamburger to toggle Navbar on Mobile -->
+<button onclick="document.getElementById('main-nav').classList.toggle('-translate-y-[150%]')" class="md:hidden absolute top-3 right-4 z-[60] w-12 h-12 bg-white/20 hover:bg-white/30 backdrop-blur-md border-2 border-white/40 rounded-xl flex items-center justify-center text-white transition shadow-[0_4px_15px_rgba(0,0,0,0.2)]">
     <i class="fa-solid fa-bars text-xl drop-shadow-md"></i>
 </button>
 
 <!-- Navbar -->
-<nav id="main-nav" class="absolute top-0 left-0 w-full min-h-[65px] py-3 md:py-0 px-4 md:px-6 pr-16 md:pr-20 flex flex-col md:flex-row justify-between items-center gap-3 md:gap-0 z-50 bg-gradient-to-r from-amber-600/90 via-amber-500/90 to-yellow-500/90 backdrop-blur-md border-b-4 border-amber-300 shadow-[0_10px_20px_rgba(0,0,0,0.3)] transition-transform duration-500 rounded-b-3xl mx-auto">
-    <div class="text-white font-black text-lg md:text-2xl tracking-widest flex items-center gap-2 md:gap-3 drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]">
+<nav id="main-nav" class="fixed top-2 md:top-4 left-1/2 -translate-x-1/2 w-[95%] max-w-[1200px] min-h-[60px] py-2 px-4 md:px-6 flex flex-col md:flex-row justify-between items-center gap-3 md:gap-0 z-50 bg-gradient-to-r from-amber-600/90 via-amber-500/90 to-yellow-500/90 backdrop-blur-md border-2 border-amber-300 shadow-[0_10px_30px_rgba(0,0,0,0.4)] transition-transform duration-500 rounded-2xl md:rounded-full">
+
+<div class="text-white font-black text-lg md:text-2xl tracking-widest flex items-center gap-2 md:gap-3 drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]">
         <i class="fa-solid fa-dice text-yellow-200 text-2xl md:text-3xl"></i> <span class="hidden sm:inline">MONOPOLY</span><span class="sm:hidden">MONOPOLY</span>
         <?php if (!empty($data['session'])): ?>
         <span class="text-amber-100 font-bold text-xs md:text-base bg-black/20 px-2 md:px-3 py-0.5 md:py-1 rounded-full border border-white/20 shadow-inner max-w-[150px] truncate">SESI: <?= htmlspecialchars($data['session']['name']) ?></span>
