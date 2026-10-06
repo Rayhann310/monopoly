@@ -86,41 +86,18 @@
             border-radius: 20px;
             position: relative;
             
-            background: #b45309;
-            border: 4px solid #f59e0b;
+            background: #fff7e0;
+            border: 5px solid #f59e0b;
             box-shadow: 
-                0 0 0 2px #d97706,
-                -1px 1px 0 2px #b45309,
-                -2px 2px 0 2px #b45309,
-                -3px 3px 0 2px #92400e,
-                -4px 4px 0 2px #92400e,
-                -5px 5px 0 2px #92400e,
-                -6px 6px 0 2px #78350f,
-                -7px 7px 0 2px #78350f,
-                -8px 8px 0 2px #78350f,
-                -9px 9px 0 2px #451a03,
-                -10px 10px 0 2px #451a03,
-                -11px 11px 0 2px #451a03,
-                -15px 15px 30px 10px rgba(0,0,0,0.8);
-                
-            transform-style: preserve-3d;
-            transform: rotateX(50deg) rotateZ(45deg);
+                0 0 0 3px #fbbf24,
+                0 0 0 8px #f59e0b,
+                0 15px 30px rgba(0,0,0,0.4);
         }
 
         @media (max-width: 768px) {
-            .board-area {
-                perspective: 900px;
-            }
             .monopoly-board {
-                transform: rotateX(50deg) rotateZ(45deg) scale(0.9);
                 width: 98vmin;
                 height: 98vmin;
-            }
-            .center-content-wrapper {
-                transform: rotateZ(-45deg) rotateX(-50deg) scale(1.2) translateZ(30px) !important;
-            }
-            .player-token {
-                transform: rotateZ(-45deg) rotateX(-50deg) translateZ(15px) !important;
             }
         }
 
@@ -133,24 +110,15 @@
             box-shadow: 
                 inset 1px 1px 0 rgba(255,255,255,0.8), 
                 inset -1px -1px 0 rgba(0,0,0,0.15), 
-                0 0 0 1px rgba(0,0,0,0.1),
-                -1px 1px 0 0 #d97706,
-                -2px 2px 0 0 #b45309,
-                -3px 3px 0 0 #92400e;
+                0 0 0 1px rgba(0,0,0,0.1);
             transition: transform 0.2s, filter 0.2s, box-shadow 0.2s;
-            transform: translateZ(10px); /* Raised to form a wall */
-            transform-style: preserve-3d;
         }
         .cell:hover {
             filter: brightness(1.1);
-            transform: translateZ(20px) scale(1.05); /* Pop out more on hover */
+            transform: scale(1.05); /* Pop out on hover */
             box-shadow: 
                 inset 0 0 0 2px rgba(251,191,36,1), 
-                -1px 1px 0 0 #d97706,
-                -2px 2px 0 0 #b45309,
-                -3px 3px 0 0 #92400e,
-                -4px 4px 0 0 #78350f,
-                -10px 10px 20px rgba(0,0,0,0.5);
+                0 10px 20px rgba(0,0,0,0.3);
             z-index: 30;
         }
 
@@ -281,8 +249,6 @@
                 inset 1px 1px 5px rgba(255,255,255,0.8);
             border: 2px solid rgba(255,255,255,1);
             transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-            transform: rotateZ(-45deg) rotateX(-50deg) translateZ(20px); /* Counter-rotate and elevate */
-            transform-style: preserve-3d;
         }
         
         .p1 { background-color: #ef4444; left: 10%; z-index: 4; }
@@ -301,15 +267,9 @@
             justify-content: center;
             flex-direction: column;
             border-radius: 12px;
-            box-shadow: 
-                inset 0 10px 30px rgba(0,0,0,0.5),
-                inset 0 -10px 30px rgba(0,0,0,0.3),
-                inset 10px 0 30px rgba(0,0,0,0.5),
-                inset -10px 0 30px rgba(0,0,0,0.3);
+            box-shadow: inset 0 0 40px rgba(0,0,0,0.5);
             position: relative;
             overflow: hidden;
-            transform: translateZ(0px); /* Lower than cells */
-            transform-style: preserve-3d;
         }
         /* Decorative dots pattern */
         .center-space::before {
@@ -328,8 +288,7 @@
             text-align: center;
             z-index: 20;
             position: relative;
-            transform: rotateZ(-45deg) rotateX(-50deg) scale(1.5) translateZ(40px);
-            transform-style: preserve-3d;
+            transform: scale(1.5);
         }
 
         .title-text { 
@@ -386,13 +345,13 @@
     <p class="text-lg opacity-80">Game ini hanya dapat dimainkan dalam mode Landscape.</p>
 </div>
 
-<!-- Floating Hamburger to toggle Navbar on Mobile -->
-<button onclick="document.getElementById('main-nav').classList.toggle('-translate-y-[150%]')" class="md:hidden absolute top-3 right-4 z-[60] w-12 h-12 bg-white/20 hover:bg-white/30 backdrop-blur-md border-2 border-white/40 rounded-xl flex items-center justify-center text-white transition shadow-[0_4px_15px_rgba(0,0,0,0.2)]">
+<!-- Floating Hamburger to toggle Navbar -->
+<button onclick="document.getElementById('main-nav').classList.toggle('-translate-y-[150%]')" class="absolute top-3 right-4 z-[60] w-12 h-12 bg-black/20 hover:bg-black/40 backdrop-blur-md border-2 border-white/40 rounded-xl flex items-center justify-center text-white transition shadow-[0_4px_15px_rgba(0,0,0,0.2)]">
     <i class="fa-solid fa-bars text-xl drop-shadow-md"></i>
 </button>
 
 <!-- Navbar -->
-<nav id="main-nav" class="fixed top-2 md:top-4 left-1/2 -translate-x-1/2 w-[95%] max-w-[1200px] min-h-[60px] py-2 px-4 md:px-6 flex flex-col md:flex-row justify-between items-center gap-3 md:gap-0 z-50 bg-gradient-to-r from-amber-600/90 via-amber-500/90 to-yellow-500/90 backdrop-blur-md border-2 border-amber-300 shadow-[0_10px_30px_rgba(0,0,0,0.4)] transition-transform duration-500 rounded-2xl md:rounded-full">
+<nav id="main-nav" class="-translate-y-[150%] fixed top-2 md:top-4 left-1/2 -translate-x-1/2 w-[95%] max-w-[1200px] min-h-[60px] py-2 px-4 md:px-6 flex flex-col md:flex-row justify-between items-center gap-3 md:gap-0 z-50 bg-gradient-to-r from-amber-600/90 via-amber-500/90 to-yellow-500/90 backdrop-blur-md border-2 border-amber-300 shadow-[0_10px_30px_rgba(0,0,0,0.4)] transition-transform duration-500 rounded-2xl md:rounded-full">
 
 <div class="text-white font-black text-lg md:text-2xl tracking-widest flex items-center gap-2 md:gap-3 drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]">
         <i class="fa-solid fa-dice text-yellow-200 text-2xl md:text-3xl"></i> <span class="hidden sm:inline">MONOPOLY</span><span class="sm:hidden">MONOPOLY</span>
