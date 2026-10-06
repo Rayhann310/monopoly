@@ -442,14 +442,13 @@ function renderProperties(properties) {
         let level = parseInt(prop.houses);
         if (level === 0) {
             // Icon Tanah (belum ada bangunan, tapi sudah dimiliki)
-            houseContainer.innerHTML = `<i class="fa-solid fa-map-location-dot text-white text-[10px] drop-shadow-md bg-slate-900/60 rounded px-1.5 py-0.5 border border-white/20"></i>`;
+            houseContainer.innerHTML = `<i class="fa-solid fa-map-location-dot text-white text-[10px] drop-shadow-md bg-${prop.owner_color}-500 rounded px-1.5 py-0.5 border border-white/50 shadow"></i>`;
         } else {
             for (let i = 0; i < level; i++) {
                 const isHotel = i === 4;
                 const icon = isHotel ? 'fa-hotel' : 'fa-house';
-                const color = isHotel ? 'text-red-500' : 'text-emerald-500';
                 const size = isHotel ? 'text-sm' : 'text-[10px]';
-                houseContainer.innerHTML += `<i class="fa-solid ${icon} ${color} ${size} drop-shadow-md bg-white/90 rounded p-0.5 border border-slate-300"></i>`;
+                houseContainer.innerHTML += `<i class="fa-solid ${icon} text-white ${size} drop-shadow-md bg-${prop.owner_color}-500 rounded p-0.5 px-1 border border-white/50 shadow"></i>`;
                 if (isHotel) break;
             }
         }

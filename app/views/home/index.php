@@ -56,7 +56,7 @@
                             echo '<div class="name flex items-center justify-center w-full h-full p-1 relative">';
                             if (isset($cityImages[$cellIndex]) && !empty($cityImages[$cellIndex])) {
                                 $imgPath = $cityImages[$cellIndex];
-                                if (strpos($imgPath, '/') === false) $imgPath = 'assets/static/cities/' . $imgPath;
+                                if (strpos($imgPath, '/') === false) $imgPath = 'assets_static/cities/' . $imgPath;
                                 echo '<img src="'.BASEURL.'/'.$imgPath.'" style="width:100%;height:100%;object-fit:cover;border-radius:4px;box-shadow:inset 0 0 5px rgba(0,0,0,0.2);">';
                             }
                             echo '</div>';
