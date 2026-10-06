@@ -92,8 +92,8 @@
                 0 0 0 3px #fbbf24,
                 0 0 0 8px #f59e0b,
                 0 0 0 12px #d97706,
-                -10px 20px 0 10px #b45309, /* Thick 3D edge */
-                -15px 35px 50px rgba(0,0,0,0.6);
+                -15px 30px 0 12px #92400e, /* Make 3D edge thicker and darker */
+                -25px 45px 60px rgba(0,0,0,0.7); /* Stronger shadow */
                 
             transform-style: preserve-3d;
             transform: rotateX(55deg) rotateZ(45deg);
@@ -122,13 +122,16 @@
             background-color: #fffef5;
             overflow: hidden;
             border-radius: 4px;
-            box-shadow: inset 0 0 0 1px rgba(0,0,0,0.07);
-            transition: filter 0.15s, box-shadow 0.15s;
+            box-shadow: inset 1px 1px 0 rgba(255,255,255,0.8), inset -1px -1px 0 rgba(0,0,0,0.15), inset 0 0 0 2px rgba(0,0,0,0.05); /* Bevel effect */
+            transition: transform 0.2s, filter 0.2s, box-shadow 0.2s;
+            transform: translateZ(5px); /* Pop out slightly from the board */
+            transform-style: preserve-3d;
         }
         .cell:hover {
-            filter: brightness(1.06);
-            box-shadow: inset 0 0 0 2px rgba(251,191,36,1), 0 0 12px rgba(251,191,36,0.6);
-            z-index: 20;
+            filter: brightness(1.1);
+            box-shadow: inset 0 0 0 2px rgba(251,191,36,1), 0 10px 20px rgba(0,0,0,0.3);
+            transform: translateZ(15px) scale(1.02); /* Pop out more on hover */
+            z-index: 30;
         }
 
         .cell-corner {
@@ -367,7 +370,7 @@
 <!-- Navbar -->
 <nav id="main-nav" class="absolute top-0 left-0 w-full min-h-[65px] py-3 md:py-0 px-4 md:px-6 pr-16 md:pr-20 flex flex-col md:flex-row justify-between items-center gap-3 md:gap-0 z-50 bg-gradient-to-r from-amber-600/90 via-amber-500/90 to-yellow-500/90 backdrop-blur-md border-b-4 border-amber-300 shadow-[0_10px_20px_rgba(0,0,0,0.3)] transition-transform duration-500 rounded-b-3xl mx-auto">
     <div class="text-white font-black text-lg md:text-2xl tracking-widest flex items-center gap-2 md:gap-3 drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]">
-        <i class="fa-solid fa-dice text-yellow-200 text-2xl md:text-3xl"></i> <span class="hidden sm:inline">LET'S GET RICH!</span><span class="sm:hidden">GET RICH!</span>
+        <i class="fa-solid fa-dice text-yellow-200 text-2xl md:text-3xl"></i> <span class="hidden sm:inline">MONOPOLY</span><span class="sm:hidden">MONOPOLY</span>
         <?php if (!empty($data['session'])): ?>
         <span class="text-amber-100 font-bold text-xs md:text-base bg-black/20 px-2 md:px-3 py-0.5 md:py-1 rounded-full border border-white/20 shadow-inner max-w-[150px] truncate">SESI: <?= htmlspecialchars($data['session']['name']) ?></span>
         <?php if (!empty($data['is_host'])): ?>
