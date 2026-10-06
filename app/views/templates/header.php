@@ -55,7 +55,6 @@
             justify-content: center;
             height: 100vh;
             width: 100vw;
-            padding-top: 60px;
         }
 
         .board-area {
@@ -341,7 +340,10 @@
 <div id="portrait-overlay">
     <i class="fa-solid fa-mobile-screen fa-rotate-270 text-6xl mb-4 animate-bounce"></i>
     <h1 class="text-3xl font-black mb-2">Putar Perangkat Anda</h1>
-    <p class="text-lg opacity-80">Game ini hanya dapat dimainkan dalam mode Landscape.</p>
+    <p class="text-lg opacity-80 mb-6">Game ini hanya dapat dimainkan dalam mode Landscape.</p>
+    <button onclick="toggleFullscreen()" class="px-6 py-3 bg-white text-amber-600 font-bold rounded-full shadow-lg hover:scale-105 transition-transform flex items-center">
+        <i class="fa-solid fa-expand mr-2"></i> Paksa Landscape (Fullscreen)
+    </button>
 </div>
 
 <!-- Floating Hamburger to toggle Navbar -->
@@ -403,7 +405,10 @@ function toggleFullscreen() {
     const icon = document.getElementById('fs-icon');
     if (!document.fullscreenElement) {
         document.documentElement.requestFullscreen().then(() => {
-            icon.classList.replace('fa-expand', 'fa-compress');
+            if(icon) icon.classList.replace('fa-expand', 'fa-compress');
+            if (screen.orientation && screen.orientation.lock) {
+                screen.orientation.lock('landscape').catch(() => {});
+            }
         }).catch(() => {});
     } else {
         document.exitFullscreen().then(() => {
