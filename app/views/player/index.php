@@ -390,7 +390,19 @@
                             }
                         });
                     } else if (act.type === 'rent') {
-                        showModal('<i class="fa-solid fa-money-bill-wave mr-1"></i> Bayar Sewa!', act.msg, 'warning', '#f97316');
+                        const imgHtml = act.image 
+                            ? `<img src="${BASEURL}/${act.image}" style="width:100%;height:120px;object-fit:cover;border-radius:12px;margin-bottom:10px">`
+                            : `<div style="height:80px;display:flex;align-items:center;justify-content:center;background:#1e293b;border-radius:12px;margin-bottom:10px"><i class="fa-solid fa-building" style="font-size:2.5rem;color:#475569"></i></div>`;
+                        Swal.fire({
+                            title: `<i class="fa-solid fa-money-bill-wave mr-1 text-orange-500"></i> Bayar Sewa!`,
+                            html: `${imgHtml}
+                                   <div style="font-size:1.1rem;font-weight:bold;color:#f1f5f9">${act.name}</div>
+                                   <div style="color:#94a3b8;font-size:0.9rem;margin-bottom:10px">${act.level_name} milik <b>${act.owner}</b></div>
+                                   <div style="font-size:1.4rem;font-weight:900;color:#ef4444">- Rp ${parseInt(act.amount).toLocaleString('id-ID')}</div>`,
+                            background: '#0f172a', color: '#f1f5f9',
+                            confirmButtonText: '<i class="fa-solid fa-check"></i> Mengerti',
+                            confirmButtonColor: '#f97316'
+                        });
                     } else if (act.type === 'tax') {
                         showModal('<i class="fa-solid fa-landmark mr-1"></i> Bayar Pajak!', act.msg, 'warning', '#f97316');
                     } else if (act.type === 'jail') {

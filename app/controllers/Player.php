@@ -161,10 +161,16 @@ class Player extends Controller {
                         $rent = $this->calcRent($cell, $owner, $sessionId, $dice);
                         $newMoney -= $rent;
                         $this->model('PlayerModel')->updateMoney($owner['owner_id'], (int)$owner['money'] + $rent);
-                        $action['type']     = 'rent';
-                        $action['amount']   = -$rent;
-                        $action['owner']    = $owner['owner_name'];
-                        $action['msg']      = "Bayar sewa Rp " . number_format($rent, 0, ',', '.') . " ke " . $owner['owner_name'];
+                        $currentLevel = (int)$owner['houses'];
+                        $levelName = $cell["level{$currentLevel}_name"] ?? "Level {$currentLevel}";
+                        $action['type']          = 'rent';
+                        $action['amount']        = $rent;
+                        $action['owner']         = $owner['owner_name'];
+                        $action['name']          = $cell['name'];
+                        $action['image']         = $cellImage;
+                        $action['current_level'] = $currentLevel;
+                        $action['level_name']    = $currentLevel > 0 ? $levelName : 'Tanah Kosong';
+                        $action['msg']           = "Bayar sewa Rp " . number_format($rent, 0, ',', '.') . " ke " . $owner['owner_name'];
                     }
                     break;
 
