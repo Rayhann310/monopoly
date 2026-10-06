@@ -24,22 +24,36 @@ if (typeof dbSessionId !== 'undefined') sessionId = dbSessionId;
 
 /**
  * Hitung posisi tengah sel relatif terhadap board
+ * Offset disesuaikan jumlah pemain agar tidak tumpuk
  */
 function getCellPosOnBoard(cellIndex, playerIndex) {
     const board = document.querySelector('.monopoly-board');
     const cell  = document.getElementById(`cell-${cellIndex}`);
     if (!board || !cell) return null;
 
-    // Offset kecil agar token 4 pemain tidak tumpuk persis
-    const offsets = [
-        { dx: -6, dy: -6 },
-        { dx:  6, dy: -6 },
-        { dx: -6, dy:  6 },
-        { dx:  6, dy:  6 },
-    ];
-    const off = offsets[playerIndex % 4] || { dx: 0, dy: 0 };
+    const total = players.length;
+    let offsets;
+    if (total === 2) {
+        offsets = [
+            { dx: -7, dy: 0 },
+            { dx:  7, dy: 0 },
+        ];
+    } else if (total === 3) {
+        offsets = [
+            { dx: -7, dy: -5 },
+            { dx:  7, dy: -5 },
+            { dx:  0, dy:  7 },
+        ];
+    } else {
+        offsets = [
+            { dx: -7, dy: -6 },
+            { dx:  7, dy: -6 },
+            { dx: -7, dy:  6 },
+            { dx:  7, dy:  6 },
+        ];
+    }
+    const off = offsets[playerIndex % offsets.length] || { dx: 0, dy: 0 };
 
-    // Gunakan offsetLeft & offsetTop karena posisi dihitung relatif terhadap parent (tanpa terpengaruh CSS 3D transform)
     return {
         left: cell.offsetLeft + cell.offsetWidth / 2 - 10 + off.dx,
         top:  cell.offsetTop  + cell.offsetHeight / 2 - 10 + off.dy,
@@ -63,6 +77,16 @@ function snapTokenToCell(token, cellIndex, playerIndex) {
 }
 
 /**
+ * Definisi visual unik per slot pemain
+ */
+const TOKEN_STYLES = [
+    { bg: 'linear-gradient(135deg,#ef4444,#b91c1c)', border: '#fca5a5', icon: '♟', shadow: 'rgba(239,68,68,0.7)' },
+    { bg: 'linear-gradient(135deg,#3b82f6,#1d4ed8)', border: '#93c5fd', icon: '⚑', shadow: 'rgba(59,130,246,0.7)' },
+    { bg: 'linear-gradient(135deg,#22c55e,#15803d)', border: '#86efac', icon: '★', shadow: 'rgba(34,197,94,0.7)'  },
+    { bg: 'linear-gradient(135deg,#eab308,#a16207)', border: '#fde047', icon: '♛', shadow: 'rgba(234,179,8,0.7)'  },
+];
+
+/**
  * Buat / reset semua token di board (dipanggil saat init & refresh)
  */
 function placeTokens() {
@@ -73,22 +97,36 @@ function placeTokens() {
     if (!board) return;
 
     players.forEach((p, idx) => {
+        const style = TOKEN_STYLES[idx % TOKEN_STYLES.length];
         const token = document.createElement('div');
-        token.className   = `board-token player-token p${p.id}`;
-        token.id          = `token-p${p.id}`;
-        token.title       = p.name;
+        token.className = `board-token player-token p${p.id}`;
+        token.id        = `token-p${p.id}`;
+        token.title     = p.name;
+
+        // Inisial nama pemain
+        const initials = p.name.substring(0, 2).toUpperCase();
+
         token.style.cssText = `
             position: absolute;
             z-index: 200;
             pointer-events: none;
-            width: 20px; height: 20px;
+            width: 22px; height: 22px;
             border-radius: 50%;
+            background: ${style.bg};
+            border: 2px solid ${style.border};
+            box-shadow: 0 2px 8px ${style.shadow}, 0 0 0 1px rgba(255,255,255,0.3);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 10px; font-weight: 900; color: white;
+            font-family: 'Outfit', sans-serif;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.5);
             transition:
-                left  350ms cubic-bezier(0.34, 1.56, 0.64, 1),
-                top   350ms cubic-bezier(0.34, 1.56, 0.64, 1),
+                left   350ms cubic-bezier(0.34, 1.56, 0.64, 1),
+                top    350ms cubic-bezier(0.34, 1.56, 0.64, 1),
                 transform 200ms ease,
                 box-shadow 200ms ease;
         `;
+        token.innerHTML = `<span style="line-height:1;font-size:9px;">${initials}</span>`;
+
         board.appendChild(token);
         snapTokenToCell(token, p.position, idx);
     });
