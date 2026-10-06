@@ -47,6 +47,7 @@
             padding: 16px;
             width: 100%;
             height: 100%;
+            perspective: 1200px; /* Add 3D perspective */
         }
         
         /* ==========================================
@@ -73,8 +74,11 @@
                 0 0 0 3px #fbbf24,
                 0 0 0 8px #f59e0b,
                 0 0 0 12px #d97706,
-                0 35px 70px -10px rgba(0,0,0,0.55),
-                inset 0 0 60px rgba(251,191,36,0.08);
+                -10px 20px 0 10px #b45309, /* Thick 3D edge */
+                -15px 35px 50px rgba(0,0,0,0.6);
+                
+            transform-style: preserve-3d;
+            transform: rotateX(55deg) rotateZ(45deg);
         }
 
         /* === CELLS === */
@@ -219,6 +223,8 @@
                 inset 1px 1px 5px rgba(255,255,255,0.8);
             border: 2px solid rgba(255,255,255,1);
             transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            transform: rotateZ(-45deg) rotateX(-55deg) translateZ(20px); /* Counter-rotate and elevate */
+            transform-style: preserve-3d;
         }
         
         .p1 { background-color: #ef4444; left: 10%; z-index: 4; }
@@ -260,6 +266,8 @@
             text-align: center;
             z-index: 20;
             position: relative;
+            transform: rotateZ(-45deg) rotateX(-55deg) scale(1.5) translateZ(40px);
+            transform-style: preserve-3d;
         }
 
         .title-text { 
