@@ -2,9 +2,60 @@
 // game.js — Monopoly Indonesia Board Controller
 // ============================================================
 
+// 🔊 Audio context (shared, reused)
+let _audioCtx = null;
+function getAudioCtx() {
+    if (!_audioCtx) {
+        try { _audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) {}
+    }
+    return _audioCtx;
+}
+
+/** Suara "tok" langkah kaki token di papan */
+function playTokenStep() {
+    const ctx = getAudioCtx();
+    if (!ctx) return;
+    try {
+        const osc  = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(300, ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(140, ctx.currentTime + 0.07);
+        gain.gain.setValueAtTime(0.22, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.12);
+        osc.start(ctx.currentTime);
+        osc.stop(ctx.currentTime + 0.12);
+    } catch(e) {}
+}
+
+/** Suara "bum" mendarat di kotak */
+function playTokenLand() {
+    const ctx = getAudioCtx();
+    if (!ctx) return;
+    try {
+        const osc  = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(180, ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(60, ctx.currentTime + 0.25);
+        gain.gain.setValueAtTime(0.35, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+        osc.start(ctx.currentTime);
+        osc.stop(ctx.currentTime + 0.3);
+    } catch(e) {}
+}
+
+// Init audio context on first user interaction
+document.addEventListener('click', () => { getAudioCtx(); }, { once: true });
+
 let players  = [];
 let sessionId = null;
 const animating = {};
+
 
 if (typeof dbPlayers !== 'undefined' && dbPlayers.length > 0) {
     players = dbPlayers.map(p => ({
@@ -168,6 +219,9 @@ function animateTokenStepByStep(player, fromPos, toPos, stepDelay = 380) {
             token.style.left = pos.left + 'px';
             token.style.top  = pos.top  + 'px';
 
+            // 🔊 Suara langkah setiap petak
+            playTokenStep();
+
             // Efek lompat kecil: naik saat bergerak, kembali saat mendarat
             token.style.transform = 'scale(1.25) translateY(-5px)';
             setTimeout(() => {
@@ -186,6 +240,9 @@ function animateTokenStepByStep(player, fromPos, toPos, stepDelay = 380) {
             // Selesai — update state
             player.position = toPos;
             animating[player.id] = false;
+
+            // 🔊 Suara mendarat
+            playTokenLand();
 
             // Efek mendarat: flash besar lalu normal
             token.style.transform = 'scale(1.8)';

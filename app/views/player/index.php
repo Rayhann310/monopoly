@@ -657,6 +657,44 @@
                 player.position = (parseInt(player.position) + total) % 40;
                 const landedCell = board[player.position];
 
+                // 🔊 Suara langkah kaki (Web Audio API — tidak perlu file)
+                function playStepSound() {
+                    try {
+                        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                        const osc = ctx.createOscillator();
+                        const gain = ctx.createGain();
+                        osc.connect(gain); gain.connect(ctx.destination);
+                        osc.type = 'sine';
+                        osc.frequency.setValueAtTime(220, ctx.currentTime);
+                        osc.frequency.exponentialRampToValueAtTime(110, ctx.currentTime + 0.08);
+                        gain.gain.setValueAtTime(0.18, ctx.currentTime);
+                        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.1);
+                        osc.start(ctx.currentTime);
+                        osc.stop(ctx.currentTime + 0.1);
+                    } catch(e) {}
+                }
+
+                // Animasi token melangkah satu per satu
+                const startPos = (parseInt(player.position) - total + 40) % 40;
+                let stepPos = startPos;
+                let stepsLeft = total;
+                function doStep() {
+                    if (stepsLeft <= 0) return;
+                    stepPos = (stepPos + 1) % 40;
+                    stepsLeft--;
+                    playStepSound();
+                    // Visual highlight cell
+                    document.querySelectorAll('.cell').forEach(c => c.style.outline = '');
+                    const cellEl = document.getElementById('cell-' + stepPos);
+                    if (cellEl) {
+                        cellEl.style.outline = '3px solid #38bdf8';
+                        cellEl.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+                        setTimeout(() => { cellEl.style.outline = ''; }, 200);
+                    }
+                    if (stepsLeft > 0) setTimeout(doStep, 220);
+                }
+                if (total > 0) doStep();
+
                 let title = `<i class='fa-solid fa-dice text-blue-400 mr-1'></i> Dadu: ${total}`;
                 let text = `<b>Mendarat di:</b><br><span style="font-size:1.4rem;font-weight:900;color:#38bdf8">${landedCell.name}</span>`;
                 let icon = 'success', color = '#38bdf8';

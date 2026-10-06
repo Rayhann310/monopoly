@@ -145,24 +145,29 @@ class Database {
         $cardCount = $this->dbh->query("SELECT COUNT(*) FROM cards")->fetchColumn();
         if ($cardCount == 0) {
             $this->dbh->exec("INSERT INTO cards (type, text, effect_type, effect_value, pass_start_money) VALUES
-                ('kesempatan','Maju ke Jakarta. Jika melewati Start, terima Rp 2.000.','move_pos',39,2000),
-                ('kesempatan','Bank membayar dividen kepada Anda. Terima Rp 500.','money_bank',500,0),
-                ('kesempatan','Kena denda parkir ilegal. Bayar Rp 1.500.','money_bank',-1500,0),
-                ('kesempatan','Pergi ke penjara! Jangan melewati Start, jangan menerima Rp 2.000.','jail',10,0),
-                ('kesempatan','Anda terpilih menjadi Ketua RT. Bayar setiap pemain Rp 500.','money_players',-500,0),
-                ('kesempatan','Maju ke Bandung. Jika melewati Start, terima Rp 2.000.','move_pos',24,2000),
-                ('kesempatan','Perbaikan rumah. Bayar Rp 2.500 per rumah yang dimiliki.','money_bank',-2500,0),
-                ('kesempatan','Anda mendapat hadiah ulang tahun dari setiap pemain Rp 500.','money_players',500,0),
-                ('kesempatan','Maju mundur 3 langkah.','move_steps',-3,0),
-                ('kesempatan','Bebas dari penjara. Simpan kartu ini sampai dibutuhkan.','free',0,0),
-                ('dana_umum','Terima warisan dari kakek. Terima Rp 5.000.','money_bank',5000,0),
-                ('dana_umum','Pajak penghasilan. Bayar Rp 2.000.','money_bank',-2000,0),
-                ('dana_umum','Dana pensiun cair! Terima Rp 1.000.','money_bank',1000,0),
-                ('dana_umum','Pergi ke penjara! Jangan melewati Start.','jail',10,0),
-                ('dana_umum','Biaya rumah sakit. Bayar Rp 1.500.','money_bank',-1500,0),
-                ('dana_umum','Anda menang lomba kecantikan! Terima Rp 1.000.','money_bank',1000,0),
-                ('dana_umum','Subsidi pemerintah cair. Terima Rp 2.000.','money_bank',2000,0),
-                ('dana_umum','Bebas dari penjara. Simpan kartu ini sampai dibutuhkan.','free',0)
+                -- ========== KESEMPATAN (10 kartu) ==========
+                ('kesempatan','📱 Viral di TikTok! Kontenmu tentang properti meledak. Terima endorse Rp 1.500.','money_bank',1500,0),
+                ('kesempatan','🚔 Kena razia tilang! Lupa bayar pajak kendaraan. Bayar Rp 1.000.','money_bank',-1000,0),
+                ('kesempatan','✈️ Liburan ke Bali! Maju ke Denpasar. Jika melewati Start terima Rp 2.000.','move_pos',21,2000),
+                ('kesempatan','🏛️ Masuk penjara! Tertangkap korupsi anggaran RT. Jangan lewati Start.','jail',10,0),
+                ('kesempatan','🎰 Menang judi online! ... eh maksudnya menang undian. Terima Rp 2.500.','money_bank',2500,0),
+                ('kesempatan','🍜 Usaha warmie-mu bangkrut. Bayar utang supplier Rp 1.200.','money_bank',-1200,0),
+                ('kesempatan','👑 Terpilih jadi ketua OSIS! Traktir semua pemain Rp 500.','money_players',-500,0),
+                ('kesempatan','📦 Dapet paket salah kirim, isinya duit. Terima Rp 800 dari setiap pemain.','money_players',800,0),
+                ('kesempatan','🕳️ Nyasar 3 langkah ke belakang gara-gara Google Maps error.','move_steps',-3,0),
+                ('kesempatan','🃏 Bebas penjara! Simpan kartu ini. Bisa dipakai kapan saja.','free',0,0),
+
+                -- ========== DANA UMUM (10 kartu) ==========
+                ('dana_umum','💸 THR cair! Pemerintah bagi-bagi dana. Terima Rp 3.000.','money_bank',3000,0),
+                ('dana_umum','🏥 Kecelakaan main dadu terlalu semangat. Biaya RS Rp 2.000.','money_bank',-2000,0),
+                ('dana_umum','🎂 Selamat ulang tahun! Semua pemain kasih hadiah Rp 500.','money_players',500,0),
+                ('dana_umum','🔒 Ketahuan nyontek saat ujian dadu. Masuk penjara!','jail',10,0),
+                ('dana_umum','💰 Subsidi BBM dialihkan ke rekening kamu. Terima Rp 1.500.','money_bank',1500,0),
+                ('dana_umum','🧾 Bayar pajak bumi dan bangunan. Denda Rp 1.800.','money_bank',-1800,0),
+                ('dana_umum','🏆 Juara lomba 17-an tingkat kelurahan! Hadiah Rp 1.000.','money_bank',1000,0),
+                ('dana_umum','🎓 Dapat beasiswa! Dana pendidikan cair Rp 2.000.','money_bank',2000,0),
+                ('dana_umum','📺 TV kamu meledak. Beli yang baru, bayar Rp 900.','money_bank',-900,0),
+                ('dana_umum','🃏 Bebas penjara! Simpan kartu ini. Bisa dipakai kapan saja.','free',0,0)
             ");
         }
 
