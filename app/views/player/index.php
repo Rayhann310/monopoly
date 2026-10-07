@@ -1341,8 +1341,10 @@ body { height: 100dvh; overflow: hidden; display: flex; flex-direction: column; 
 
             <!-- Sewa Tiap Tingkat -->
             <div class="bg-slate-800/50 rounded-2xl border border-white/5 overflow-hidden mb-4">
-                <div class="px-3 py-2 border-b border-white/5">
-                    <span class="text-[10px] uppercase tracking-wider text-slate-500 font-bold">Tabel Sewa per Tingkat</span>
+                <div class="px-3 py-2 border-b border-white/5 grid grid-cols-[3.5fr_2fr_2fr] gap-1 items-center">
+                    <span class="text-[9px] uppercase tracking-wider text-slate-500 font-bold">Tingkat</span>
+                    <span class="text-[9px] uppercase tracking-wider text-slate-500 font-bold text-right" title="Total Biaya Beli + Upgrade">Biaya (Total)</span>
+                    <span class="text-[9px] uppercase tracking-wider text-slate-500 font-bold text-right">Harga Sewa</span>
                 </div>
                 <div id="pm-rent-table" class="divide-y divide-white/5"></div>
             </div>
@@ -1415,28 +1417,42 @@ function showPropertyDetail(prop) {
     // Rent table
     const rentTable = document.getElementById('pm-rent-table');
     rentTable.innerHTML = '';
+    
+    let cumCost = parseInt(prop.price) || 0;
     const levels = [
-        { label: 'Tanah Kosong', rent: prop.level0_rent, icon: 'fa-land-mine-on', houses: 0 },
-        { label: prop.level1_name || 'Rumah 1',  rent: prop.level1_rent, icon: 'fa-house', houses: 1 },
-        { label: prop.level2_name || 'Rumah 2',  rent: prop.level2_rent, icon: 'fa-house', houses: 2 },
-        { label: prop.level3_name || 'Rumah 3',  rent: prop.level3_rent, icon: 'fa-house', houses: 3 },
-        { label: prop.level4_name || 'Rumah 4',  rent: prop.level4_rent, icon: 'fa-house', houses: 4 },
-        { label: prop.level5_name || 'Hotel',    rent: prop.level5_rent, icon: 'fa-hotel',  houses: 5 },
+        { label: 'Tanah Kosong', rent: prop.level0_rent, cost: cumCost, icon: 'fa-map-pin', houses: 0 }
     ];
+    
+    for (let i = 1; i <= 5; i++) {
+        const stepCost = parseInt(prop[`level${i}_price`]) || parseInt(prop.house_price) || 0;
+        cumCost += stepCost;
+        if (prop[`level${i}_rent`]) {
+            levels.push({
+                label: prop[`level${i}_name`] || (i===5 ? 'Hotel' : 'Rumah '+i),
+                rent: prop[`level${i}_rent`],
+                cost: cumCost,
+                icon: i===5 ? 'fa-hotel' : 'fa-house',
+                houses: i
+            });
+        }
+    }
+
     levels.forEach(lvl => {
         if (!lvl.rent && lvl.houses > 0) return;
         const isCurrent = (lvl.houses === prop.houses);
         const div = document.createElement('div');
-        div.className = 'flex items-center justify-between px-3 py-2' + (isCurrent ? ' bg-white/10' : '');
-        const iconColor = lvl.houses === 5 ? 'text-red-400' : (lvl.houses > 0 ? 'text-emerald-400' : 'text-slate-500');
-        const rentColor = isCurrent ? 'text-amber-300 font-black' : 'text-slate-300 font-bold';
+        div.className = 'grid grid-cols-[3.5fr_2fr_2fr] gap-1 items-center px-3 py-2' + (isCurrent ? ' bg-white/10' : '');
+        const iconColor = lvl.houses === 5 ? 'text-rose-400' : (lvl.houses > 0 ? 'text-emerald-400' : 'text-slate-500');
+        const textColor = isCurrent ? 'text-amber-300 font-black' : 'text-slate-300 font-bold';
+        
         div.innerHTML = `
-            <div class="flex items-center gap-2">
-                <i class="fa-solid ${lvl.icon} text-xs ${iconColor}"></i>
-                <span class="text-xs text-slate-300">${lvl.label}</span>
-                ${isCurrent ? '<span class="text-[9px] bg-amber-500/20 text-amber-400 border border-amber-500/30 px-1.5 rounded-full font-black">AKTIF</span>' : ''}
+            <div class="flex items-center gap-1.5 overflow-hidden pr-1">
+                <i class="fa-solid ${lvl.icon} text-[10px] ${iconColor}"></i>
+                <span class="text-[11px] text-slate-300 truncate leading-none">${lvl.label}</span>
+                ${isCurrent ? '<span class="text-[8px] bg-amber-500/20 text-amber-400 border border-amber-500/30 px-1 py-0.5 rounded-full font-black ml-1 flex-shrink-0">AKTIF</span>' : ''}
             </div>
-            <span class="text-xs ${rentColor}">Rp ${parseInt(lvl.rent||0).toLocaleString('id-ID')}</span>
+            <span class="text-[11px] font-mono text-blue-400 text-right leading-none">Rp ${lvl.cost.toLocaleString('id-ID')}</span>
+            <span class="text-[11px] font-mono ${textColor} text-right leading-none">Rp ${parseInt(lvl.rent||0).toLocaleString('id-ID')}</span>
         `;
         rentTable.appendChild(div);
     });
@@ -1460,7 +1476,14 @@ function showPropertyDetail(prop) {
 
     // Sell to Bank logic
     const sellBtn = document.getElementById('pm-sell-btn');
-    const sellPrice = Math.floor((parseInt(prop.price) + (parseInt(prop.house_price) * parseInt(prop.houses))) / 2);
+    
+    // Hitung total uang yang telah dikeluarkan (Harga Tanah + Total Biaya Rumah saat ini)
+    let totalInvested = parseInt(prop.price) || 0;
+    for (let i = 1; i <= parseInt(prop.houses); i++) {
+        totalInvested += parseInt(prop[`level${i}_price`]) || parseInt(prop.house_price) || 0;
+    }
+    const sellPrice = Math.floor(totalInvested / 2);
+    
     sellBtn.onclick = () => sellToBank(prop.cell_index, prop.name, sellPrice);
     sellBtn.innerHTML = `<i class="fa-solid fa-building-circle-arrow-right mr-1"></i>Jual (Rp ${sellPrice.toLocaleString('id-ID')})`;
 
