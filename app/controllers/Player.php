@@ -67,6 +67,9 @@ class Player extends Controller {
         $settings  = $this->model('SettingsModel');
         $board     = $this->model('BoardModel')->getBoard();
 
+        // Hapus kartu aktif sisa dari putaran sebelumnya agar tidak tertimpa popup usang
+        $this->model('SessionModel')->clearActiveCard($sessionId);
+
         $passGoBonus  = (int)$settings->get('pass_go_bonus', 2000);
         $taxAmount    = (int)$settings->get('tax_amount',   2000);
         $luxuryTax    = (int)$settings->get('luxury_tax',   7500);
@@ -548,6 +551,7 @@ class Player extends Controller {
             echo json_encode(['status' => 'error', 'msg' => 'Bukan giliran kamu']); return;
         }
         $this->model('PlayerModel')->nextTurn($player['session_id']);
+        $this->model('SessionModel')->clearActiveCard($player['session_id']);
         echo json_encode(['status' => 'success']);
     }
 
