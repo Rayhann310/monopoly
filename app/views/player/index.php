@@ -804,7 +804,8 @@ body { height: 100dvh; overflow: hidden; display: flex; flex-direction: column; 
 
                 function showCardAnimation(cardType, cardText, cardImg) {
                     cardText = cardText || 'Ambil kartu fisik dan ikuti instruksinya.';
-                    const isKesempatan = cardType === 'kesempatan' || cardType === SETTINGS.name_kesempatan;
+                    const ct = String(cardType).toLowerCase();
+                    const isKesempatan = ct === 'kesempatan' || ct === (SETTINGS.name_kesempatan || '').toLowerCase();
                     const cardLabel = isKesempatan ? SETTINGS.name_kesempatan : SETTINGS.name_dana_umum;
                     const cColor = isKesempatan ? '#f59e0b' : '#10b981';
                     const cIcon = isKesempatan ? 'fa-question' : 'fa-gem';
