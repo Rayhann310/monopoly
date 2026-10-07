@@ -126,24 +126,24 @@
                         
                         // Tumpukan Dana Umum
                         $nameDU = htmlspecialchars($data['settings']['name_dana_umum'] ?? 'DANA UMUM');
-                        echo '<div class="absolute left-[6%] top-1/2 -translate-y-1/2 flex flex-col items-center opacity-90 hover:opacity-100 transition cursor-pointer z-10">';
-                        echo '    <div class="w-[clamp(35px,8vmin,90px)] h-[clamp(55px,13vmin,130px)] bg-emerald-500 rounded-xl border-4 border-emerald-300 shadow-[2px_2px_0_#064e3b,-2px_-2px_0_white,0_10px_20px_rgba(0,0,0,0.4)] flex flex-col items-center justify-center transform -rotate-12 hover:-translate-y-2 transition-transform p-1">';
-                        echo '        <i class="fa-solid fa-gem text-white/60 text-xl md:text-3xl mb-1"></i>';
-                        echo '        <div class="text-white font-black text-[0.45rem] md:text-[0.55rem] text-center uppercase tracking-widest leading-tight break-words max-w-full">'.$nameDU.'</div>';
+                        echo '<div class="absolute left-[6%] top-1/2 -translate-y-1/2 flex flex-col items-center opacity-95 hover:opacity-100 transition cursor-pointer z-10 hover:scale-105 transform">';
+                        echo '    <div class="w-[clamp(50px,12vmin,120px)] h-[clamp(75px,18vmin,180px)] bg-emerald-500 rounded-xl border-4 border-emerald-300 shadow-[3px_3px_0_#064e3b,-2px_-2px_0_white,0_10px_20px_rgba(0,0,0,0.5)] flex flex-col items-center justify-center transform -rotate-12 hover:-translate-y-2 transition-all p-1.5">';
+                        echo '        <i class="fa-solid fa-gem text-white/70 text-2xl md:text-4xl mb-1.5 drop-shadow-md"></i>';
+                        echo '        <div class="text-white font-black text-[0.55rem] md:text-[0.7rem] text-center uppercase tracking-widest leading-tight break-words max-w-full drop-shadow">'.$nameDU.'</div>';
                         echo '    </div>';
-                        echo '    <div class="w-[clamp(35px,8vmin,90px)] h-[clamp(55px,13vmin,130px)] bg-emerald-600 rounded-xl absolute top-1 left-1 -z-10 shadow-[5px_5px_15px_rgba(0,0,0,0.5)] transform -rotate-6"></div>';
-                        echo '    <div class="w-[clamp(35px,8vmin,90px)] h-[clamp(55px,13vmin,130px)] bg-emerald-700 rounded-xl absolute top-2 left-2 -z-20 transform -rotate-3"></div>';
+                        echo '    <div class="w-[clamp(50px,12vmin,120px)] h-[clamp(75px,18vmin,180px)] bg-emerald-600 rounded-xl absolute top-1.5 left-1.5 -z-10 shadow-[8px_8px_20px_rgba(0,0,0,0.6)] transform -rotate-6"></div>';
+                        echo '    <div class="w-[clamp(50px,12vmin,120px)] h-[clamp(75px,18vmin,180px)] bg-emerald-700 rounded-xl absolute top-3 left-3 -z-20 transform -rotate-3"></div>';
                         echo '</div>';
                         
                         // Tumpukan Kesempatan
                         $nameKes = htmlspecialchars($data['settings']['name_kesempatan'] ?? 'KESEMPATAN');
-                        echo '<div class="absolute right-[6%] top-1/2 -translate-y-1/2 flex flex-col items-center opacity-90 hover:opacity-100 transition cursor-pointer z-10">';
-                        echo '    <div class="w-[clamp(35px,8vmin,90px)] h-[clamp(55px,13vmin,130px)] bg-amber-500 rounded-xl border-4 border-amber-300 shadow-[-2px_2px_0_#78350f,2px_-2px_0_white,0_10px_20px_rgba(0,0,0,0.4)] flex flex-col items-center justify-center transform rotate-12 hover:-translate-y-2 transition-transform p-1">';
-                        echo '        <i class="fa-solid fa-question text-white/60 text-xl md:text-3xl mb-1"></i>';
-                        echo '        <div class="text-white font-black text-[0.45rem] md:text-[0.55rem] text-center uppercase tracking-widest leading-tight break-words max-w-full">'.$nameKes.'</div>';
+                        echo '<div class="absolute right-[6%] top-1/2 -translate-y-1/2 flex flex-col items-center opacity-95 hover:opacity-100 transition cursor-pointer z-10 hover:scale-105 transform">';
+                        echo '    <div class="w-[clamp(50px,12vmin,120px)] h-[clamp(75px,18vmin,180px)] bg-amber-500 rounded-xl border-4 border-amber-300 shadow-[-3px_3px_0_#78350f,2px_-2px_0_white,0_10px_20px_rgba(0,0,0,0.5)] flex flex-col items-center justify-center transform rotate-12 hover:-translate-y-2 transition-all p-1.5">';
+                        echo '        <i class="fa-solid fa-question text-white/70 text-2xl md:text-4xl mb-1.5 drop-shadow-md"></i>';
+                        echo '        <div class="text-white font-black text-[0.55rem] md:text-[0.7rem] text-center uppercase tracking-widest leading-tight break-words max-w-full drop-shadow">'.$nameKes.'</div>';
                         echo '    </div>';
-                        echo '    <div class="w-[clamp(35px,8vmin,90px)] h-[clamp(55px,13vmin,130px)] bg-amber-600 rounded-xl absolute top-1 right-1 -z-10 shadow-[-5px_5px_15px_rgba(0,0,0,0.5)] transform rotate-6"></div>';
-                        echo '    <div class="w-[clamp(35px,8vmin,90px)] h-[clamp(55px,13vmin,130px)] bg-amber-700 rounded-xl absolute top-2 right-2 -z-20 transform rotate-3"></div>';
+                        echo '    <div class="w-[clamp(50px,12vmin,120px)] h-[clamp(75px,18vmin,180px)] bg-amber-600 rounded-xl absolute top-1.5 right-1.5 -z-10 shadow-[-8px_8px_20px_rgba(0,0,0,0.6)] transform rotate-6"></div>';
+                        echo '    <div class="w-[clamp(50px,12vmin,120px)] h-[clamp(75px,18vmin,180px)] bg-amber-700 rounded-xl absolute top-3 right-3 -z-20 transform rotate-3"></div>';
                         echo '</div>';
 
                         // Konten tengah: MONOPOLY + EDISI INDONESIA + Giliran (di tengah, di antara kartu)
