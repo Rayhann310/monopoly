@@ -505,24 +505,23 @@ function renderProperties(properties) {
         
         // Bar kepemilikan
         let barClass = `owner-bar bg-${prop.owner_color}-500 absolute z-30 opacity-80 shadow-[0_0_8px_rgba(0,0,0,0.5)] `;
-        if (cell.classList.contains('cell-bottom')) barClass += 'left-0 right-0 top-0 h-3';
-        else if (cell.classList.contains('cell-top')) barClass += 'left-0 right-0 bottom-0 h-3';
-        else if (cell.classList.contains('cell-left')) barClass += 'top-0 bottom-0 right-0 w-3';
-        else if (cell.classList.contains('cell-right')) barClass += 'top-0 bottom-0 left-0 w-3';
-        else barClass += 'left-0 right-0 bottom-0 h-3';
+        if (cell.classList.contains('cell-bottom')) barClass += 'left-0 right-0 top-0 h-4';
+        else if (cell.classList.contains('cell-top')) barClass += 'left-0 right-0 bottom-0 h-4';
+        else if (cell.classList.contains('cell-left')) barClass += 'top-0 bottom-0 right-0 w-4';
+        else if (cell.classList.contains('cell-right')) barClass += 'top-0 bottom-0 left-0 w-4';
+        else barClass += 'left-0 right-0 bottom-0 h-4';
 
         const ownerBar = document.createElement('div');
         ownerBar.className = barClass;
         cell.appendChild(ownerBar);
         
         // Tampilkan Tanda Tanah/Rumah
-        let houseClass = 'house-container flex absolute gap-0.5 z-40 items-center justify-center ';
-        // Letakkan di atas color-bar (color bar ukurannya 25% dari cell)
-        if (cell.classList.contains('cell-bottom')) houseClass += 'top-1 left-0 right-0 flex-row';
-        else if (cell.classList.contains('cell-top')) houseClass += 'bottom-1 left-0 right-0 flex-row';
-        else if (cell.classList.contains('cell-left')) houseClass += 'right-1 top-0 bottom-0 flex-col';
-        else if (cell.classList.contains('cell-right')) houseClass += 'left-1 top-0 bottom-0 flex-col';
-        else houseClass += 'top-1 left-0 right-0 flex-row';
+        let houseClass = 'house-container flex absolute gap-0 z-40 items-center justify-center flex-wrap ';
+        if (cell.classList.contains('cell-bottom')) houseClass += 'top-0 left-0 right-0 h-4 flex-row';
+        else if (cell.classList.contains('cell-top')) houseClass += 'bottom-0 left-0 right-0 h-4 flex-row';
+        else if (cell.classList.contains('cell-left')) houseClass += 'right-0 top-0 bottom-0 w-4 flex-col';
+        else if (cell.classList.contains('cell-right')) houseClass += 'left-0 top-0 bottom-0 w-4 flex-col';
+        else houseClass += 'top-0 left-0 right-0 h-4 flex-row';
 
         const houseContainer = document.createElement('div');
         houseContainer.className = houseClass;
@@ -530,13 +529,13 @@ function renderProperties(properties) {
         let level = parseInt(prop.houses);
         if (level === 0) {
             // Icon Tanah (belum ada bangunan, tapi sudah dimiliki)
-            houseContainer.innerHTML = `<i class="fa-solid fa-map-location-dot text-white text-[10px] drop-shadow-md bg-${prop.owner_color}-500 rounded px-1.5 py-0.5 border border-white/50 shadow"></i>`;
+            houseContainer.innerHTML = `<i class="fa-solid fa-map-pin text-white text-[9px] drop-shadow-md"></i>`;
         } else {
             for (let i = 0; i < level; i++) {
                 const isHotel = i === 4;
                 const icon = isHotel ? 'fa-hotel' : 'fa-house';
-                const size = isHotel ? 'text-sm' : 'text-[10px]';
-                houseContainer.innerHTML += `<i class="fa-solid ${icon} text-white ${size} drop-shadow-md bg-${prop.owner_color}-500 rounded p-0.5 px-1 border border-white/50 shadow"></i>`;
+                const size = isHotel ? 'text-[11px]' : 'text-[9px]';
+                houseContainer.innerHTML += `<i class="fa-solid ${icon} text-white ${size} drop-shadow-md mx-[1px] my-[1px]"></i>`;
                 if (isHotel) break;
             }
         }
