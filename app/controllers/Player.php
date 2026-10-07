@@ -244,23 +244,68 @@ class Player extends Controller {
                             $action['price'] = (int)($cell['price'] ?? 0);
                             $action['name']  = $cell['name'];
                             $action['image'] = $cellImage;
-                            $action['msg']   = "Beli {$cell['name']} seharga Rp " . number_format($cell['price'], 0, ',', '.');
+                            
+                            if ($cell['type'] === 'property') {
+                                $options = [];
+                                $cumCost = (int)($cell['price'] ?? 0);
+                                
+                                // Opsi 0: Hanya Tanah
+                                $options[] = [
+                                    'level'      => 0,
+                                    'name'       => 'Tanah Kosong',
+                                    'cost'       => $cumCost,
+                                    'rent'       => (int)($cell['level0_rent'] ?? 0),
+                                    'can_afford' => ($newMoney >= $cumCost),
+                                    'is_max'     => false,
+                                ];
+
+                                $maxAllowed = min(4, $maxPropLevel);
+                                for ($lvl = 1; $lvl <= $maxAllowed; $lvl++) {
+                                    $stepKey   = "level{$lvl}_price";
+                                    $stepPrice = (isset($cell[$stepKey]) && $cell[$stepKey] > 0)
+                                        ? (int)$cell[$stepKey]
+                                        : $housePrice;
+                                    
+                                    $cumCost += $stepPrice;
+
+                                    $lvlName = $cell["level{$lvl}_name"] ?? "Rumah {$lvl}";
+                                    $lvlRent = isset($cell["level{$lvl}_rent"]) && $cell["level{$lvl}_rent"] > 0
+                                        ? (int)$cell["level{$lvl}_rent"]
+                                        : $this->calcRent($cell, ['houses' => $lvl, 'owner_id' => $id], $sessionId, $dice);
+
+                                    $options[] = [
+                                        'level'      => $lvl,
+                                        'name'       => $lvlName,
+                                        'cost'       => $cumCost,
+                                        'rent'       => $lvlRent,
+                                        'can_afford' => ($newMoney >= $cumCost),
+                                        'is_max'     => ($lvl === $maxPropLevel),
+                                    ];
+                                }
+                                $action['buy_options'] = $options;
+                            }
+                            
+                            $action['msg']   = "Beli {$cell['name']}";
                         }
                     } elseif ($owner['owner_id'] == $id) {
                         // Milik sendiri — Buka opsi upgrade sesuai tingkat properti
                         $currentLevel = (int)$owner['houses'];
                         if ($cell['type'] === 'property' && $currentLevel < $maxPropLevel) {
-                            $lvl = $currentLevel + 1;
                             $options = [];
-                            if ($lvl <= $maxPropLevel) {
-                                // Level 0→1 pakai harga beli properti (price), level 1+→ pakai level{n}_price
-                                $stepKey   = ($currentLevel === 0) ? null : "level{$lvl}_price";
+                            $cumCost = 0;
+                            
+                            $maxAllowed = ($currentLevel < 4) ? min(4, $maxPropLevel) : $maxPropLevel;
+                            
+                            for ($lvl = $currentLevel + 1; $lvl <= $maxAllowed; $lvl++) {
+                                // Level 1 pakai harga beli properti (price), level 2+ pakai level{n}_price
+                                $stepKey   = ($lvl === 1) ? null : "level{$lvl}_price";
                                 $stepPrice = ($stepKey && isset($cell[$stepKey]) && $cell[$stepKey] > 0)
                                     ? (int)$cell[$stepKey]
-                                    : (($currentLevel === 0) ? (int)($cell['price'] ?? $housePrice) : $housePrice);
-                                $cumCost = $stepPrice;
+                                    : (($lvl === 1) ? (int)($cell['price'] ?? $housePrice) : $housePrice);
+                                
+                                $cumCost += $stepPrice;
 
-                                $lvlName = $cell["level{$lvl}_name"] ?? ($lvl === 5 ? 'Hotel' : "Rumah {$lvl}");
+                                $lvlName = $cell["level{$lvl}_name"] ?? ($lvl === 5 ? 'Hotel / Apartemen' : "Rumah {$lvl}");
                                 $lvlRent = isset($cell["level{$lvl}_rent"]) && $cell["level{$lvl}_rent"] > 0
                                     ? (int)$cell["level{$lvl}_rent"]
                                     : $this->calcRent($cell, ['houses' => $lvl, 'owner_id' => $id], $sessionId, $dice);
@@ -526,19 +571,37 @@ class Player extends Controller {
             return;
         }
 
-        $price = (int)$cell['price'];
-        if ((int)$player['money'] < $price) {
-            echo json_encode(['status' => 'error', 'msg' => 'Uang tidak cukup']); return;
+        $target = $targetLevel !== null ? max(0, $targetLevel) : 0;
+        
+        $totalCost = (int)$cell['price'];
+        for ($step = 1; $step <= $target; $step++) {
+            $stepKey   = "level{$step}_price";
+            $stepPrice = isset($cell[$stepKey]) && $cell[$stepKey] > 0
+                ? (int)$cell[$stepKey]
+                : $defaultHousePrice;
+            $totalCost += $stepPrice;
         }
 
-        $newMoney = (int)$player['money'] - $price;
+        if ((int)$player['money'] < $totalCost) {
+            echo json_encode(['status' => 'error', 'msg' => 'Uang tidak cukup untuk pembelian ini']); return;
+        }
+
+        $newMoney = (int)$player['money'] - $totalCost;
         $this->model('PlayerModel')->updateMoney($playerId, $newMoney);
         $this->model('PropertyModel')->buyProperty($sessionId, $playerId, $cellIndex);
+        
+        if ($target > 0) {
+            $this->model('PropertyModel')->upgradeProperty($sessionId, $playerId, $cellIndex, $target);
+            $targetName = $cell["level{$target}_name"] ?? ($target === 5 ? 'Hotel / Apartemen' : "Rumah {$target}");
+            $msg = "Berhasil membeli {$cell['name']} beserta tingkat {$targetName}!";
+        } else {
+            $msg = "Berhasil membeli {$cell['name']}!";
+        }
 
         echo json_encode([
             'status' => 'success',
             'money'  => $newMoney,
-            'msg'    => "Berhasil membeli {$cell['name']}!"
+            'msg'    => $msg
         ]);
         return;
     }

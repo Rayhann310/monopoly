@@ -929,9 +929,40 @@ body { height: 100dvh; overflow: hidden; display: flex; flex-direction: column; 
                         const imgHtml = act.image 
                             ? `<img src="${BASEURL}/${act.image}" style="width:100%;height:120px;object-fit:cover;border-radius:12px;margin-bottom:10px">`
                             : `<div style="height:80px;display:flex;align-items:center;justify-content:center;background:#1e293b;border-radius:12px;margin-bottom:10px"><i class="fa-solid fa-building" style="font-size:2.5rem;color:#475569"></i></div>`;
+                        
+                        let optionsHtml = '';
+                        if (act.buy_options && act.buy_options.length > 0) {
+                            optionsHtml = `<div class="text-left mt-3 bg-slate-800 rounded-xl p-3 border border-slate-700 max-h-48 overflow-y-auto">`;
+                            act.buy_options.forEach(opt => {
+                                const canAfford = opt.can_afford;
+                                const iconLvl = opt.level === 0 ? 'fa-map-pin text-slate-300' : (opt.level === 5 ? 'fa-hotel text-amber-400' : 'fa-house text-emerald-400');
+                                optionsHtml += `
+                                    <label class="flex items-center justify-between p-3 mb-2 rounded-xl border border-white/10 bg-slate-800/80 ${canAfford ? 'cursor-pointer hover:border-emerald-400/80 hover:bg-slate-800' : 'opacity-40 cursor-not-allowed'} transition-all">
+                                        <div class="flex items-center gap-3">
+                                            <input type="radio" name="selected_buy_level" value="${opt.level}" ${canAfford ? '' : 'disabled'} class="w-4 h-4 text-emerald-500 focus:ring-emerald-500" ${opt.level === 0 && canAfford ? 'checked' : ''}>
+                                            <div class="text-left">
+                                                <div class="font-black text-white text-sm flex items-center gap-1.5">
+                                                    <i class="fa-solid ${iconLvl}"></i>
+                                                    ${opt.name}
+                                                </div>
+                                                <div class="text-[11px] text-emerald-400 font-mono">Sewa: Rp ${parseInt(opt.rent).toLocaleString('id-ID')}</div>
+                                            </div>
+                                        </div>
+                                        <div class="text-right">
+                                            <div class="text-xs font-black font-mono ${canAfford ? 'text-emerald-400' : 'text-rose-400'}">
+                                                Rp ${parseInt(opt.cost).toLocaleString('id-ID')}
+                                            </div>
+                                            ${!canAfford ? '<div class="text-[9px] text-rose-400 font-bold">Uang kurang</div>' : ''}
+                                        </div>
+                                    </label>
+                                `;
+                            });
+                            optionsHtml += `</div>`;
+                        }
+
                         Swal.fire({
                             title: `<i class="fa-solid fa-building mr-1"></i> Beli Properti?`,
-                            html: `${jailBanner}${imgHtml}<b>${act.name}</b><br><span style="font-size:1.3rem;font-weight:900;color:#10b981">Rp ${parseInt(act.price).toLocaleString('id-ID')}</span>`,
+                            html: `${jailBanner}${imgHtml}<b>${act.name}</b><br><span style="font-size:1.3rem;font-weight:900;color:#10b981">Harga Dasar: Rp ${parseInt(act.price).toLocaleString('id-ID')}</span>${optionsHtml}`,
                             background: '#0f172a', color: '#f1f5f9',
                             showCancelButton: true,
                             confirmButtonText: '<i class="fa-solid fa-handshake mr-1"></i> Beli!',
@@ -940,10 +971,17 @@ body { height: 100dvh; overflow: hidden; display: flex; flex-direction: column; 
                             cancelButtonColor: '#475569',
                         }).then(result => {
                             if (result.isConfirmed) {
+                                let bodyParams = `player_id=${player.id}&cell_index=${res.position}`;
+                                if (act.buy_options && act.buy_options.length > 0) {
+                                    const checked = document.querySelector('input[name="selected_buy_level"]:checked');
+                                    if (checked) {
+                                        bodyParams += `&target_level=${checked.value}`;
+                                    }
+                                }
                                 fetch(BASEURL + '/player/apiBuy', {
                                     method: 'POST',
                                     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                                    body: `player_id=${player.id}&cell_index=${res.position}`
+                                    body: bodyParams
                                 }).then(r => r.json()).then(buyRes => {
                                     if (buyRes.status === 'success') {
                                         animateMoney(buyRes.money);

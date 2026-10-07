@@ -530,13 +530,13 @@ function renderProperties(properties) {
         if (level === 0) {
             // Icon Tanah (belum ada bangunan, tapi sudah dimiliki)
             houseContainer.innerHTML = `<i class="fa-solid fa-map-pin text-white text-[9px] drop-shadow-md"></i>`;
+        } else if (level === 5) {
+            // Level 5 (Hotel/Apartemen) -> Tampil satu icon saja
+            houseContainer.innerHTML = `<i class="fa-solid fa-hotel text-white text-[12px] drop-shadow-md mx-[1px] my-[1px]"></i>`;
         } else {
+            // Level 1-4 -> Tampil rumah sejumlah level
             for (let i = 0; i < level; i++) {
-                const isHotel = i === 4;
-                const icon = isHotel ? 'fa-hotel' : 'fa-house';
-                const size = isHotel ? 'text-[11px]' : 'text-[9px]';
-                houseContainer.innerHTML += `<i class="fa-solid ${icon} text-white ${size} drop-shadow-md mx-[1px] my-[1px]"></i>`;
-                if (isHotel) break;
+                houseContainer.innerHTML += `<i class="fa-solid fa-house text-white text-[9px] drop-shadow-md mx-[1px] my-[1px]"></i>`;
             }
         }
         cell.appendChild(houseContainer);
