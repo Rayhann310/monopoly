@@ -504,24 +504,24 @@ function renderProperties(properties) {
         if (!cell) return;
         
         // Bar kepemilikan
-        let barClass = `owner-bar bg-${prop.owner_color}-500 absolute z-30 opacity-80 shadow-[0_0_8px_rgba(0,0,0,0.5)] `;
-        if (cell.classList.contains('cell-bottom')) barClass += 'left-0 right-0 top-0 h-4';
-        else if (cell.classList.contains('cell-top')) barClass += 'left-0 right-0 bottom-0 h-4';
-        else if (cell.classList.contains('cell-left')) barClass += 'top-0 bottom-0 right-0 w-4';
-        else if (cell.classList.contains('cell-right')) barClass += 'top-0 bottom-0 left-0 w-4';
-        else barClass += 'left-0 right-0 bottom-0 h-4';
+        let barClass = `owner-bar bg-${prop.owner_color}-500 absolute z-30 opacity-80 shadow-[inset_0_0_8px_rgba(0,0,0,0.5)] `;
+        if (cell.classList.contains('cell-bottom')) barClass += 'left-0 right-0 top-0 h-3';
+        else if (cell.classList.contains('cell-top')) barClass += 'left-0 right-0 bottom-0 h-3';
+        else if (cell.classList.contains('cell-left')) barClass += 'top-0 bottom-0 right-0 w-3';
+        else if (cell.classList.contains('cell-right')) barClass += 'top-0 bottom-0 left-0 w-3';
+        else barClass += 'left-0 right-0 bottom-0 h-3';
 
         const ownerBar = document.createElement('div');
         ownerBar.className = barClass;
         cell.appendChild(ownerBar);
         
-        // Tampilkan Tanda Tanah/Rumah
-        let houseClass = 'house-container flex absolute gap-0 z-40 items-center justify-center flex-wrap ';
-        if (cell.classList.contains('cell-bottom')) houseClass += 'top-0 left-0 right-0 h-4 flex-row';
-        else if (cell.classList.contains('cell-top')) houseClass += 'bottom-0 left-0 right-0 h-4 flex-row';
-        else if (cell.classList.contains('cell-left')) houseClass += 'right-0 top-0 bottom-0 w-4 flex-col';
-        else if (cell.classList.contains('cell-right')) houseClass += 'left-0 top-0 bottom-0 w-4 flex-col';
-        else houseClass += 'top-0 left-0 right-0 h-4 flex-row';
+        // Tampilkan Tanda Tanah/Rumah di sebelah owner bar (bukan di atasnya)
+        let houseClass = 'house-container flex absolute gap-0 z-40 items-center justify-center flex-wrap bg-black/60 shadow-lg ';
+        if (cell.classList.contains('cell-bottom')) houseClass += 'top-3 left-0 right-0 h-4 flex-row border-b border-white/20';
+        else if (cell.classList.contains('cell-top')) houseClass += 'bottom-3 left-0 right-0 h-4 flex-row border-t border-white/20';
+        else if (cell.classList.contains('cell-left')) houseClass += 'right-3 top-0 bottom-0 w-4 flex-col border-l border-white/20';
+        else if (cell.classList.contains('cell-right')) houseClass += 'left-3 top-0 bottom-0 w-4 flex-col border-r border-white/20';
+        else houseClass += 'top-3 left-0 right-0 h-4 flex-row';
 
         const houseContainer = document.createElement('div');
         houseContainer.className = houseClass;

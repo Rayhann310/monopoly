@@ -57,7 +57,7 @@
                         // Color bar / image for COLORED cells (property)
                         if ($cell['color'] != 'white') {
                             echo '<div class="color-bar c-'.$cell['color'].' flex items-center justify-center">';
-                            echo '<div class="name-in-color text-white font-black uppercase text-center leading-none flex items-center justify-center w-full h-full" style="font-size:clamp(0.4rem, 1vmin, 0.7rem);">';
+                            echo '<div class="name-in-color text-white font-black uppercase text-center leading-none flex items-center justify-center w-full h-full relative z-40 drop-shadow-[0_1px_1px_rgba(0,0,0,0.8)]" style="font-size:clamp(0.4rem, 1vmin, 0.7rem);">';
                             echo $cell['name'];
                             echo '</div>';
                             echo '</div>';
