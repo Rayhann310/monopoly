@@ -628,7 +628,8 @@ class Player extends Controller {
         $db = new Database();
 
         // Cek Pejabat Negara via sessions.pejabat_id
-        $pejabatId = $this->model('SessionModel')->getPejabat($player['session_id']);
+        $pejabatData = $this->model('SessionModel')->getPejabat($player['session_id']);
+        $pejabatId = $pejabatData ? $pejabatData['id'] : null;
 
         if ($pejabatId && $pejabatId != $id) {
             // Suap mengalir ke Pejabat Negara
