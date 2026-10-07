@@ -1424,30 +1424,50 @@ function showPropertyDetail(prop) {
     rentTable.innerHTML = '';
     
     let cumCost = parseInt(prop.price) || 0;
-    const levels = [
-        { label: 'Tanah Kosong', rent: prop.level0_rent, cost: cumCost, icon: 'fa-map-pin', houses: 0 }
-    ];
+    let levels = [];
     
-    for (let i = 1; i <= 5; i++) {
-        const stepCost = parseInt(prop[`level${i}_price`]) || parseInt(prop.house_price) || 0;
-        cumCost += stepCost;
-        if (prop[`level${i}_rent`]) {
-            levels.push({
-                label: prop[`level${i}_name`] || (i===5 ? 'Hotel' : 'Rumah '+i),
-                rent: prop[`level${i}_rent`],
-                cost: cumCost,
-                icon: i===5 ? 'fa-hotel' : 'fa-house',
-                houses: i
-            });
+    if (prop.type === 'station') {
+        levels = [
+            { label: 'Punya 1 Stasiun', cost: cumCost, rent_str: 'Rp 200', icon: 'fa-train' },
+            { label: 'Punya 2 Stasiun', cost: cumCost * 2, rent_str: 'Rp 400', icon: 'fa-train' },
+            { label: 'Punya 3 Stasiun', cost: cumCost * 3, rent_str: 'Rp 800', icon: 'fa-train' },
+            { label: 'Punya 4 Stasiun', cost: cumCost * 4, rent_str: 'Rp 1.600', icon: 'fa-train' }
+        ];
+    } else if (prop.type === 'utility') {
+        levels = [
+            { label: 'Punya 1 Perusahaan', cost: cumCost, rent_str: 'Angka Dadu × 40', icon: 'fa-lightbulb' },
+            { label: 'Punya 2 Perusahaan', cost: cumCost * 2, rent_str: 'Angka Dadu × 100', icon: 'fa-lightbulb' }
+        ];
+    } else {
+        levels.push({ label: 'Tanah Kosong', rent_str: 'Rp ' + parseInt(prop.level0_rent||0).toLocaleString('id-ID'), cost: cumCost, icon: 'fa-map-pin', houses: 0 });
+        for (let i = 1; i <= 5; i++) {
+            const stepCost = parseInt(prop[`level${i}_price`]) || parseInt(prop.house_price) || 0;
+            cumCost += stepCost;
+            if (prop[`level${i}_rent`]) {
+                levels.push({
+                    label: prop[`level${i}_name`] || (i===5 ? 'Hotel' : 'Rumah '+i),
+                    rent_str: 'Rp ' + parseInt(prop[`level${i}_rent`]).toLocaleString('id-ID'),
+                    cost: cumCost,
+                    icon: i===5 ? 'fa-hotel' : 'fa-house',
+                    houses: i
+                });
+            }
         }
     }
 
     levels.forEach(lvl => {
-        if (!lvl.rent && lvl.houses > 0) return;
-        const isCurrent = (lvl.houses === prop.houses);
+        if (!lvl.rent_str && lvl.houses > 0) return;
+        const isCurrent = (prop.type === 'property' && lvl.houses === prop.houses);
         const div = document.createElement('div');
         div.className = 'grid grid-cols-[3.5fr_2fr_2fr] gap-1 items-center px-3 py-2' + (isCurrent ? ' bg-white/10' : '');
-        const iconColor = lvl.houses === 5 ? 'text-rose-400' : (lvl.houses > 0 ? 'text-emerald-400' : 'text-slate-500');
+        
+        let iconColor = 'text-slate-500';
+        if (prop.type === 'property') {
+            iconColor = lvl.houses === 5 ? 'text-rose-400' : (lvl.houses > 0 ? 'text-emerald-400' : 'text-slate-500');
+        } else {
+            iconColor = prop.type === 'station' ? 'text-orange-400' : 'text-yellow-400';
+        }
+        
         const textColor = isCurrent ? 'text-amber-300 font-black' : 'text-slate-300 font-bold';
         
         div.innerHTML = `
@@ -1457,7 +1477,7 @@ function showPropertyDetail(prop) {
                 ${isCurrent ? '<span class="text-[8px] bg-amber-500/20 text-amber-400 border border-amber-500/30 px-1 py-0.5 rounded-full font-black ml-1 flex-shrink-0">AKTIF</span>' : ''}
             </div>
             <span class="text-[11px] font-mono text-blue-400 text-right leading-none">Rp ${lvl.cost.toLocaleString('id-ID')}</span>
-            <span class="text-[11px] font-mono ${textColor} text-right leading-none">Rp ${parseInt(lvl.rent||0).toLocaleString('id-ID')}</span>
+            <span class="text-[11px] font-mono ${textColor} text-right leading-none">${lvl.rent_str}</span>
         `;
         rentTable.appendChild(div);
     });

@@ -467,7 +467,9 @@ class Player extends Controller {
     private function calcRent($cell, $owner, $sessionId, $dice = 6) {
         $basePrice = (int)($cell['price'] ?? 0);
         if ($cell['type'] === 'utility') {
-            return $dice * 40;
+            $utilCells = [12, 27];
+            $count = $this->model('PropertyModel')->countGroupOwned($sessionId, $owner['owner_id'], $utilCells);
+            return $count >= 2 ? ($dice * 100) : ($dice * 40);
         }
         if ($cell['type'] === 'station') {
             $stationCells = [5, 15, 25, 35];
