@@ -39,9 +39,9 @@
 
         body { 
             font-family: 'Outfit', sans-serif; 
-            background: linear-gradient(135deg, #fde68a 0%, #fbbf24 30%, #f59e0b 60%, #d97706 100%);
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #312e81 100%);
             background-attachment: fixed;
-            color: #1e293b; 
+            color: #f8fafc; 
             overflow: hidden; 
             margin: 0;
             padding: 0;
@@ -85,12 +85,13 @@
             border-radius: 20px;
             position: relative;
             
-            background: #fff7e0;
-            border: 5px solid #f59e0b;
+            background: #e2e8f0; /* Inner cells background base */
+            border: 4px solid #334155;
             box-shadow: 
-                0 0 0 3px #fbbf24,
-                0 0 0 8px #f59e0b,
-                0 15px 30px rgba(0,0,0,0.4);
+                0 0 0 4px #475569,
+                0 0 0 10px #0f172a,
+                0 20px 50px rgba(0,0,0,0.8),
+                inset 0 0 20px rgba(0,0,0,0.2);
         }
 
         @media (max-width: 1024px) and (orientation: landscape) {
@@ -136,7 +137,7 @@
         }
 
         .cell-corner {
-            background: linear-gradient(135deg, #fff9e6 0%, #fde68a 100%);
+            background: linear-gradient(135deg, #f8fafc 0%, #cbd5e1 100%);
             border-radius: 8px;
         }
 
@@ -286,29 +287,31 @@
         .p7 { background-color: #06b6d4; top: 45%; right: 10%; z-index: 7; } /* Cyan */
         .p8 { background-color: #f97316; bottom: 45%; left: 10%; z-index: 8; } /* Orange */
         
-        /* === CENTER AREA — Get Rich vibrant card island === */
+        /* === CENTER AREA — Sleek modern grid === */
         .center-space {
             grid-column: 2 / 11;
             grid-row: 2 / 11;
-            background: 
-                radial-gradient(ellipse at 50% 40%, #0284c7 0%, #0369a1 40%, #075985 80%, #082f49 100%);
+            background: radial-gradient(circle at 50% 50%, #1e293b 0%, #0f172a 100%);
             display: flex;
             align-items: center;
             justify-content: center;
             flex-direction: column;
             border-radius: 12px;
-            box-shadow: inset 0 0 40px rgba(0,0,0,0.5);
+            box-shadow: inset 0 0 40px rgba(0,0,0,0.8), 0 0 20px rgba(0,0,0,0.4);
             position: relative;
             overflow: hidden;
         }
-        /* Decorative dots pattern */
+        /* Decorative grid pattern */
         .center-space::before {
             content: '';
             position: absolute;
             inset: 0;
-            background-image: radial-gradient(circle, rgba(255,255,255,0.15) 1px, transparent 1px);
-            background-size: 18px 18px;
-            opacity: 0.5;
+            background-image: 
+                linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+            background-size: 30px 30px;
+            background-position: center center;
+            opacity: 0.8;
         }
 
         .center-content-wrapper {
@@ -323,27 +326,28 @@
         .title-text { 
             font-size: clamp(1.2rem, 3.5vmin, 3rem); 
             font-weight: 900;
-            background: linear-gradient(135deg, #92400e 0%, #d97706 40%, #f59e0b 60%, #b45309 100%);
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 40%, #eab308 60%, #ca8a04 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             letter-spacing: -1px;
             line-height: 1;
-            filter: drop-shadow(0 3px 6px rgba(146,64,14,0.3));
+            filter: drop-shadow(0 0 15px rgba(245,158,11,0.6));
             text-shadow: none;
         }
         
         .subtitle-text { 
             font-size: clamp(0.55rem, 1.4vmin, 1.1rem); 
-            color: #b45309; 
+            color: #fcd34d; 
             font-weight: 900;
             letter-spacing: 0.35em;
-            border-top: 3px solid #f59e0b;
-            border-bottom: 3px solid #f59e0b;
+            border-top: 2px solid rgba(251,191,36,0.5);
+            border-bottom: 2px solid rgba(251,191,36,0.5);
             padding: 0.4em 1em;
             margin-bottom: 0.8rem;
             text-transform: uppercase;
-            background: rgba(255,255,255,0.4);
-            border-radius: 4px;
+            background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(8px);
+            border-radius: 6px;
         }
 
         .info-badge {

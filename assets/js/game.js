@@ -516,12 +516,12 @@ function renderProperties(properties) {
         cell.appendChild(ownerBar);
         
         // Tampilkan Tanda Tanah/Rumah di sebelah owner bar (bukan di atasnya)
-        let houseClass = 'house-container flex absolute gap-0 z-40 items-center justify-center flex-wrap bg-black/60 shadow-lg ';
-        if (cell.classList.contains('cell-bottom')) houseClass += 'top-3 left-0 right-0 h-4 flex-row border-b border-white/20';
-        else if (cell.classList.contains('cell-top')) houseClass += 'bottom-3 left-0 right-0 h-4 flex-row border-t border-white/20';
-        else if (cell.classList.contains('cell-left')) houseClass += 'right-3 top-0 bottom-0 w-4 flex-col border-l border-white/20';
-        else if (cell.classList.contains('cell-right')) houseClass += 'left-3 top-0 bottom-0 w-4 flex-col border-r border-white/20';
-        else houseClass += 'top-3 left-0 right-0 h-4 flex-row';
+        let houseClass = 'house-container flex absolute gap-[2px] z-40 items-center justify-center flex-wrap bg-slate-900/50 backdrop-blur-md shadow-xl rounded-full px-1.5 py-[2px] border border-white/20 transition-all ';
+        if (cell.classList.contains('cell-bottom')) houseClass += 'top-3 left-1/2 -translate-x-1/2 flex-row min-w-[30%]';
+        else if (cell.classList.contains('cell-top')) houseClass += 'bottom-3 left-1/2 -translate-x-1/2 flex-row min-w-[30%]';
+        else if (cell.classList.contains('cell-left')) houseClass += 'right-3 top-1/2 -translate-y-1/2 flex-col px-0.5 py-1.5 min-h-[30%]';
+        else if (cell.classList.contains('cell-right')) houseClass += 'left-3 top-1/2 -translate-y-1/2 flex-col px-0.5 py-1.5 min-h-[30%]';
+        else houseClass += 'top-3 left-1/2 -translate-x-1/2 flex-row';
 
         const houseContainer = document.createElement('div');
         houseContainer.className = houseClass;
